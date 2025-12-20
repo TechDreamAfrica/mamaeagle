@@ -52,8 +52,8 @@
                 <div class="flex items-center">
                     <a href="{% url 'website:home' %}" class="flex items-center">
                         {% load static %}
-                        <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
-                            <img src="{% static 'logo.jpeg' %}" alt="Mama Eagle Logo" class="w-full h-full object-cover">
+                        <div class="w-35 h-14 overflow-hidden mr-3">
+                            <img src="{% static 'logo.png' %}" alt="Mama Eagle Logo" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <div class="text-xl font-bold text-primary">Mama Eagle</div>
@@ -209,10 +209,14 @@
             <div class="grid md:grid-cols-4 gap-8">
                 <div>
                     <div class="flex items-center mb-4">
-                        <div class="w-8 h-8 bg-secondary rounded-full flex items-center justify-center mr-2">
-                            <span class="text-white font-bold">🔧</span>
+                        {% load static %}
+                        <div class="w-40 h-12 overflow-hidden mr-3">
+                            <img src="{% static 'logo.png' %}" alt="Mama Eagle Logo" class="w-full h-full object-cover">
                         </div>
-                        <span class="text-xl font-bold">Mama Eagle</span>
+                        <div>
+                            <div class="text-xl font-bold">Mama Eagle</div>
+                            <div class="text-xs text-gray-300">Plumbing and Trading Enterprise</div>
+                        </div>
                     </div>
                     <p class="text-gray-300">
                         Your trusted partner for quality plumbing materials and professional solutions across Ghana.
