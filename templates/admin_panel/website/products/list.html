@@ -3,31 +3,50 @@
 {% block title %}Website Products - AccuFlow Admin{% endblock %}
 
 {% block breadcrumb_items %}
-<li class="breadcrumb-item">Website</li>
-<li class="breadcrumb-item active">Products</li>
+<li class="inline-flex items-center">
+    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+    </svg>
+    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Website</span>
+</li>
+<li class="inline-flex items-center">
+    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+    </svg>
+    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Products</span>
+</li>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="h3 mb-0">Website Products</h1>
-        <p class="text-muted">Manage products displayed on the e-commerce website</p>
+<!-- Page Header -->
+<div class="bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
+    <div class="px-6 py-6">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Website Products</h1>
+                <p class="mt-1 text-sm text-gray-600">Manage products displayed on the e-commerce website</p>
+            </div>
+            <a href="{% url 'admin_panel:website_product_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                <i class="fas fa-plus mr-2"></i>
+                Add Product
+            </a>
+        </div>
     </div>
-    <a href="{% url 'admin_panel:website_product_create' %}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-2"></i>Add Product
-    </a>
 </div>
 
 <!-- Search and Filters -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="get" class="row g-3">
-            <div class="col-md-6">
-                <input type="text" class="form-control" name="search" placeholder="Search products..." 
-                       value="{{ request.GET.search }}">
+<div class="bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
+    <div class="px-6 py-4">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+            <div class="md:col-span-6">
+                <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                <input type="text" id="search" name="search" placeholder="Search products..." 
+                       value="{{ request.GET.search }}"
+                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500">
             </div>
-            <div class="col-md-2">
-                <select name="category" class="form-select">
+            <div class="md:col-span-2">
+                <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select name="category" id="category" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
                     <option value="">All Categories</option>
                     {% for category in categories %}
                         <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
@@ -36,20 +55,22 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
-                <select name="status" class="form-select">
+            <div class="md:col-span-2">
+                <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select name="status" id="status" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
                     <option value="">All Status</option>
                     <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
                     <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-outline-primary flex-grow-1">
-                        <i class="bi bi-search me-1"></i>Filter
+            <div class="md:col-span-2">
+                <div class="flex space-x-2">
+                    <button type="submit" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-green-300 text-sm font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                        <i class="fas fa-filter mr-2"></i>
+                        Filter
                     </button>
-                    <a href="{% url 'admin_panel:website_product_list' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-lg"></i>
+                    <a href="{% url 'admin_panel:website_product_list' %}" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                        <i class="fas fa-times"></i>
                     </a>
                 </div>
             </div>
@@ -58,141 +79,186 @@
 </div>
 
 <!-- Products Table -->
-<div class="card">
-    <div class="card-header">
-        <h5 class="card-title mb-0">All Products ({{ products.paginator.count }} total)</h5>
+<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">All Products ({{ products.paginator.count }} total)</h3>
     </div>
-    <div class="card-body p-0">
-        {% if products %}
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Category</th>
-                            <th>Price</th>
-                            <th>Status</th>
-                            <th>Featured</th>
-                            <th>Created</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for product in products %}
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" 
-                                         style="width: 40px; height: 40px;">
-                                        <i class="bi bi-box text-warning"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">{{ product.name }}</h6>
-                                        <small class="text-muted">SKU: {{ product.sku|default:'-' }}</small>
+    {% if products %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Featured</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for product in products %}
+                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                        <i class="fas fa-box text-green-600"></i>
                                     </div>
                                 </div>
-                            </td>
-                            <td>
-                                {% if product.category %}
-                                    <span class="badge bg-info">{{ product.category.name }}</span>
-                                {% else %}
-                                    <span class="text-muted">-</span>
-                                {% endif %}
-                            </td>
-                            <td class="fw-bold">${{ product.price|floatformat:2 }}</td>
-                            <td>
-                                {% if product.is_active %}
-                                    <span class="badge bg-success">Active</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Inactive</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if product.is_featured %}
-                                    <i class="bi bi-star-fill text-warning"></i>
-                                {% else %}
-                                    <i class="bi bi-star text-muted"></i>
-                                {% endif %}
-                            </td>
-                            <td>{{ product.created_at|date:"M d, Y" }}</td>
-                            <td class="text-end">
-                                <div class="btn-group">
-                                    <a href="{% url 'admin_panel:website_product_detail' product.pk %}" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{% url 'admin_panel:website_product_update' product.pk %}" class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a href="{% url 'admin_panel:website_product_delete' product.pk %}" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
+                                    <div class="text-sm text-gray-500">SKU: {{ product.sku|default:'-' }}</div>
                                 </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if product.category %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">
+                                    {{ product.category.name }}
+                                </span>
+                            {% else %}
+                                <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-bold text-gray-900">${{ product.price|floatformat:2 }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if product.is_active %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-circle text-green-400 mr-1"></i>
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    <i class="fas fa-circle text-gray-400 mr-1"></i>
+                                    Inactive
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if product.is_featured %}
+                                <i class="fas fa-star text-yellow-400 text-lg"></i>
+                            {% else %}
+                                <i class="far fa-star text-gray-300 text-lg"></i>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ product.created_at|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex justify-end space-x-2">
+                                <a href="{% url 'admin_panel:website_product_detail' product.pk %}" class="inline-flex items-center p-2 border border-gray-300 rounded-md text-gray-600 hover:text-blue-600 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'admin_panel:website_product_update' product.pk %}" class="inline-flex items-center p-2 border border-gray-300 rounded-md text-gray-600 hover:text-amber-600 hover:border-amber-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors duration-200">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'admin_panel:website_product_delete' product.pk %}" class="inline-flex items-center p-2 border border-gray-300 rounded-md text-gray-600 hover:text-red-600 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-            <!-- Pagination -->
-            {% if products.has_other_pages %}
-            <div class="card-footer">
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center mb-0">
+        <!-- Pagination -->
+        {% if products.has_other_pages %}
+        <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+            <nav class="flex items-center justify-between" aria-label="Pagination">
+                <div class="hidden sm:block">
+                    <p class="text-sm text-gray-700">
+                        Showing page
+                        <span class="font-medium">{{ products.number }}</span>
+                        of
+                        <span class="font-medium">{{ products.paginator.num_pages }}</span>
+                    </p>
+                </div>
+                <div class="flex-1 flex justify-center sm:justify-end">
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                         {% if products.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                    <i class="bi bi-chevron-double-left"></i>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ products.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                    <i class="bi bi-chevron-left"></i>
-                                </a>
-                            </li>
+                            <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
+                                <span class="sr-only">First page</span>
+                                <i class="fas fa-angle-double-left h-3 w-3"></i>
+                            </a>
+                            <a href="?page={{ products.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
+                                <span class="sr-only">Previous</span>
+                                <i class="fas fa-angle-left h-3 w-3"></i>
+                            </a>
+                        {% else %}
+                            <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300 cursor-not-allowed">
+                                <i class="fas fa-angle-double-left h-3 w-3"></i>
+                            </span>
+                            <span class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300 cursor-not-allowed">
+                                <i class="fas fa-angle-left h-3 w-3"></i>
+                            </span>
                         {% endif %}
 
                         {% for num in products.paginator.page_range %}
                             {% if products.number == num %}
-                                <li class="page-item active">
-                                    <span class="page-link">{{ num }}</span>
-                                </li>
+                                <span class="relative inline-flex items-center px-4 py-2 border border-green-500 bg-green-50 text-sm font-medium text-green-600">
+                                    {{ num }}
+                                </span>
                             {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
-                                </li>
+                                <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                                    {{ num }}
+                                </a>
                             {% endif %}
                         {% endfor %}
 
                         {% if products.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ products.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                    <i class="bi bi-chevron-right"></i>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ products.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                    <i class="bi bi-chevron-double-right"></i>
-                                </a>
-                            </li>
+                            <a href="?page={{ products.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
+                                <span class="sr-only">Next</span>
+                                <i class="fas fa-angle-right h-3 w-3"></i>
+                            </a>
+                            <a href="?page={{ products.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
+                                <span class="sr-only">Last page</span>
+                                <i class="fas fa-angle-double-right h-3 w-3"></i>
+                            </a>
+                        {% else %}
+                            <span class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300 cursor-not-allowed">
+                                <i class="fas fa-angle-right h-3 w-3"></i>
+                            </span>
+                            <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300 cursor-not-allowed">
+                                <i class="fas fa-angle-double-right h-3 w-3"></i>
+                            </span>
                         {% endif %}
-                    </ul>
-                </nav>
-            </div>
-            {% endif %}
-        {% else %}
-            <div class="text-center p-5 text-muted">
-                <i class="bi bi-box fs-1 d-block mb-3"></i>
-                <h5>No products found</h5>
-                {% if request.GET.search or request.GET.category or request.GET.status %}
-                    <p>Try adjusting your filters</p>
-                    <a href="{% url 'admin_panel:website_product_list' %}" class="btn btn-outline-primary">Clear Filters</a>
-                {% else %}
-                    <p>Get started by adding your first product</p>
-                    <a href="{% url 'admin_panel:website_product_create' %}" class="btn btn-primary">Add Product</a>
-                {% endif %}
-            </div>
+                    </nav>
+                </div>
+            </nav>
+        </div>
         {% endif %}
-    </div>
+    {% else %}
+        <div class="text-center px-6 py-12">
+            <div class="mx-auto h-24 w-24 text-gray-300">
+                <i class="fas fa-box text-6xl"></i>
+            </div>
+            <h3 class="mt-4 text-lg font-medium text-gray-900">No products found</h3>
+            {% if request.GET.search or request.GET.category or request.GET.status %}
+                <p class="mt-2 text-sm text-gray-500">Try adjusting your filters</p>
+                <div class="mt-6 flex justify-center space-x-3">
+                    <a href="{% url 'admin_panel:website_product_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        Clear Filters
+                    </a>
+                    <a href="{% url 'admin_panel:website_product_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        Add Product
+                    </a>
+                </div>
+            {% else %}
+                <p class="mt-2 text-sm text-gray-500">Get started by adding your first product</p>
+                <div class="mt-6">
+                    <a href="{% url 'admin_panel:website_product_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <i class="fas fa-plus mr-2"></i>
+                        Add Product
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

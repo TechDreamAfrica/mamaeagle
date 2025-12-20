@@ -1,0 +1,168 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Delete Product - {{ product.name }} - AccuFlow Admin{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="inline-flex items-center">
+    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+    </svg>
+    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Website</span>
+</li>
+<li class="inline-flex items-center">
+    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+    </svg>
+    <a href="{% url 'admin_panel:website_product_list' %}" class="ml-1 text-sm font-medium text-gray-500 hover:text-gray-700 md:ml-2">Products</a>
+</li>
+<li class="inline-flex items-center">
+    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+    </svg>
+    <a href="{% url 'admin_panel:website_product_detail' product.pk %}" class="ml-1 text-sm font-medium text-gray-500 hover:text-gray-700 md:ml-2">{{ product.name|truncatechars:20 }}</a>
+</li>
+<li class="inline-flex items-center">
+    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+    </svg>
+    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Delete</span>
+</li>
+{% endblock %}
+
+{% block content %}
+<!-- Delete Confirmation -->
+<div class="max-w-2xl mx-auto">
+    <!-- Warning Card -->
+    <div class="bg-white shadow-lg rounded-lg border border-red-200 overflow-hidden">
+        <!-- Header -->
+        <div class="bg-red-50 px-6 py-4 border-b border-red-200">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-medium text-red-900">Delete Product</h3>
+                    <p class="text-sm text-red-700">This action cannot be undone</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="px-6 py-6">
+            <div class="mb-6">
+                <h4 class="text-base font-medium text-gray-900 mb-2">Are you sure you want to delete this product?</h4>
+                <p class="text-sm text-gray-600 mb-4">
+                    This will permanently remove the product from your website and all associated data will be lost. 
+                    This action cannot be reversed.
+                </p>
+            </div>
+
+            <!-- Product Summary -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                            <i class="fas fa-box text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h5 class="text-sm font-medium text-gray-900">{{ product.name }}</h5>
+                                <p class="text-xs text-gray-500">
+                                    SKU: {{ product.sku|default:'-' }} | 
+                                    Price: ${{ product.price|floatformat:2 }} |
+                                    {% if product.category %}Category: {{ product.category.name }}{% else %}No category{% endif %}
+                                </p>
+                            </div>
+                            <div class="flex flex-col items-end space-y-1">
+                                {% if product.is_active %}
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-circle text-green-400 mr-1"></i>
+                                        Active
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        <i class="fas fa-circle text-gray-400 mr-1"></i>
+                                        Inactive
+                                    </span>
+                                {% endif %}
+                                
+                                {% if product.is_featured %}
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                        Featured
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning Box -->
+            <div class="bg-amber-50 border border-amber-200 rounded-md p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-amber-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-amber-800">Before you delete this product:</h3>
+                        <div class="mt-2 text-sm text-amber-700">
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>Make sure it's not referenced in any active orders</li>
+                                <li>Consider deactivating instead of deleting to preserve data</li>
+                                <li>Backup any important product information if needed</li>
+                                <li>This action will remove the product from your website immediately</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirmation Form -->
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                
+                <!-- Confirmation Checkbox -->
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        <input id="confirm-delete" name="confirm_delete" type="checkbox" required 
+                               class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded">
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="confirm-delete" class="font-medium text-gray-700">
+                            I understand that this action cannot be undone and I want to permanently delete this product.
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-3 pt-4">
+                    <a href="{% url 'admin_panel:website_product_detail' product.pk %}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                            onclick="return confirm('Are you absolutely sure? This action cannot be undone.')">
+                        <i class="fas fa-trash mr-2"></i>
+                        Delete Product
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Additional Information -->
+    <div class="mt-6 text-center">
+        <p class="text-sm text-gray-500">
+            Need help? 
+            <a href="#" onclick="alert('Support coming soon!')" class="text-green-600 hover:text-green-500">Contact support</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -8,26 +8,15 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.db.models import Q, Count, Sum
 from django.utils.decorators import method_decorator
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
-# Import all models
+# Import all models that are actually used
 from accounts.models import User, Company, UserCompany
-from website.models import (
-    ProductCategory, Product, ProductImage, Cart, CartItem, 
-    Order, OrderItem, Newsletter, ContactMessage
-)
-from inventory.models import (
-    Category, Supplier, Product as InventoryProduct, ProductSupplier,
-    Warehouse, StockMovement, StockLevel, PurchaseOrder, PurchaseOrderItem,
-    InventoryCount, InventoryCountItem
-)
-from invoicing.models import Customer, Invoice, InvoiceItem, Payment
-from sales.models import (
-    SalesTerritory, SalesRep, Lead, Opportunity, SalesActivity, Commission
-)
-from expenses.models import (
-    ExpenseCategory, Vendor, Expense, ExpenseReport, ExpenseReportItem, MileageLog
-)
-from hr.models import Employee, PayrollPeriod, Payroll, TimeEntry, LeaveRequest, PerformanceReview
+from website.models import ProductCategory, Product, Order, OrderItem, ProductImage
+from website.forms import ProductForm, ProductCategoryForm
+from inventory.models import Category, Supplier, Product as InventoryProduct
+from invoicing.models import Customer
 from reports.models import AccountType, Account, JournalEntry, JournalEntryLine, FinancialPeriod, FinancialStatement
 
 
@@ -212,9 +201,43 @@ class WebsiteProductListView(AdminRequiredMixin, ListView):
 
 class WebsiteProductCreateView(AdminRequiredMixin, CreateView):
     model = Product
+    form_class = ProductForm
     template_name = 'admin_panel/website/products/form.html'
-    fields = ['name', 'description', 'sku', 'price', 'category', 'is_active', 'is_featured']
     success_url = reverse_lazy('admin_panel:website_product_list')
+
+    def form_valid(self, form):
+        # Save the product first
+        response = super().form_valid(form)
+        
+        # Handle image uploads
+        self.handle_image_uploads(self.object)
+        
+        messages.success(self.request, f'Product "{self.object.name}" has been created successfully!')
+        return response
+
+    def handle_image_uploads(self, product):
+        """Handle multiple image uploads for the product"""
+        image_index = 0
+        
+        while f'image_{image_index}' in self.request.FILES:
+            image_file = self.request.FILES[f'image_{image_index}']
+            alt_text = self.request.POST.get(f'alt_text_{image_index}', '')
+            is_primary = self.request.POST.get(f'is_primary_{image_index}') == 'on'
+            
+            # If this is set as primary, make sure no other image is primary
+            if is_primary:
+                ProductImage.objects.filter(product=product).update(is_primary=False)
+            
+            # Create the product image
+            ProductImage.objects.create(
+                product=product,
+                image=image_file,
+                alt_text=alt_text,
+                is_primary=is_primary,
+                sort_order=image_index
+            )
+            
+            image_index += 1
 
 
 class WebsiteProductDetailView(AdminRequiredMixin, DetailView):
@@ -224,9 +247,44 @@ class WebsiteProductDetailView(AdminRequiredMixin, DetailView):
 
 class WebsiteProductUpdateView(AdminRequiredMixin, UpdateView):
     model = Product
+    form_class = ProductForm
     template_name = 'admin_panel/website/products/form.html'
-    fields = ['name', 'description', 'sku', 'price', 'category', 'is_active', 'is_featured']
     success_url = reverse_lazy('admin_panel:website_product_list')
+
+    def form_valid(self, form):
+        # Save the product first
+        response = super().form_valid(form)
+        
+        # Handle image uploads (only if new images are uploaded)
+        if any(f'image_{i}' in self.request.FILES for i in range(10)):  # Check first 10 possible images
+            self.handle_image_uploads(self.object)
+        
+        messages.success(self.request, f'Product "{self.object.name}" has been updated successfully!')
+        return response
+
+    def handle_image_uploads(self, product):
+        """Handle multiple image uploads for the product"""
+        image_index = 0
+        
+        while f'image_{image_index}' in self.request.FILES:
+            image_file = self.request.FILES[f'image_{image_index}']
+            alt_text = self.request.POST.get(f'alt_text_{image_index}', '')
+            is_primary = self.request.POST.get(f'is_primary_{image_index}') == 'on'
+            
+            # If this is set as primary, make sure no other image is primary
+            if is_primary:
+                ProductImage.objects.filter(product=product).update(is_primary=False)
+            
+            # Create the product image
+            ProductImage.objects.create(
+                product=product,
+                image=image_file,
+                alt_text=alt_text,
+                is_primary=is_primary,
+                sort_order=image_index + product.images.count()  # Add to existing count
+            )
+            
+            image_index += 1
 
 
 class WebsiteProductDeleteView(AdminRequiredMixin, DeleteView):
@@ -247,15 +305,15 @@ class WebsiteCategoryListView(AdminRequiredMixin, ListView):
 
 class WebsiteCategoryCreateView(AdminRequiredMixin, CreateView):
     model = ProductCategory
+    form_class = ProductCategoryForm
     template_name = 'admin_panel/website/categories/form.html'
-    fields = ['name', 'description', 'parent', 'is_active']
     success_url = reverse_lazy('admin_panel:website_category_list')
 
 
 class WebsiteCategoryUpdateView(AdminRequiredMixin, UpdateView):
     model = ProductCategory
+    form_class = ProductCategoryForm
     template_name = 'admin_panel/website/categories/form.html'
-    fields = ['name', 'description', 'parent', 'is_active']
     success_url = reverse_lazy('admin_panel:website_category_list')
 
 
@@ -299,6 +357,63 @@ class OrderDeleteView(AdminRequiredMixin, DeleteView):
     model = Order
     template_name = 'admin_panel/orders/confirm_delete.html'
     success_url = reverse_lazy('admin_panel:order_list')
+
+
+@staff_member_required
+@require_POST
+def order_bulk_action(request):
+    """Handle bulk actions for orders"""
+    try:
+        action = request.POST.get('action')
+        order_ids = request.POST.getlist('order_ids')
+        
+        if not action or not order_ids:
+            return JsonResponse({
+                'success': False,
+                'message': 'Missing action or order IDs'
+            })
+        
+        orders = Order.objects.filter(id__in=order_ids)
+        
+        if action == 'update_status':
+            new_status = request.POST.get('new_status')
+            if not new_status:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Missing new status'
+                })
+            
+            updated_count = orders.update(status=new_status)
+            return JsonResponse({
+                'success': True,
+                'message': f'Successfully updated {updated_count} orders to {new_status}'
+            })
+        
+        elif action == 'delete':
+            deleted_count, _ = orders.delete()
+            return JsonResponse({
+                'success': True,
+                'message': f'Successfully deleted {deleted_count} orders'
+            })
+        
+        elif action == 'export':
+            # TODO: Implement export functionality
+            return JsonResponse({
+                'success': True,
+                'message': f'Export feature coming soon! Selected {len(order_ids)} orders'
+            })
+        
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid action'
+            })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'An error occurred: {str(e)}'
+        })
 
 
 # =============================================================================

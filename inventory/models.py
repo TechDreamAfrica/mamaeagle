@@ -113,6 +113,7 @@ class Product(models.Model):
     sku = models.CharField(max_length=50)
     barcode = models.CharField(max_length=100, blank=True, null=True)
     name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     description = models.TextField(blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
     product_type = models.CharField(max_length=20, choices=PRODUCT_TYPES, default='physical')
@@ -198,6 +199,39 @@ class Product(models.Model):
         if self.cost_price == 0:
             return 0
         return ((self.selling_price - self.cost_price) / self.cost_price) * 100
+
+    def save(self, *args, **kwargs):
+        """Generate SKU and slug if not provided."""
+        import random
+        import string
+        from django.utils.text import slugify
+        
+        # Auto-generate SKU if not provided
+        if not self.sku and self.name:
+            base_sku = ''.join(word[:3].upper() for word in self.name.split()[:3])
+            sku = base_sku
+            num = 1
+            while Product.objects.filter(company=self.company, sku=sku).exclude(pk=self.pk).exists():
+                # Add random suffix to make it unique
+                suffix = ''.join(random.choices(string.digits, k=3))
+                sku = f"{base_sku}{suffix}"
+                num += 1
+                if num > 100:  # Prevent infinite loop
+                    sku = f"{base_sku}{''.join(random.choices(string.ascii_uppercase + string.digits, k=4))}"
+                    break
+            self.sku = sku
+        
+        # Auto-generate slug if not provided
+        if not self.slug and self.name:
+            base_slug = slugify(self.name)
+            slug = base_slug
+            num = 1
+            while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{num}"
+                num += 1
+            self.slug = slug
+            
+        super().save(*args, **kwargs)
 
 
 class ProductSupplier(models.Model):

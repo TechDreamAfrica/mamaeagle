@@ -32,8 +32,18 @@
                     <div class="row">
                         <div class="col-md-8">
                             <div class="mb-3">
-                                <label for="{{ form.name.id_for_label }}" class="form-label">Category Name *</label>
-                                {{ form.name.as_widget }}
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    <i class="bi bi-tag-fill text-primary me-1"></i>Category Name *
+                                </label>
+                                <input type="text" id="{{ form.name.id_for_label }}" name="{{ form.name.name }}" 
+                                       value="{{ form.name.value|default:'' }}" 
+                                       class="form-control {% if form.name.errors %}is-invalid{% endif %}"
+                                       placeholder="Enter category name" required>
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.name.errors.0 }}
+                                    </div>
+                                {% endif %}
                                 {% if form.name.help_text %}
                                     <div class="form-text">{{ form.name.help_text }}</div>
                                 {% endif %}
@@ -41,63 +51,157 @@
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="{{ form.slug.id_for_label }}" class="form-label">Slug *</label>
-                                {{ form.slug.as_widget }}
-                                {% if form.slug.help_text %}
-                                    <div class="form-text">{{ form.slug.help_text }}</div>
+                                <label for="{{ form.slug.id_for_label }}" class="form-label">
+                                    <i class="bi bi-link-45deg text-success me-1"></i>Slug 
+                                    <small class="text-muted">(Auto-generated)</small>
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" id="{{ form.slug.id_for_label }}" name="{{ form.slug.name }}" 
+                                           value="{{ form.slug.value|default:'' }}" 
+                                           class="form-control {% if form.slug.errors %}is-invalid{% endif %}"
+                                           placeholder="auto-generated-slug" readonly>
+                                    <button type="button" class="btn btn-outline-secondary" id="edit-slug-btn" 
+                                            title="Edit slug manually">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" id="regenerate-slug-btn" 
+                                            title="Regenerate slug from name">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                </div>
+                                {% if form.slug.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.slug.errors.0 }}
+                                    </div>
                                 {% endif %}
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    URL-friendly version of the category name. Auto-generated when you type the name.
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
-                        {{ form.description.as_widget }}
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            <i class="bi bi-text-paragraph text-info me-1"></i>Description
+                        </label>
+                        <textarea id="{{ form.description.id_for_label }}" name="{{ form.description.name }}" 
+                                  class="form-control {% if form.description.errors %}is-invalid{% endif %}"
+                                  placeholder="Enter category description for SEO and user guidance" 
+                                  rows="3">{{ form.description.value|default:'' }}</textarea>
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.description.errors.0 }}
+                            </div>
+                        {% endif %}
                         {% if form.description.help_text %}
                             <div class="form-text">{{ form.description.help_text }}</div>
+                        {% else %}
+                            <div class="form-text">
+                                <i class="bi bi-lightbulb me-1"></i>
+                                A good description helps with SEO and provides context for your customers.
+                            </div>
                         {% endif %}
                     </div>
 
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="{{ form.parent.id_for_label }}" class="form-label">Parent Category</label>
-                                {{ form.parent.as_widget }}
+                                <label for="{{ form.parent.id_for_label }}" class="form-label">
+                                    <i class="bi bi-diagram-3 text-warning me-1"></i>Parent Category
+                                </label>
+                                <select id="{{ form.parent.id_for_label }}" name="{{ form.parent.name }}" 
+                                        class="form-select {% if form.parent.errors %}is-invalid{% endif %}">
+                                    <option value="">-- No Parent (Top Level) --</option>
+                                    {% for choice in form.parent.field.queryset %}
+                                        <option value="{{ choice.pk }}" 
+                                                {% if form.parent.value == choice.pk|stringformat:"s" %}selected{% endif %}>
+                                            {{ choice.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.parent.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.parent.errors.0 }}
+                                    </div>
+                                {% endif %}
                                 {% if form.parent.help_text %}
                                     <div class="form-text">{{ form.parent.help_text }}</div>
+                                {% else %}
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Select a parent to create a subcategory, or leave empty for a top-level category.
+                                    </div>
                                 {% endif %}
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="{{ form.sort_order.id_for_label }}" class="form-label">Sort Order</label>
-                                {{ form.sort_order.as_widget }}
+                                <label for="{{ form.sort_order.id_for_label }}" class="form-label">
+                                    <i class="bi bi-list-ol text-secondary me-1"></i>Sort Order
+                                </label>
+                                <input type="number" id="{{ form.sort_order.id_for_label }}" name="{{ form.sort_order.name }}" 
+                                       value="{{ form.sort_order.value|default:'0' }}" 
+                                       class="form-control {% if form.sort_order.errors %}is-invalid{% endif %}"
+                                       placeholder="0" min="0">
+                                {% if form.sort_order.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.sort_order.errors.0 }}
+                                    </div>
+                                {% endif %}
                                 {% if form.sort_order.help_text %}
                                     <div class="form-text">{{ form.sort_order.help_text }}</div>
+                                {% else %}
+                                    <div class="form-text">
+                                        <i class="bi bi-arrow-up-down me-1"></i>
+                                        Lower numbers appear first. Use 0 for default ordering.
+                                    </div>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <div class="form-check form-switch">
-                            {{ form.is_active.as_widget }}
+                            <input type="checkbox" id="{{ form.is_active.id_for_label }}" name="{{ form.is_active.name }}" 
+                                   class="form-check-input {% if form.is_active.errors %}is-invalid{% endif %}"
+                                   {% if form.is_active.value %}checked{% endif %}>
                             <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                Category is Active
+                                <i class="bi bi-toggle-on text-success me-1"></i>
+                                <strong>Category is Active</strong>
                             </label>
                         </div>
+                        {% if form.is_active.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.is_active.errors.0 }}
+                            </div>
+                        {% endif %}
                         {% if form.is_active.help_text %}
                             <div class="form-text">{{ form.is_active.help_text }}</div>
+                        {% else %}
+                            <div class="form-text">
+                                <i class="bi bi-eye me-1"></i>
+                                Active categories are visible to customers. Inactive categories are hidden but products remain accessible.
+                            </div>
                         {% endif %}
                     </div>
 
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'admin_panel:website_category_list' %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left me-2"></i>Cancel
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'admin_panel:website_category_list' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-arrow-left me-2"></i>Cancel & Return
                         </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-2"></i>{{ object|yesno:"Update Category,Create Category" }}
-                        </button>
+                        <div class="d-flex gap-2">
+                            {% if object %}
+                                <button type="submit" name="save_and_continue" class="btn btn-outline-primary btn-lg">
+                                    <i class="bi bi-check-lg me-2"></i>Save & Continue
+                                </button>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>
+                                {{ object|yesno:"Update Category,Create Category" }}
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -171,15 +275,159 @@
         border: 1px solid #ced4da;
         border-radius: 0.375rem;
         padding: 0.375rem 0.75rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     }
     
     .form-control:focus, .form-select:focus {
         border-color: #86b7fe;
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        outline: 0;
     }
     
     textarea.form-control {
         min-height: 80px;
+        resize: vertical;
+    }
+    
+    .input-group .form-control:focus {
+        z-index: 3;
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .form-control[readonly] {
+        background-color: #f8f9fa;
+        opacity: 1;
+    }
+    
+    .slug-preview {
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+        color: #6c757d;
+        padding: 0.25rem 0.5rem;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        margin-top: 0.25rem;
+    }
+    
+    .icon-label {
+        display: inline-flex;
+        align-items: center;
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('{{ form.name.id_for_label }}');
+    const slugInput = document.getElementById('{{ form.slug.id_for_label }}');
+    const editSlugBtn = document.getElementById('edit-slug-btn');
+    const regenerateSlugBtn = document.getElementById('regenerate-slug-btn');
+    
+    let isSlugManuallyEdited = {{ object|yesno:"true,false" }};
+    
+    // Function to convert text to slug
+    function textToSlug(text) {
+        return text.toLowerCase()
+            .replace(/[^\w\s-]/g, '') // Remove special characters
+            .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
+            .replace(/^-+|-+$/g, ''); // Remove leading and trailing hyphens
+    }
+    
+    // Function to update slug
+    function updateSlug() {
+        if (!isSlugManuallyEdited && nameInput.value) {
+            slugInput.value = textToSlug(nameInput.value);
+            showSlugPreview();
+        }
+    }
+    
+    // Function to show slug preview
+    function showSlugPreview() {
+        // Remove existing preview
+        const existingPreview = document.querySelector('.slug-preview');
+        if (existingPreview) {
+            existingPreview.remove();
+        }
+        
+        if (slugInput.value) {
+            const preview = document.createElement('div');
+            preview.className = 'slug-preview';
+            preview.innerHTML = `<i class="bi bi-link me-1"></i>URL: /categories/${slugInput.value}/`;
+            slugInput.parentNode.appendChild(preview);
+        }
+    }
+    
+    // Auto-generate slug as user types category name
+    nameInput.addEventListener('input', function() {
+        updateSlug();
+    });
+    
+    // Toggle slug editing
+    editSlugBtn.addEventListener('click', function() {
+        const isReadonly = slugInput.hasAttribute('readonly');
+        
+        if (isReadonly) {
+            slugInput.removeAttribute('readonly');
+            slugInput.focus();
+            slugInput.select();
+            editSlugBtn.innerHTML = '<i class="bi bi-lock"></i>';
+            editSlugBtn.title = 'Lock slug (enable auto-generation)';
+            editSlugBtn.classList.remove('btn-outline-secondary');
+            editSlugBtn.classList.add('btn-outline-warning');
+            isSlugManuallyEdited = true;
+        } else {
+            slugInput.setAttribute('readonly', true);
+            editSlugBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+            editSlugBtn.title = 'Edit slug manually';
+            editSlugBtn.classList.remove('btn-outline-warning');
+            editSlugBtn.classList.add('btn-outline-secondary');
+            isSlugManuallyEdited = false;
+            updateSlug();
+        }
+    });
+    
+    // Regenerate slug from current name
+    regenerateSlugBtn.addEventListener('click', function() {
+        if (nameInput.value) {
+            slugInput.value = textToSlug(nameInput.value);
+            showSlugPreview();
+            
+            // Show feedback
+            const originalIcon = regenerateSlugBtn.innerHTML;
+            regenerateSlugBtn.innerHTML = '<i class="bi bi-check"></i>';
+            regenerateSlugBtn.classList.remove('btn-outline-primary');
+            regenerateSlugBtn.classList.add('btn-success');
+            
+            setTimeout(() => {
+                regenerateSlugBtn.innerHTML = originalIcon;
+                regenerateSlugBtn.classList.remove('btn-success');
+                regenerateSlugBtn.classList.add('btn-outline-primary');
+            }, 1000);
+        }
+    });
+    
+    // Validate slug on manual input
+    slugInput.addEventListener('input', function() {
+        const slug = this.value;
+        const validSlug = textToSlug(slug);
+        
+        if (slug !== validSlug) {
+            this.value = validSlug;
+        }
+        showSlugPreview();
+    });
+    
+    // Initialize preview on page load
+    showSlugPreview();
+});
+</script>
 {% endblock %}

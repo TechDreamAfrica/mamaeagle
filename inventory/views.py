@@ -136,6 +136,13 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
     template_name = 'inventory/product_form.html'
     success_url = reverse_lazy('inventory:product_list')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # Pass company to form for validation
+        if self.request.company:
+            kwargs['company'] = self.request.company
+        return kwargs
+
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         # Filter categories by current user's company
@@ -184,14 +191,26 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
 class ProductUpdateView(LoginRequiredMixin, UpdateView):
     """Update an existing product."""
     model = Product
+    form_class = ProductForm
     template_name = 'inventory/product_form.html'
-    fields = [
-        'sku', 'barcode', 'name', 'description', 'category', 'product_type',
-        'unit_type', 'cost_price', 'selling_price', 'minimum_stock_level',
-        'maximum_stock_level', 'reorder_point', 'reorder_quantity',
-        'weight', 'dimensions', 'is_active', 'is_serialized', 'tax_exempt'
-    ]
     success_url = reverse_lazy('inventory:product_list')
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # Pass company to form for validation
+        if self.request.company:
+            kwargs['company'] = self.request.company
+        return kwargs
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Filter categories by current user's company
+        if self.request.company:
+            form.fields['category'].queryset = Category.objects.filter(
+                company=self.request.company, is_active=True
+            ).order_by('name')
+        form.fields['category'].empty_label = "Select a category (optional)"
+        return form
     
     def form_valid(self, form):
         messages.success(self.request, 'Product updated successfully!')

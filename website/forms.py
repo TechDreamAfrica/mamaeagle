@@ -1,7 +1,62 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from accounts.models import User
-from .models import ContactMessage, Newsletter
+from .models import ContactMessage, Newsletter, Product, ProductCategory
+
+
+class ProductForm(forms.ModelForm):
+    """Form for creating and editing website products."""
+    
+    class Meta:
+        model = Product
+        fields = [
+            'name', 'slug', 'description', 'short_description', 'category', 'price', 'compare_at_price',
+            'cost_price', 'sku', 'stock_quantity', 'track_inventory', 'allow_backorders', 'weight',
+            'dimensions', 'meta_title', 'meta_description', 'is_active', 'is_featured', 'is_digital'
+        ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+            'short_description': forms.Textarea(attrs={'rows': 2}),
+            'meta_description': forms.Textarea(attrs={'rows': 2}),
+            'price': forms.NumberInput(attrs={'step': '0.01'}),
+            'compare_at_price': forms.NumberInput(attrs={'step': '0.01'}),
+            'cost_price': forms.NumberInput(attrs={'step': '0.01'}),
+            'weight': forms.NumberInput(attrs={'step': '0.01'}),
+            'sku': forms.TextInput(attrs={'placeholder': 'Auto-generated from product name'}),
+            'slug': forms.TextInput(attrs={'placeholder': 'auto-generated-slug'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Make SKU and slug optional since they will be auto-generated
+        if 'sku' in self.fields:
+            self.fields['sku'].required = False
+            self.fields['sku'].help_text = 'Leave empty to auto-generate from product name'
+            
+        if 'slug' in self.fields:
+            self.fields['slug'].required = False
+            self.fields['slug'].help_text = 'Leave empty to auto-generate from product name'
+
+
+class ProductCategoryForm(forms.ModelForm):
+    """Form for creating and editing product categories."""
+    
+    class Meta:
+        model = ProductCategory
+        fields = ['name', 'slug', 'description', 'parent', 'sort_order', 'is_active']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+            'slug': forms.TextInput(attrs={'placeholder': 'auto-generated-slug'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Make slug optional since it will be auto-generated
+        if 'slug' in self.fields:
+            self.fields['slug'].required = False
+            self.fields['slug'].help_text = 'Leave empty to auto-generate from category name'
 
 
 class CustomerRegistrationForm(UserCreationForm):

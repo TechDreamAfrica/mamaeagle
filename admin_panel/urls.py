@@ -36,6 +36,7 @@ urlpatterns = [
     
     # Orders Management
     path('orders/', views.OrderListView.as_view(), name='order_list'),
+    path('orders/bulk-action/', views.order_bulk_action, name='order_bulk_action'),
     path('orders/<int:pk>/', views.OrderDetailView.as_view(), name='order_detail'),
     path('orders/<int:pk>/edit/', views.OrderUpdateView.as_view(), name='order_update'),
     path('orders/<int:pk>/delete/', views.OrderDeleteView.as_view(), name='order_delete'),

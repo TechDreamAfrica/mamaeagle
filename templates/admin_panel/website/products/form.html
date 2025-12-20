@@ -3,120 +3,378 @@
 {% block title %}{{ object|yesno:"Edit,Add New" }} Product - AccuFlow Admin{% endblock %}
 
 {% block breadcrumb_items %}
-<li class="breadcrumb-item">Website</li>
-<li class="breadcrumb-item"><a href="{% url 'admin_panel:website_product_list' %}">Products</a></li>
-<li class="breadcrumb-item active">{{ object|yesno:"Edit,Add" }} Product</li>
+<li class="inline-flex items-center">
+    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+    </svg>
+    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Website</span>
+</li>
+<li class="inline-flex items-center">
+    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+    </svg>
+    <a href="{% url 'admin_panel:website_product_list' %}" class="ml-1 text-sm font-medium text-gray-500 hover:text-gray-700 md:ml-2">Products</a>
+</li>
+<li class="inline-flex items-center">
+    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+    </svg>
+    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">{{ object|yesno:"Edit,Add" }} Product</span>
+</li>
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-box me-2"></i>
-                    {{ object|yesno:"Edit Product,Add New Product" }}
-                </h5>
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div class="lg:col-span-3">
+        <!-- Main Form -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center">
+                    <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                        <i class="fas fa-box text-green-600"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">
+                        {{ object|yesno:"Edit Product,Add New Product" }}
+                    </h3>
+                </div>
             </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
+            <div class="px-6 py-6">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
                     {% csrf_token %}
                     
                     {% if form.errors %}
-                        <div class="alert alert-danger">
-                            <h6>Please correct the following errors:</h6>
-                            {{ form.errors }}
+                        <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-circle text-red-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+                                    <div class="mt-2 text-sm text-red-700">
+                                        {{ form.errors }}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     {% endif %}
 
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="mb-3">
-                                <label for="{{ form.name.id_for_label }}" class="form-label">Product Name *</label>
-                                {{ form.name.as_widget }}
+                    <!-- Basic Information -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-base font-medium text-gray-900 mb-4">Basic Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="md:col-span-2">
+                                <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Product Name *</label>
+                                <input type="text" name="{{ form.name.name }}" id="{{ form.name.id_for_label }}" 
+                                       value="{{ form.name.value|default:'' }}"
+                                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                       placeholder="Enter product name" required>
                                 {% if form.name.help_text %}
-                                    <div class="form-text">{{ form.name.help_text }}</div>
+                                    <p class="mt-1 text-sm text-gray-500">{{ form.name.help_text }}</p>
                                 {% endif %}
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="{{ form.sku.id_for_label }}" class="form-label">SKU *</label>
-                                {{ form.sku.as_widget }}
+                            <div>
+                                <label for="{{ form.sku.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">SKU *</label>
+                                <input type="text" name="{{ form.sku.name }}" id="{{ form.sku.id_for_label }}" 
+                                       value="{{ form.sku.value|default:'' }}"
+                                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                       placeholder="SKU" required>
                                 {% if form.sku.help_text %}
-                                    <div class="form-text">{{ form.sku.help_text }}</div>
+                                    <p class="mt-1 text-sm text-gray-500">{{ form.sku.help_text }}</p>
                                 {% endif %}
                             </div>
                         </div>
+
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.short_description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Short Description</label>
+                                <input type="text" name="{{ form.short_description.name }}" id="{{ form.short_description.id_for_label }}" 
+                                       value="{{ form.short_description.value|default:'' }}"
+                                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                       placeholder="Brief product summary">
+                            </div>
+                            <div>
+                                <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                <select name="{{ form.category.name }}" id="{{ form.category.id_for_label }}"
+                                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                                    <option value="">Select a category</option>
+                                    {% for choice in form.category.field.queryset %}
+                                        <option value="{{ choice.pk }}" {% if form.category.value == choice.pk %}selected{% endif %}>{{ choice.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                            <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}" rows="4"
+                                      class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                      placeholder="Detailed product description" required>{{ form.description.value|default:'' }}</textarea>
+                            {% if form.description.help_text %}
+                                <p class="mt-1 text-sm text-gray-500">{{ form.description.help_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Slug Field -->
+                        <div>
+                            <label for="id_slug" class="block text-sm font-medium text-gray-700 mb-2">Slug <span class="text-xs text-gray-500">(Optional - auto-generated if empty)</span></label>
+                            <input type="text" name="slug" id="id_slug" value="{{ form.slug.value|default:'' }}"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                   placeholder="Leave empty for auto-generation">
+                            {% if form.slug.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.slug.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-xs text-gray-500">Unique identifier for the product URL. Leave empty to auto-generate from product name.</p>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="{{ form.description.id_for_label }}" class="form-label">Description *</label>
-                        {{ form.description.as_widget }}
-                        {% if form.description.help_text %}
-                            <div class="form-text">{{ form.description.help_text }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="{{ form.price.id_for_label }}" class="form-label">Price *</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    {{ form.price.as_widget }}
+                    <!-- Pricing -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-base font-medium text-gray-900 mb-4">Pricing</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="{{ form.price.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Price * ($)</label>
+                                <div class="relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 text-sm">$</span>
+                                    </div>
+                                    <input type="number" step="0.01" name="{{ form.price.name }}" id="{{ form.price.id_for_label }}" 
+                                           value="{{ form.price.value|default:'' }}"
+                                           class="block w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                           placeholder="0.00" required>
                                 </div>
-                                {% if form.price.help_text %}
-                                    <div class="form-text">{{ form.price.help_text }}</div>
-                                {% endif %}
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
-                                {{ form.category.as_widget }}
-                                {% if form.category.help_text %}
-                                    <div class="form-text">{{ form.category.help_text }}</div>
-                                {% endif %}
+                            <div>
+                                <label for="{{ form.compare_at_price.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Compare Price ($)</label>
+                                <div class="relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 text-sm">$</span>
+                                    </div>
+                                    <input type="number" step="0.01" name="{{ form.compare_at_price.name }}" id="{{ form.compare_at_price.id_for_label }}" 
+                                           value="{{ form.compare_at_price.value|default:'' }}"
+                                           class="block w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                           placeholder="0.00">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="{{ form.cost_price.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Cost Price ($)</label>
+                                <div class="relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 text-sm">$</span>
+                                    </div>
+                                    <input type="number" step="0.01" name="{{ form.cost_price.name }}" id="{{ form.cost_price.id_for_label }}" 
+                                           value="{{ form.cost_price.value|default:'' }}"
+                                           class="block w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                           placeholder="0.00">
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <div class="form-check form-switch">
-                                    {{ form.is_active.as_widget }}
-                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                        Product is Active
+                    <!-- Inventory Management -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-base font-medium text-gray-900 mb-4">Inventory Management</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.stock_quantity.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Stock Quantity</label>
+                                <input type="number" min="0" name="{{ form.stock_quantity.name }}" id="{{ form.stock_quantity.id_for_label }}" 
+                                       value="{{ form.stock_quantity.value|default:'0' }}"
+                                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                       placeholder="0">
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="{{ form.track_inventory.name }}" id="{{ form.track_inventory.id_for_label }}"
+                                           {% if form.track_inventory.value %}checked{% endif %}
+                                           class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                                    <label for="{{ form.track_inventory.id_for_label }}" class="ml-2 block text-sm text-gray-700">
+                                        Track Inventory
                                     </label>
                                 </div>
-                                {% if form.is_active.help_text %}
-                                    <div class="form-text">{{ form.is_active.help_text }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <div class="form-check form-switch">
-                                    {{ form.is_featured.as_widget }}
-                                    <label class="form-check-label" for="{{ form.is_featured.id_for_label }}">
-                                        Featured Product
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="{{ form.allow_backorders.name }}" id="{{ form.allow_backorders.id_for_label }}"
+                                           {% if form.allow_backorders.value %}checked{% endif %}
+                                           class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                                    <label for="{{ form.allow_backorders.id_for_label }}" class="ml-2 block text-sm text-gray-700">
+                                        Allow Backorders
                                     </label>
                                 </div>
-                                {% if form.is_featured.help_text %}
-                                    <div class="form-text">{{ form.is_featured.help_text }}</div>
-                                {% endif %}
+                                <div class="flex items-center">
+                                    <input type="checkbox" name="{{ form.is_digital.name }}" id="{{ form.is_digital.id_for_label }}"
+                                           {% if form.is_digital.value %}checked{% endif %}
+                                           class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                                    <label for="{{ form.is_digital.id_for_label }}" class="ml-2 block text-sm text-gray-700">
+                                        Digital Product
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'admin_panel:website_product_list' %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left me-2"></i>Cancel
+                    <!-- Physical Properties -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-base font-medium text-gray-900 mb-4">Physical Properties</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.weight.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                                <input type="number" step="0.01" min="0" name="{{ form.weight.name }}" id="{{ form.weight.id_for_label }}" 
+                                       value="{{ form.weight.value|default:'' }}"
+                                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                       placeholder="0.00">
+                            </div>
+                            <div>
+                                <label for="{{ form.dimensions.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Dimensions</label>
+                                <input type="text" name="{{ form.dimensions.name }}" id="{{ form.dimensions.id_for_label }}" 
+                                       value="{{ form.dimensions.value|default:'' }}"
+                                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                       placeholder="L x W x H">
+                                <p class="mt-1 text-sm text-gray-500">Enter as Length x Width x Height</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Images -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-base font-medium text-gray-900 mb-4">Product Images</h4>
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-info text-blue-600 text-sm"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-medium">Upload Multiple Images</p>
+                                    <p class="text-xs text-gray-500">Select multiple images for this product. The first image will be set as primary.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Image Upload Area -->
+                            <div class="border-2 border-gray-300 border-dashed rounded-lg p-6" id="imageUploadArea">
+                                <div class="text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <div class="mt-4">
+                                        <label for="productImages" class="cursor-pointer">
+                                            <span class="mt-2 block text-sm font-medium text-gray-900">
+                                                Click to upload images or drag and drop
+                                            </span>
+                                            <span class="mt-1 block text-xs text-gray-500">
+                                                PNG, JPG, JPEG up to 10MB each (Multiple files allowed)
+                                            </span>
+                                        </label>
+                                        <input id="productImages" name="product_images" type="file" class="sr-only" multiple accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Image Preview Area -->
+                            <div id="imagePreviewArea" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4" style="display: none;">
+                                <!-- Dynamic image previews will be inserted here -->
+                            </div>
+
+                            <!-- Individual Image Fields -->
+                            <div id="imageFieldsContainer" class="space-y-4">
+                                <!-- Dynamic input fields will be added here -->
+                            </div>
+
+                            <!-- Add More Images Button -->
+                            <div class="text-center pt-4">
+                                <button type="button" onclick="addImageField()" 
+                                        class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Add Another Image
+                                </button>
+                            </div>
+
+                            {% if object.images.exists %}
+                                <div class="mt-6">
+                                    <h5 class="text-sm font-medium text-gray-900 mb-3">Existing Images</h5>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {% for image in object.images.all %}
+                                            <div class="relative group">
+                                                <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:object.name }}" 
+                                                     class="w-full h-24 object-cover rounded-lg border border-gray-200">
+                                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                                    <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                        <span class="text-white text-xs">{{ image.alt_text|default:"No description" }}</span>
+                                                        {% if image.is_primary %}
+                                                            <span class="absolute top-1 right-1 bg-green-500 text-white text-xs px-1 py-0.5 rounded">Primary</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- SEO Settings -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-base font-medium text-gray-900 mb-4">SEO Settings</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="{{ form.meta_title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Meta Title</label>
+                                <input type="text" maxlength="60" name="{{ form.meta_title.name }}" id="{{ form.meta_title.id_for_label }}" 
+                                       value="{{ form.meta_title.value|default:'' }}"
+                                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                       placeholder="SEO title for search engines">
+                                <p class="mt-1 text-sm text-gray-500">Maximum 60 characters for optimal SEO</p>
+                            </div>
+                            <div>
+                                <label for="{{ form.meta_description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Meta Description</label>
+                                <textarea name="{{ form.meta_description.name }}" id="{{ form.meta_description.id_for_label }}" rows="3" maxlength="160"
+                                          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                          placeholder="Brief description for search engine results">{{ form.meta_description.value|default:'' }}</textarea>
+                                <p class="mt-1 text-sm text-gray-500">Maximum 160 characters for optimal SEO</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Status -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h4 class="text-base font-medium text-gray-900 mb-4">Product Status</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                <div>
+                                    <h5 class="text-sm font-medium text-gray-900">Product is Active</h5>
+                                    <p class="text-sm text-gray-500">Enable this product for sale on the website</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="{{ form.is_active.name }}" id="{{ form.is_active.id_for_label }}"
+                                           {% if form.is_active.value %}checked{% endif %}
+                                           class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                <div>
+                                    <h5 class="text-sm font-medium text-gray-900">Featured Product</h5>
+                                    <p class="text-sm text-gray-500">Highlight this product on the homepage</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="{{ form.is_featured.name }}" id="{{ form.is_featured.id_for_label }}"
+                                           {% if form.is_featured.value %}checked{% endif %}
+                                           class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                        <a href="{% url 'admin_panel:website_product_list' %}" 
+                           class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Cancel
                         </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-2"></i>{{ object|yesno:"Update Product,Create Product" }}
+                        <button type="submit" 
+                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                            <i class="fas fa-check mr-2"></i>
+                            {{ object|yesno:"Update Product,Create Product" }}
                         </button>
                     </div>
                 </form>
@@ -124,76 +382,287 @@
         </div>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="card-title mb-0">Product Guidelines</h6>
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Product Guidelines -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-base font-medium text-gray-900">Product Guidelines</h3>
             </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <h6>Tips for creating products:</h6>
-                    <ul class="mb-0">
-                        <li>Use clear, descriptive product names</li>
-                        <li>Include unique SKUs for inventory tracking</li>
-                        <li>Write detailed descriptions for better SEO</li>
-                        <li>Set competitive pricing</li>
-                        <li>Choose appropriate categories</li>
-                        <li>Mark popular items as featured</li>
-                    </ul>
+            <div class="px-6 py-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-lightbulb text-blue-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-medium text-blue-800">Tips for creating products:</h4>
+                            <ul class="mt-2 text-sm text-blue-700 list-disc list-inside space-y-1">
+                                <li>Use clear, descriptive product names</li>
+                                <li>Include unique SKUs for inventory tracking</li>
+                                <li>Write detailed descriptions for better SEO</li>
+                                <li>Set competitive pricing</li>
+                                <li>Choose appropriate categories</li>
+                                <li>Mark popular items as featured</li>
+                                <li>Add accurate weight and dimensions for shipping</li>
+                                <li>Optimize meta tags for search engines</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         {% if object %}
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="card-title mb-0">Product Info</h6>
+        <!-- Product Information -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-base font-medium text-gray-900">Product Info</h3>
             </div>
-            <div class="card-body">
-                <div class="row g-2">
-                    <div class="col-6">
-                        <strong>Created:</strong>
+            <div class="px-6 py-4">
+                <dl class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <dt class="text-sm font-medium text-gray-500">Created:</dt>
+                        <dd class="text-sm text-gray-900">{{ object.created_at|date:"M d, Y" }}</dd>
                     </div>
-                    <div class="col-6">
-                        {{ object.created_at|date:"M d, Y" }}
+                    <div class="flex justify-between items-center">
+                        <dt class="text-sm font-medium text-gray-500">Updated:</dt>
+                        <dd class="text-sm text-gray-900">{{ object.updated_at|date:"M d, Y" }}</dd>
                     </div>
-                    <div class="col-6">
-                        <strong>Updated:</strong>
+                    <div class="flex justify-between items-center">
+                        <dt class="text-sm font-medium text-gray-500">Status:</dt>
+                        <dd>
+                            {% if object.is_active %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-circle text-green-400 mr-1"></i>
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    <i class="fas fa-circle text-gray-400 mr-1"></i>
+                                    Inactive
+                                </span>
+                            {% endif %}
+                        </dd>
                     </div>
-                    <div class="col-6">
-                        {{ object.updated_at|date:"M d, Y" }}
+                    {% if object.is_featured %}
+                    <div class="flex justify-between items-center">
+                        <dt class="text-sm font-medium text-gray-500">Featured:</dt>
+                        <dd>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                Yes
+                            </span>
+                        </dd>
                     </div>
-                    <div class="col-6">
-                        <strong>Status:</strong>
-                    </div>
-                    <div class="col-6">
-                        {% if object.is_active %}
-                            <span class="badge bg-success">Active</span>
-                        {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
-                        {% endif %}
-                    </div>
-                </div>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-base font-medium text-gray-900">Quick Actions</h3>
+            </div>
+            <div class="px-6 py-4 space-y-3">
+                <a href="{% url 'admin_panel:website_product_detail' object.pk %}" 
+                   class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                    <i class="fas fa-eye mr-2"></i>
+                    View Product
+                </a>
+                <a href="{% url 'admin_panel:website_product_delete' object.pk %}" 
+                   class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
+                    <i class="fas fa-trash mr-2"></i>
+                    Delete Product
+                </a>
             </div>
         </div>
         {% endif %}
     </div>
 </div>
 
-<style>
-    .form-control, .form-select {
-        border: 1px solid #ced4da;
-        border-radius: 0.375rem;
-        padding: 0.375rem 0.75rem;
-    }
+<script>
+// Image upload and preview functionality
+let imageFieldCount = 0;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const imageUploadArea = document.getElementById('imageUploadArea');
+    const imageInput = document.getElementById('productImages');
+    const previewArea = document.getElementById('imagePreviewArea');
+    const fieldsContainer = document.getElementById('imageFieldsContainer');
+
+    // Handle file input change
+    imageInput.addEventListener('change', function(e) {
+        handleFiles(e.target.files);
+    });
+
+    // Drag and drop functionality
+    imageUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        imageUploadArea.classList.add('border-blue-400', 'bg-blue-50');
+    });
+
+    imageUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        imageUploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+    });
+
+    imageUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        imageUploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+        
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+    });
+});
+
+function handleFiles(files) {
+    if (files.length === 0) return;
+
+    const previewArea = document.getElementById('imagePreviewArea');
+    const fieldsContainer = document.getElementById('imageFieldsContainer');
     
-    .form-control:focus, .form-select:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
+    previewArea.style.display = 'grid';
     
-    textarea.form-control {
-        min-height: 100px;
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Validate file type
+        if (!file.type.match('image.*')) {
+            alert(`File "${file.name}" is not an image.`);
+            continue;
+        }
+
+        // Validate file size (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
+            continue;
+        }
+
+        createImagePreview(file, imageFieldCount);
+        createImageField(file, imageFieldCount);
+        imageFieldCount++;
     }
-</style>
+}
+
+function createImagePreview(file, index) {
+    const previewArea = document.getElementById('imagePreviewArea');
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const previewDiv = document.createElement('div');
+        previewDiv.className = 'relative group';
+        previewDiv.id = `preview-${index}`;
+        
+        previewDiv.innerHTML = `
+            <img src="${e.target.result}" alt="Preview" class="w-full h-24 object-cover rounded-lg border border-gray-200">
+            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
+                <button type="button" onclick="removeImage(${index})" 
+                        class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-red-500 text-white rounded-full p-1 hover:bg-red-600">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+            ${index === 0 ? '<span class="absolute top-1 right-1 bg-green-500 text-white text-xs px-1 py-0.5 rounded">Primary</span>' : ''}
+        `;
+
+        previewArea.appendChild(previewDiv);
+    };
+
+    reader.readAsDataURL(file);
+}
+
+function createImageField(file, index) {
+    const fieldsContainer = document.getElementById('imageFieldsContainer');
+    
+    const fieldDiv = document.createElement('div');
+    fieldDiv.className = 'border border-gray-200 rounded-lg p-4 bg-white';
+    fieldDiv.id = `field-${index}`;
+    
+    fieldDiv.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Image File</label>
+                <input type="file" name="image_${index}" accept="image/*" class="hidden" id="hiddenFile-${index}">
+                <div class="bg-gray-50 px-3 py-2 rounded-md text-sm text-gray-600">
+                    ${file.name}
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Alt Text</label>
+                <input type="text" name="alt_text_${index}" placeholder="Describe this image..." 
+                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
+            </div>
+            <div class="md:col-span-2 flex items-center">
+                <input type="checkbox" name="is_primary_${index}" ${index === 0 ? 'checked' : ''} 
+                       class="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200" 
+                       onchange="handlePrimaryChange(${index})">
+                <label class="ml-2 text-sm text-gray-700">Set as primary image</label>
+            </div>
+        </div>
+    `;
+    
+    fieldsContainer.appendChild(fieldDiv);
+    
+    // Transfer the file to the hidden input
+    const hiddenInput = document.getElementById(`hiddenFile-${index}`);
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    hiddenInput.files = dataTransfer.files;
+}
+
+function addImageField() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = true;
+    input.onchange = function(e) {
+        handleFiles(e.target.files);
+    };
+    input.click();
+}
+
+function removeImage(index) {
+    const preview = document.getElementById(`preview-${index}`);
+    const field = document.getElementById(`field-${index}`);
+    
+    if (preview) preview.remove();
+    if (field) field.remove();
+    
+    // Check if there are any images left
+    const previewArea = document.getElementById('imagePreviewArea');
+    if (previewArea.children.length === 0) {
+        previewArea.style.display = 'none';
+    }
+}
+
+function handlePrimaryChange(selectedIndex) {
+    // Uncheck all other primary checkboxes
+    const checkboxes = document.querySelectorAll('input[name*="is_primary_"]');
+    checkboxes.forEach((checkbox, index) => {
+        if (checkbox.name !== `is_primary_${selectedIndex}`) {
+            checkbox.checked = false;
+        }
+    });
+    
+    // Update preview badges
+    const previews = document.querySelectorAll('[id^="preview-"]');
+    previews.forEach((preview, index) => {
+        const badge = preview.querySelector('.bg-green-500');
+        if (badge) badge.remove();
+        
+        if (index === selectedIndex) {
+            const img = preview.querySelector('img');
+            const badge = document.createElement('span');
+            badge.className = 'absolute top-1 right-1 bg-green-500 text-white text-xs px-1 py-0.5 rounded';
+            badge.textContent = 'Primary';
+            preview.appendChild(badge);
+        }
+    });
+}
+</script>
+
 {% endblock %}

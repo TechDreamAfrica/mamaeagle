@@ -1,0 +1,213 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Product Details - {{ product.name }} - AccuFlow Admin{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="inline-flex items-center">
+    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+    </svg>
+    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Website</span>
+</li>
+<li class="inline-flex items-center">
+    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+    </svg>
+    <a href="{% url 'admin_panel:website_product_list' %}" class="ml-1 text-sm font-medium text-gray-500 hover:text-gray-700 md:ml-2">Products</a>
+</li>
+<li class="inline-flex items-center">
+    <svg class="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+    </svg>
+    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">{{ product.name|truncatechars:30 }}</span>
+</li>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
+    <div class="px-6 py-6">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                    <i class="fas fa-box text-green-600 text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ product.name }}</h1>
+                    <div class="flex items-center mt-1 space-x-4">
+                        {% if product.is_active %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-circle text-green-400 mr-1"></i>
+                                Active
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <i class="fas fa-circle text-gray-400 mr-1"></i>
+                                Inactive
+                            </span>
+                        {% endif %}
+                        
+                        {% if product.is_featured %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                Featured
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{% url 'admin_panel:website_product_update' product.pk %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                    <i class="fas fa-edit mr-2"></i>
+                    Edit Product
+                </a>
+                <a href="{% url 'admin_panel:website_product_delete' product.pk %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
+                    <i class="fas fa-trash mr-2"></i>
+                    Delete Product
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Details -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Product Information -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Basic Information -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Basic Information</h3>
+            </div>
+            <div class="px-6 py-4">
+                <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Product Name</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ product.name }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">SKU</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ product.sku|default:'-' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Price</dt>
+                        <dd class="mt-1 text-sm text-gray-900 font-bold">${{ product.price|floatformat:2 }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Category</dt>
+                        <dd class="mt-1">
+                            {% if product.category %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">
+                                    {{ product.category.name }}
+                                </span>
+                            {% else %}
+                                <span class="text-sm text-gray-400">No category assigned</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Description</h3>
+            </div>
+            <div class="px-6 py-4">
+                {% if product.description %}
+                    <div class="prose prose-sm max-w-none text-gray-900">
+                        {{ product.description|linebreaks }}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-gray-400 italic">No description provided</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Product Image -->
+        {% if product.image %}
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Product Image</h3>
+            </div>
+            <div class="px-6 py-4">
+                <div class="max-w-md">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-auto rounded-lg shadow-md">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Side Panel -->
+    <div class="space-y-6">
+        <!-- Product Statistics -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Statistics</h3>
+            </div>
+            <div class="px-6 py-4 space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-500">Status</span>
+                    {% if product.is_active %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Active
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            Inactive
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-500">Featured</span>
+                    {% if product.is_featured %}
+                        <i class="fas fa-star text-yellow-400 text-lg"></i>
+                    {% else %}
+                        <i class="far fa-star text-gray-300 text-lg"></i>
+                    {% endif %}
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-500">Created</span>
+                    <span class="text-sm text-gray-900">{{ product.created_at|date:"M d, Y" }}</span>
+                </div>
+                {% if product.updated_at %}
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium text-gray-500">Updated</span>
+                    <span class="text-sm text-gray-900">{{ product.updated_at|date:"M d, Y" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
+            </div>
+            <div class="px-6 py-4 space-y-3">
+                <a href="{% url 'admin_panel:website_product_update' product.pk %}" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                    <i class="fas fa-edit mr-2"></i>
+                    Edit Product
+                </a>
+                {% if product.is_active %}
+                <button onclick="alert('Deactivate feature coming soon!')" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors duration-200">
+                    <i class="fas fa-eye-slash mr-2"></i>
+                    Deactivate
+                </button>
+                {% else %}
+                <button onclick="alert('Activate feature coming soon!')" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                    <i class="fas fa-eye mr-2"></i>
+                    Activate
+                </button>
+                {% endif %}
+                <a href="{% url 'admin_panel:website_product_delete' product.pk %}" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
+                    <i class="fas fa-trash mr-2"></i>
+                    Delete Product
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

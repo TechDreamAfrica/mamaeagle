@@ -11,7 +11,13 @@ DreamBiz Accounting addresses QuickBooks limitations with:
 
 import os
 from pathlib import Path
-from decouple import config, Csv
+from decouple import config
+try:
+    from decouple import Csv
+except ImportError:
+    # Fallback for older versions of python-decouple
+    def Csv(value):
+        return [item.strip() for item in value.split(',') if item.strip()]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

@@ -11,7 +11,7 @@ User = get_user_model()
 class ProductCategory(models.Model):
     """Product categories for e-commerce"""
     name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories')
@@ -31,11 +31,24 @@ class ProductCategory(models.Model):
     def get_absolute_url(self):
         return reverse('website:category_detail', kwargs={'slug': self.slug})
 
+    def save(self, *args, **kwargs):
+        """Generate slug if not provided."""
+        if not self.slug and self.name:
+            from django.utils.text import slugify
+            base_slug = slugify(self.name)
+            slug = base_slug
+            num = 1
+            while ProductCategory.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{num}"
+                num += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
 
 class Product(models.Model):
     """E-commerce product model"""
     name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, blank=True)
     description = models.TextField()
     short_description = models.CharField(max_length=255, blank=True)
     category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True, related_name='products')
@@ -46,7 +59,7 @@ class Product(models.Model):
     cost_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
     # Inventory
-    sku = models.CharField(max_length=100, unique=True)
+    sku = models.CharField(max_length=100, unique=True, blank=True)
     stock_quantity = models.IntegerField(default=0)
     track_inventory = models.BooleanField(default=True)
     allow_backorders = models.BooleanField(default=False)
@@ -75,6 +88,38 @@ class Product(models.Model):
 
     def get_absolute_url(self):
         return reverse('website:product_detail', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs):
+        """Generate SKU and slug if not provided."""
+        import random
+        import string
+        from django.utils.text import slugify
+        
+        # Auto-generate SKU if not provided
+        if not self.sku and self.name:
+            base_sku = ''.join(word[:3].upper() for word in self.name.split()[:3])
+            sku = base_sku
+            num = 1
+            while Product.objects.filter(sku=sku).exclude(pk=self.pk).exists():
+                # Add random suffix to make it unique
+                suffix = ''.join(random.choices(string.digits, k=3))
+                sku = f"{base_sku}{suffix}"
+                num += 1
+                if num > 100:  # Prevent infinite loop
+                    sku = f"{base_sku}{''.join(random.choices(string.ascii_uppercase + string.digits, k=4))}"
+                    break
+            self.sku = sku
+        
+        # Auto-generate slug if not provided
+        if not self.slug and self.name:
+            base_slug = slugify(self.name)
+            slug = base_slug
+            num = 1
+            while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{num}"
+                num += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
 
     @property
     def is_on_sale(self):
