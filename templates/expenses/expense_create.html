@@ -1,0 +1,996 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Add Expense -
+DreamBiz Accounting{% endblock %} {% block content %}
+<div x-data="expenseCreate()" class="max-w-4xl mx-auto p-6">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center">
+      <a
+        href="{% url 'expenses:expense_list' %}"
+        class="text-gray-500 hover:text-gray-700 mr-4"
+      >
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </a>
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Add New Expense</h1>
+        <p class="text-gray-600 mt-1">
+          Create a new expense record with AI-powered receipt processing
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Receipt Processing -->
+  <div
+    x-show="showReceiptProcessor"
+    class="mb-6 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6"
+  >
+    <div class="flex items-start">
+      <div class="flex-shrink-0">
+        <svg
+          class="w-8 h-8 text-purple-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+          />
+        </svg>
+      </div>
+      <div class="ml-4 flex-1">
+        <h3 class="text-lg font-medium text-purple-800">
+          AI Receipt Processing
+        </h3>
+        <p class="text-sm text-purple-700 mt-1">
+          Upload a receipt and let AI extract the expense details automatically
+        </p>
+
+        <div class="mt-4">
+          <div
+            class="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center"
+          >
+            <template x-if="!uploadedReceipt">
+              <div>
+                <svg
+                  class="mx-auto h-12 w-12 text-purple-400"
+                  stroke="currentColor"
+                  fill="none"
+                  viewBox="0 0 48 48"
+                >
+                  <path
+                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <div class="mt-4">
+                  <label class="cursor-pointer">
+                    <span class="mt-2 block text-sm font-medium text-purple-900"
+                      >Upload receipt</span
+                    >
+                    <input
+                      @change="handleReceiptUpload"
+                      type="file"
+                      class="sr-only"
+                      accept="image/*"
+                    />
+                  </label>
+                  <p class="mt-1 text-xs text-purple-600">
+                    PNG, JPG, PDF up to 10MB
+                  </p>
+                </div>
+              </div>
+            </template>
+
+            <template x-if="uploadedReceipt">
+              <div>
+                <div class="flex items-center justify-center mb-4">
+                  <img
+                    :src="uploadedReceipt"
+                    class="max-h-32 rounded-lg shadow-md"
+                  />
+                </div>
+                <div
+                  x-show="processingReceipt"
+                  class="flex items-center justify-center"
+                >
+                  <svg
+                    class="animate-spin h-6 w-6 text-purple-600 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span class="text-purple-700">Processing receipt...</span>
+                </div>
+                <div
+                  x-show="!processingReceipt"
+                  class="text-green-600 font-medium"
+                >
+                  ✓ Receipt processed successfully
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Form -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Expense Details</h3>
+    </div>
+
+    <form
+      method="post"
+      enctype="multipart/form-data"
+      class="p-6"
+    >
+      {% csrf_token %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Basic Information -->
+        <div class="md:col-span-2">
+          <h4 class="text-md font-medium text-gray-900 mb-4">
+            Basic Information
+          </h4>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Description *</label
+          >
+          {{ form.description }}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Amount *</label
+          >
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <span class="text-gray-500 sm:text-sm">GH</span>
+            </div>
+            {{ form.amount }}
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Category *</label
+          >
+          {{ form.category }}
+          <button
+            @click.prevent="showNewCategoryModal = true"
+            type="button"
+            class="mt-2 text-sm text-blue-600 hover:text-blue-800"
+          >
+            + Add new category
+          </button>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Date *</label
+          >
+          {{ form.date }}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Vendor</label
+          >
+          {{ form.vendor }}
+          <button
+            @click.prevent="showNewVendorModal = true"
+            type="button"
+            class="mt-2 text-sm text-blue-600 hover:text-blue-800"
+          >
+            + Add new vendor
+          </button>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Payment Method</label
+          >
+          {{ form.payment_method }}
+        </div>
+
+        <!-- Tax Information -->
+        <div class="md:col-span-2">
+          <h4 class="text-md font-medium text-gray-900 mb-4 mt-6">
+            Tax Information
+          </h4>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Tax Amount</label
+          >
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <span class="text-gray-500 sm:text-sm">GH</span>
+            </div>
+            {{ form.tax_amount }}
+          </div>
+        </div>
+
+        <div class="flex items-center">
+          {{ form.is_billable }}
+          <label class="ml-2 block text-sm text-gray-900">
+            Billable to client
+          </label>
+        </div>
+
+        <!-- Additional Details -->
+        <div class="md:col-span-2">
+          <h4 class="text-md font-medium text-gray-900 mb-4 mt-6">
+            Additional Details
+          </h4>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Reference Number</label
+          >
+          {{ form.reference_number }}
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Location</label
+          >
+          {{ form.location }}
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Notes</label
+          >
+          {{ form.notes }}
+        </div>
+      </div>
+
+      <!-- AI Suggestions -->
+      <div
+        x-show="aiSuggestions.length > 0"
+        class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg"
+      >
+        <h4 class="text-sm font-medium text-blue-800 mb-2">AI Suggestions</h4>
+        <ul class="text-sm text-blue-700 space-y-1">
+          <template x-for="suggestion in aiSuggestions" :key="suggestion">
+            <li x-text="suggestion"></li>
+          </template>
+        </ul>
+      </div>
+
+      <!-- Form Actions -->
+      <div
+        class="mt-8 flex flex-col sm:flex-row sm:justify-between space-y-3 sm:space-y-0 sm:space-x-3"
+      >
+        <div class="flex space-x-3">
+          <button
+            type="submit"
+            name="save_draft"
+            value="1"
+            class="px-6 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Save as Draft
+          </button>
+          <button
+            type="submit"
+            name="submit"
+            value="1"
+            class="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Save & Submit
+          </button>
+        </div>
+
+        <div class="flex space-x-3">
+          <button
+            @click="previewExpense()"
+            type="button"
+            class="px-6 py-2 text-sm font-medium text-indigo-700 bg-indigo-100 rounded-lg hover:bg-indigo-200 transition-colors"
+          >
+            Preview
+          </button>
+          <a
+            href="{% url 'expenses:expense_list' %}"
+            class="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Total Summary -->
+  <div class="mt-6 bg-gray-50 rounded-lg p-4">
+    <div class="flex justify-between items-center">
+      <span class="text-sm font-medium text-gray-700">Subtotal:</span>
+      <span
+        class="text-sm text-gray-900"
+        x-text="'GH' + (getFormValue('amount') || '0.00')"
+      ></span>
+    </div>
+    <div class="flex justify-between items-center mt-1">
+      <span class="text-sm font-medium text-gray-700">Tax:</span>
+      <span
+        class="text-sm text-gray-900"
+        x-text="'GH' + (getFormValue('tax_amount') || '0.00')"
+      ></span>
+    </div>
+    <div class="border-t border-gray-200 mt-2 pt-2">
+      <div class="flex justify-between items-center">
+        <span class="text-base font-semibold text-gray-900">Total:</span>
+        <span
+          class="text-base font-semibold text-gray-900"
+          x-text="'GH' + totalAmount"
+        ></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Category Modal -->
+<div
+  x-show="showNewCategoryModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+  x-cloak
+>
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Add New Category</h3>
+    </div>
+    <div class="px-6 py-4">
+      <form @submit.prevent="addNewCategory()">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Category Name</label
+            >
+            <input
+              x-model="newCategory.name"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Description</label
+            >
+            <textarea
+              x-model="newCategory.description"
+              rows="2"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            ></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Color</label
+            >
+            <input
+              x-model="newCategory.color"
+              type="color"
+              class="w-full h-10 border border-gray-300 rounded-lg"
+            />
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+          <button
+            @click="showNewCategoryModal = false"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Add Category
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- New Vendor Modal -->
+<div
+  x-show="showNewVendorModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+  x-cloak
+>
+  <div
+    class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+  >
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Add New Vendor</h3>
+    </div>
+    <div class="px-6 py-4">
+      <form @submit.prevent="addNewVendor()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Basic Information -->
+          <div class="md:col-span-2">
+            <h4 class="text-sm font-medium text-gray-900 mb-3">
+              Basic Information
+            </h4>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Vendor Name *</label
+            >
+            <input
+              x-model="newVendor.name"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Email</label
+            >
+            <input
+              x-model="newVendor.email"
+              type="email"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="vendor@example.com"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Phone</label
+            >
+            <input
+              x-model="newVendor.phone"
+              type="tel"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="+1 (555) 123-4567"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Website</label
+            >
+            <input
+              x-model="newVendor.website"
+              type="url"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="https://vendor-website.com"
+            />
+          </div>
+
+          <!-- Address Information -->
+          <div class="md:col-span-2">
+            <h4 class="text-sm font-medium text-gray-900 mb-3 mt-4">Address</h4>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Street Address</label
+            >
+            <input
+              x-model="newVendor.address_line_1"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="123 Main Street"
+            />
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Address Line 2</label
+            >
+            <input
+              x-model="newVendor.address_line_2"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Apt, suite, etc. (optional)"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >City</label
+            >
+            <input
+              x-model="newVendor.city"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >State/Province</label
+            >
+            <input
+              x-model="newVendor.state"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >ZIP/Postal Code</label
+            >
+            <input
+              x-model="newVendor.postal_code"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Country</label
+            >
+            <input
+              x-model="newVendor.country"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value="United States"
+            />
+          </div>
+
+          <!-- Financial Information -->
+          <div class="md:col-span-2">
+            <h4 class="text-sm font-medium text-gray-900 mb-3 mt-4">
+              Financial Information
+            </h4>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Tax ID</label
+            >
+            <input
+              x-model="newVendor.tax_id"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Tax ID (optional)"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Payment Terms</label
+            >
+            <input
+              x-model="newVendor.payment_terms"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., Net 30, COD"
+            />
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-3">
+          <button
+            @click="showNewVendorModal = false"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Add Vendor
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+</div>
+<!-- End of x-data="expenseCreate()" container -->
+
+<script>
+  function expenseCreate() {
+    return {
+      showReceiptProcessor: true,
+      showNewCategoryModal: false,
+      showNewVendorModal: false,
+      uploadedReceipt: null,
+      processingReceipt: false,
+      uploadedFile: null,
+      newCategory: {
+        name: "",
+        description: "",
+        color: "#6B7280",
+      },
+      newVendor: {
+        name: "",
+        email: "",
+        phone: "",
+        website: "",
+        address_line_1: "",
+        address_line_2: "",
+        city: "",
+        state: "",
+        postal_code: "",
+        country: "Ghana",
+        tax_id: "",
+        payment_terms: "",
+        is_active: true,
+      },
+      aiSuggestions: [],
+
+      get totalAmount() {
+        const subtotal = parseFloat(this.getFormValue("amount")) || 0;
+        const tax = parseFloat(this.getFormValue("tax_amount")) || 0;
+        return (subtotal + tax).toFixed(2);
+      },
+
+      getFormValue(fieldName) {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        return field ? field.value : "";
+      },
+
+      setFormValue(fieldName, value) {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+          field.value = value;
+          // Trigger change event for any listeners
+          field.dispatchEvent(new Event("change"));
+        }
+      },
+
+      async handleReceiptUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.uploadedReceipt = e.target.result;
+          };
+          reader.readAsDataURL(file);
+
+          this.uploadedFile = file;
+          await this.processReceipt(file);
+        }
+      },
+
+      async processReceipt(file) {
+        this.processingReceipt = true;
+
+        try {
+          const formData = new FormData();
+          formData.append("receipt", file);
+          formData.append(
+            "csrfmiddlewaretoken",
+            document.querySelector("[name=csrfmiddlewaretoken]").value
+          );
+
+          const response = await fetch(
+            '{% url "expenses:process_receipt_ajax" %}',
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Populate form with extracted data
+            this.setFormValue("description", data.data.description);
+            this.setFormValue("amount", data.data.amount);
+            this.setFormValue("tax_amount", data.data.tax_amount);
+            this.setFormValue("date", data.data.date);
+
+            // Set suggestions
+            this.aiSuggestions = data.suggestions || [
+              `Receipt processed with ${Math.round(
+                data.data.confidence * 100
+              )}% confidence`,
+            ];
+
+            // Auto-hide suggestions after 10 seconds
+            setTimeout(() => {
+              this.aiSuggestions = [];
+            }, 10000);
+          } else {
+            console.error("Receipt processing failed:", data.error);
+            alert("Failed to process receipt. Please try again.");
+          }
+        } catch (error) {
+          console.error("Error processing receipt:", error);
+          alert("Error processing receipt. Please try again.");
+        } finally {
+          this.processingReceipt = false;
+        }
+      },
+
+      async addNewCategory() {
+        try {
+          const formData = new FormData();
+          formData.append("name", this.newCategory.name);
+          formData.append("description", this.newCategory.description);
+          formData.append("color", this.newCategory.color);
+          formData.append(
+            "csrfmiddlewaretoken",
+            document.querySelector("[name=csrfmiddlewaretoken]").value
+          );
+
+          const response = await fetch(
+            '{% url "expenses:add_category_ajax" %}',
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Add new option to category select
+            const categorySelect = document.querySelector('[name="category"]');
+            const newOption = document.createElement("option");
+            newOption.value = data.category.id;
+            newOption.textContent = data.category.name;
+            categorySelect.appendChild(newOption);
+
+            // Select the new category
+            categorySelect.value = data.category.id;
+
+            // Close modal and reset form
+            this.showNewCategoryModal = false;
+            this.newCategory = {
+              name: "",
+              description: "",
+              color: "#6B7280",
+            };
+
+            alert("Category added successfully!");
+          } else {
+            alert("Error adding category: " + JSON.stringify(data.errors));
+          }
+        } catch (error) {
+          console.error("Error adding category:", error);
+          alert("Error adding category. Please try again.");
+        }
+      },
+
+      async addNewVendor() {
+        try {
+          const formData = new FormData();
+          Object.keys(this.newVendor).forEach((key) => {
+            formData.append(key, this.newVendor[key]);
+          });
+          formData.append(
+            "csrfmiddlewaretoken",
+            document.querySelector("[name=csrfmiddlewaretoken]").value
+          );
+
+          const response = await fetch('{% url "expenses:add_vendor_ajax" %}', {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Add new option to vendor select
+            const vendorSelect = document.querySelector('[name="vendor"]');
+            const newOption = document.createElement("option");
+            newOption.value = data.vendor.id;
+            newOption.textContent = data.vendor.name;
+            vendorSelect.appendChild(newOption);
+
+            // Select the new vendor
+            vendorSelect.value = data.vendor.id;
+
+            // Close modal and reset form
+            this.showNewVendorModal = false;
+            this.newVendor = {
+              name: "",
+              email: "",
+              phone: "",
+              website: "",
+              address_line_1: "",
+              address_line_2: "",
+              city: "",
+              state: "",
+              postal_code: "",
+              country: "Ghana",
+              tax_id: "",
+              payment_terms: "",
+              is_active: true,
+            };
+
+            alert("Vendor added successfully!");
+          } else {
+            console.error("Vendor creation failed:", data);
+            let errorMessage = "Error adding vendor:\n";
+            if (data.errors) {
+              Object.keys(data.errors).forEach(field => {
+                errorMessage += `${field}: ${data.errors[field].join(', ')}\n`;
+              });
+            }
+            alert(errorMessage);
+          }
+        } catch (error) {
+          console.error("Error adding vendor:", error);
+          alert("Network error adding vendor. Please check your connection and try again.");
+        }
+      },
+
+      saveAsDraft() {
+        // Add hidden input to indicate draft save
+        const form = document.querySelector("form");
+        const draftInput = document.createElement("input");
+        draftInput.type = "hidden";
+        draftInput.name = "save_draft";
+        draftInput.value = "1";
+        form.appendChild(draftInput);
+
+        // Submit the form
+        form.submit();
+      },
+
+      saveExpense() {
+        // Set the receipt file if uploaded
+        if (this.uploadedFile) {
+          const receiptInput = document.querySelector("#id_receipt");
+          const dt = new DataTransfer();
+          dt.items.add(this.uploadedFile);
+          receiptInput.files = dt.files;
+        }
+
+        // Submit the form
+        document.querySelector("form").submit();
+      },
+
+      previewExpense() {
+        // Gather form data for preview
+        const form = document.querySelector("form");
+        const formData = new FormData(form);
+        
+        // Build preview content
+        let previewHTML = '<div style="font-family: Arial, sans-serif; padding: 20px;">';
+        previewHTML += '<h2 style="color: #1e40af; margin-bottom: 20px;">Expense Preview</h2>';
+        previewHTML += '<table style="width: 100%; border-collapse: collapse;">';
+        
+        // Description
+        if (formData.get('description')) {
+          previewHTML += '<tr><td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold; width: 200px;">Description:</td>';
+          previewHTML += '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">' + formData.get('description') + '</td></tr>';
+        }
+        
+        // Amount
+        if (formData.get('amount')) {
+          previewHTML += '<tr><td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Amount:</td>';
+          previewHTML += '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">GH' + parseFloat(formData.get('amount')).toFixed(2) + '</td></tr>';
+        }
+        
+        // Tax Amount
+        if (formData.get('tax_amount')) {
+          previewHTML += '<tr><td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Tax Amount:</td>';
+          previewHTML += '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">GH' + parseFloat(formData.get('tax_amount')).toFixed(2) + '</td></tr>';
+        }
+        
+        // Total
+        const amount = parseFloat(formData.get('amount') || 0);
+        const tax = parseFloat(formData.get('tax_amount') || 0);
+        const total = amount + tax;
+        previewHTML += '<tr style="background: #dbeafe;"><td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Total:</td>';
+        previewHTML += '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">GH' + total.toFixed(2) + '</td></tr>';
+        
+        // Date
+        if (formData.get('date')) {
+          previewHTML += '<tr><td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Date:</td>';
+          previewHTML += '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">' + formData.get('date') + '</td></tr>';
+        }
+        
+        // Category
+        const categorySelect = form.querySelector('[name="category"]');
+        if (categorySelect && categorySelect.selectedOptions[0]) {
+          previewHTML += '<tr><td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Category:</td>';
+          previewHTML += '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">' + categorySelect.selectedOptions[0].text + '</td></tr>';
+        }
+        
+        // Vendor
+        const vendorSelect = form.querySelector('[name="vendor"]');
+        if (vendorSelect && vendorSelect.value) {
+          previewHTML += '<tr><td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Vendor:</td>';
+          previewHTML += '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">' + vendorSelect.selectedOptions[0].text + '</td></tr>';
+        }
+        
+        // Payment Method
+        const paymentSelect = form.querySelector('[name="payment_method"]');
+        if (paymentSelect && paymentSelect.selectedOptions[0]) {
+          previewHTML += '<tr><td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Payment Method:</td>';
+          previewHTML += '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">' + paymentSelect.selectedOptions[0].text + '</td></tr>';
+        }
+        
+        // Reference Number
+        if (formData.get('reference_number')) {
+          previewHTML += '<tr><td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Reference Number:</td>';
+          previewHTML += '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">' + formData.get('reference_number') + '</td></tr>';
+        }
+        
+        // Location
+        if (formData.get('location')) {
+          previewHTML += '<tr><td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Location:</td>';
+          previewHTML += '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">' + formData.get('location') + '</td></tr>';
+        }
+        
+        // Billable
+        if (formData.get('is_billable')) {
+          previewHTML += '<tr><td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;">Billable:</td>';
+          previewHTML += '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">Yes</td></tr>';
+        }
+        
+        // Notes
+        if (formData.get('notes')) {
+          previewHTML += '<tr><td style="padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold; vertical-align: top;">Notes:</td>';
+          previewHTML += '<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">' + formData.get('notes') + '</td></tr>';
+        }
+        
+        previewHTML += '</table>';
+        previewHTML += '<div style="margin-top: 20px; padding: 15px; background: #f3f4f6; border-radius: 8px;">';
+        previewHTML += '<p style="margin: 0; color: #6b7280;">This is a preview of your expense. Close this window to continue editing, or submit the form to save.</p>';
+        previewHTML += '</div>';
+        previewHTML += '</div>';
+        
+        // Open preview in new window
+        const previewWindow = window.open('', 'Expense Preview', 'width=700,height=600,scrollbars=yes');
+        if (previewWindow) {
+          previewWindow.document.write(previewHTML);
+          previewWindow.document.close();
+        } else {
+          alert('Please allow pop-ups to view the preview.');
+        }
+      },
+    };
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,822 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Financial Reports -
+DreamBiz Accounting{% endblock %} {% block content %}
+<div x-data="reportsMain()" class="max-w-7xl mx-auto p-6">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Financial Reports</h1>
+        <p class="text-gray-600 mt-1">
+          Generate comprehensive financial reports and analytics
+        </p>
+      </div>
+      <div class="mt-4 md:mt-0 flex space-x-3">
+        <button
+          @click="showCreateReportModal = true"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+        >
+          <svg
+            class="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          Create Report
+        </button>
+        <button
+          @click="scheduleReport()"
+          class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
+        >
+          <svg
+            class="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          Schedule
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Report Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <template x-for="quickReport in quickReports" :key="quickReport.id">
+      <div
+        @click="generateQuickReport(quickReport)"
+        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
+      >
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div
+              class="w-8 h-8 rounded-lg flex items-center justify-center"
+              :class="quickReport.iconBg"
+            >
+              <svg
+                class="w-5 h-5"
+                :class="quickReport.iconColor"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                x-html="quickReport.icon"
+              ></svg>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p
+              class="text-sm font-medium text-gray-500"
+              x-text="quickReport.name"
+            ></p>
+            <p
+              class="text-lg font-semibold text-gray-900"
+              x-text="quickReport.description"
+            ></p>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- Financial Dashboard -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Revenue Chart -->
+    <div
+      class="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Revenue Trend</h3>
+        <div class="flex space-x-2">
+          <button
+            @click="chartPeriod = '7d'"
+            :class="chartPeriod === '7d' ? 'bg-blue-100 text-blue-600' : 'text-gray-500'"
+            class="px-3 py-1 rounded text-sm font-medium"
+          >
+            7D
+          </button>
+          <button
+            @click="chartPeriod = '30d'"
+            :class="chartPeriod === '30d' ? 'bg-blue-100 text-blue-600' : 'text-gray-500'"
+            class="px-3 py-1 rounded text-sm font-medium"
+          >
+            30D
+          </button>
+          <button
+            @click="chartPeriod = '90d'"
+            :class="chartPeriod === '90d' ? 'bg-blue-100 text-blue-600' : 'text-gray-500'"
+            class="px-3 py-1 rounded text-sm font-medium"
+          >
+            90D
+          </button>
+        </div>
+      </div>
+      <canvas id="revenueChart" width="400" height="200"></canvas>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="space-y-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Key Metrics</h3>
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-medium text-gray-600">Revenue (MTD)</span>
+            <span class="text-sm font-semibold text-gray-900">GH485,320</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-medium text-gray-600"
+              >Expenses (MTD)</span
+            >
+            <span class="text-sm font-semibold text-gray-900">GH198,450</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-medium text-gray-600">Net Income</span>
+            <span class="text-sm font-semibold text-green-600">GH286,870</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-medium text-gray-600">Cash Flow</span>
+            <span class="text-sm font-semibold text-blue-600">GH342,190</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Account Health</h3>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-gray-600">Outstanding Invoices</span>
+            <span class="text-sm font-medium text-yellow-600">GH45,890</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-gray-600">Overdue Payments</span>
+            <span class="text-sm font-medium text-red-600">GH12,450</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-gray-600">Available Credit</span>
+            <span class="text-sm font-medium text-green-600">GH250,000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reports Categories -->
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Report Categories</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <template x-for="category in reportCategories" :key="category.id">
+        <div
+          class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+        >
+          <div class="flex items-center mb-4">
+            <div
+              class="w-10 h-10 rounded-lg flex items-center justify-center"
+              :class="category.iconBg"
+            >
+              <svg
+                class="w-6 h-6"
+                :class="category.iconColor"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                x-html="category.icon"
+              ></svg>
+            </div>
+            <h3
+              class="ml-3 text-lg font-medium text-gray-900"
+              x-text="category.name"
+            ></h3>
+          </div>
+          <p
+            class="text-sm text-gray-600 mb-4"
+            x-text="category.description"
+          ></p>
+          <div class="space-y-2">
+            <template x-for="report in category.reports" :key="report.id">
+              <button
+                @click="generateReport(report)"
+                class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors"
+              >
+                <div class="flex justify-between items-center">
+                  <span x-text="report.name"></span>
+                  <svg
+                    class="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+              </button>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- Recent Reports -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Recent Reports</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Report Name
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Type
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Period
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Generated
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Status
+            </th>
+            <th
+              class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <template x-for="report in recentReports" :key="report.id">
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <svg
+                    class="w-5 h-5 text-gray-400 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <div>
+                    <div
+                      class="text-sm font-medium text-gray-900"
+                      x-text="report.name"
+                    ></div>
+                    <div
+                      class="text-sm text-gray-500"
+                      x-text="report.description"
+                    ></div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  :class="getTypeColor(report.type)"
+                  x-text="report.type"
+                >
+                </span>
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                x-text="report.period"
+              ></td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                x-text="report.generated"
+              ></td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  :class="getStatusColor(report.status)"
+                  x-text="report.status"
+                >
+                </span>
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+              >
+                <div class="flex items-center justify-end space-x-2">
+                  <button
+                    @click="viewReport(report)"
+                    class="text-blue-600 hover:text-blue-900"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    @click="downloadReport(report)"
+                    class="text-green-600 hover:text-green-900"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    @click="shareReport(report)"
+                    class="text-indigo-600 hover:text-indigo-900"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    @click="deleteReport(report)"
+                    class="text-red-600 hover:text-red-900"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Create Report Modal -->
+<div
+  x-show="showCreateReportModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+  x-cloak
+>
+  <div
+    class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-screen overflow-y-auto"
+  >
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Create Custom Report</h3>
+    </div>
+    <div class="px-6 py-4">
+      <form @submit.prevent="createCustomReport()">
+        <div class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Report Name</label
+            >
+            <input
+              x-model="customReport.name"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Report Type</label
+            >
+            <select
+              x-model="customReport.type"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            >
+              <option value="">Select Report Type</option>
+              <option value="financial">Financial Statement</option>
+              <option value="expense">Expense Report</option>
+              <option value="revenue">Revenue Analysis</option>
+              <option value="tax">Tax Report</option>
+              <option value="custom">Custom Analysis</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Start Date</label
+              >
+              <input
+                x-model="customReport.startDate"
+                type="date"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >End Date</label
+              >
+              <input
+                x-model="customReport.endDate"
+                type="date"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Include</label
+            >
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input
+                  x-model="customReport.includeInvoices"
+                  type="checkbox"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span class="ml-2 text-sm text-gray-900">Invoices</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  x-model="customReport.includeExpenses"
+                  type="checkbox"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span class="ml-2 text-sm text-gray-900">Expenses</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  x-model="customReport.includePayroll"
+                  type="checkbox"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span class="ml-2 text-sm text-gray-900">Payroll</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  x-model="customReport.includeTaxes"
+                  type="checkbox"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span class="ml-2 text-sm text-gray-900">Tax Information</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Output Format</label
+            >
+            <div class="flex space-x-4">
+              <label class="flex items-center">
+                <input
+                  x-model="customReport.format"
+                  type="radio"
+                  value="pdf"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <span class="ml-2 text-sm text-gray-900">PDF</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  x-model="customReport.format"
+                  type="radio"
+                  value="excel"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <span class="ml-2 text-sm text-gray-900">Excel</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  x-model="customReport.format"
+                  type="radio"
+                  value="csv"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <span class="ml-2 text-sm text-gray-900">CSV</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-3">
+          <button
+            @click="showCreateReportModal = false"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Generate Report
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function reportsMain() {
+    return {
+      showCreateReportModal: false,
+      chartPeriod: "30d",
+      customReport: {
+        name: "",
+        type: "",
+        startDate: "",
+        endDate: "",
+        includeInvoices: true,
+        includeExpenses: true,
+        includePayroll: false,
+        includeTaxes: false,
+        format: "pdf",
+      },
+      quickReports: [
+        {
+          id: 1,
+          name: "P&L Statement",
+          description: "This Month",
+          iconBg: "bg-blue-100",
+          iconColor: "text-blue-600",
+          icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"/>',
+          url: '{% url "reports:monthly_statements" %}',
+        },
+        {
+          id: 2,
+          name: "Cash Flow",
+          description: "Last 30 Days",
+          iconBg: "bg-green-100",
+          iconColor: "text-green-600",
+          icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>',
+          url: '{% url "reports:monthly_statements" %}',
+        },
+        {
+          id: 3,
+          name: "Annual Report",
+          description: "Full Year",
+          iconBg: "bg-purple-100",
+          iconColor: "text-purple-600",
+          icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>',
+          url: '{% url "reports:annual_statements" %}',
+        },
+        {
+          id: 4,
+          name: "Expense Analysis",
+          description: "Monthly",
+          iconBg: "bg-red-100",
+          iconColor: "text-red-600",
+          icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/>',
+        },
+      ],
+      reportCategories: [
+        {
+          id: 1,
+          name: "Financial Statements",
+          description: "Balance sheet, P&L, cash flow statements",
+          iconBg: "bg-blue-100",
+          iconColor: "text-blue-600",
+          icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"/>',
+          reports: [
+            { id: 1, name: "Balance Sheet" },
+            { id: 2, name: "Profit & Loss" },
+            { id: 3, name: "Cash Flow Statement" },
+            { id: 4, name: "Trial Balance" },
+          ],
+        },
+        {
+          id: 2,
+          name: "Expense Reports",
+          description: "Detailed expense analysis and categorization",
+          iconBg: "bg-red-100",
+          iconColor: "text-red-600",
+          icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/>',
+          reports: [
+            { id: 5, name: "Expense Summary" },
+            { id: 6, name: "Expense by Category" },
+            { id: 7, name: "Employee Expenses" },
+            { id: 8, name: "Vendor Analysis" },
+          ],
+        },
+        {
+          id: 3,
+          name: "Tax Reports",
+          description: "Tax preparation and compliance reports",
+          iconBg: "bg-yellow-100",
+          iconColor: "text-yellow-600",
+          icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>',
+          reports: [
+            { id: 9, name: "Tax Summary" },
+            { id: 10, name: "1099 Forms" },
+            { id: 11, name: "Sales Tax Report" },
+            { id: 12, name: "Quarterly Taxes" },
+          ],
+        },
+      ],
+      recentReports: [
+        {
+          id: 1,
+          name: "Monthly P&L Statement",
+          description: "December 2023 financial performance",
+          type: "Financial",
+          period: "Dec 2023",
+          generated: "Jan 5, 2024",
+          status: "Ready",
+        },
+        {
+          id: 2,
+          name: "Q4 Expense Analysis",
+          description: "Quarterly expense breakdown and trends",
+          type: "Expense",
+          period: "Q4 2023",
+          generated: "Jan 3, 2024",
+          status: "Processing",
+        },
+        {
+          id: 3,
+          name: "Tax Preparation Summary",
+          description: "Annual tax document compilation",
+          type: "Tax",
+          period: "2023",
+          generated: "Jan 2, 2024",
+          status: "Ready",
+        },
+      ],
+
+      getTypeColor(type) {
+        const colors = {
+          Financial: "bg-blue-100 text-blue-800",
+          Expense: "bg-red-100 text-red-800",
+          Tax: "bg-yellow-100 text-yellow-800",
+          Revenue: "bg-green-100 text-green-800",
+        };
+        return colors[type] || "bg-gray-100 text-gray-800";
+      },
+
+      getStatusColor(status) {
+        const colors = {
+          Ready: "bg-green-100 text-green-800",
+          Processing: "bg-yellow-100 text-yellow-800",
+          Failed: "bg-red-100 text-red-800",
+        };
+        return colors[status] || "bg-gray-100 text-gray-800";
+      },
+
+      generateQuickReport(report) {
+        console.log("Generating quick report:", report);
+        // If report has a URL, navigate to it
+        if (report.url) {
+          window.location.href = report.url;
+        }
+        // Otherwise, add quick report generation logic here
+      },
+
+      generateReport(report) {
+        console.log("Generating report:", report);
+        // Add report generation logic
+      },
+
+      createCustomReport() {
+        console.log("Creating custom report:", this.customReport);
+        this.showCreateReportModal = false;
+        // Add custom report creation logic
+      },
+
+      scheduleReport() {
+        console.log("Scheduling report");
+        // Add scheduling logic
+      },
+
+      viewReport(report) {
+        console.log("Viewing report:", report);
+      },
+
+      downloadReport(report) {
+        console.log("Downloading report:", report);
+      },
+
+      shareReport(report) {
+        console.log("Sharing report:", report);
+      },
+
+      deleteReport(report) {
+        if (confirm("Are you sure you want to delete this report?")) {
+          console.log("Deleting report:", report);
+        }
+      },
+    };
+  }
+
+  // Initialize chart when page loads
+  document.addEventListener("DOMContentLoaded", function () {
+    // Revenue Chart
+    const ctx = document.getElementById("revenueChart");
+    if (ctx) {
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: ["Jan 1", "Jan 7", "Jan 14", "Jan 21", "Jan 28"],
+          datasets: [
+            {
+              label: "Revenue",
+              data: [12000, 19000, 15000, 25000, 32000],
+              borderColor: "rgb(59, 130, 246)",
+              backgroundColor: "rgba(59, 130, 246, 0.1)",
+              tension: 0.4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function (value) {
+                  return "GH" + value.toLocaleString();
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,415 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% block title %} 
+{% if object %}Edit Bank Statement {% else %}Upload New Bank Statement{% endif %} - DreamBiz
+Accounting {% endblock %} 
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            {% if object %} Edit Bank Statement {% else %} Upload New Bank
+            Statement {% endif %}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Import and configure bank statement details
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'bank_reconciliation:dashboard' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">
+          Bank Statement Information
+        </h3>
+      </div>
+      <div class="p-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+          {% csrf_token %}
+
+          <!-- Bank Account Selection -->
+          <div>
+            <label
+              for="{{ form.bank_account.id_for_label }}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Bank Account <span class="text-red-500">*</span>
+            </label>
+            {{ form.bank_account }} {% if form.bank_account.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {% for error in form.bank_account.errors %}{{ error }}{% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Statement Period -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                for="{{ form.statement_date.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Statement Date <span class="text-red-500">*</span>
+              </label>
+              {{ form.statement_date }} {% if form.statement_date.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.statement_date.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <div>
+              <label
+                for="{{ form.statement_period_start.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Period Start
+              </label>
+              {{ form.statement_period_start }} {% if form.statement_period_start.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.statement_period_start.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                for="{{ form.statement_period_end.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Period End
+              </label>
+              {{ form.statement_period_end }} {% if form.statement_period_end.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.statement_period_end.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <div>
+              <label
+                for="{{ form.beginning_balance.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Beginning Balance
+              </label>
+              {{ form.beginning_balance }} 
+              {% if form.beginning_balance.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.beginning_balance.errors %}
+                {{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Balance Information -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                for="{{ form.ending_balance.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Ending Balance <span class="text-red-500">*</span>
+              </label>
+              {{ form.ending_balance }} {% if form.ending_balance.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.ending_balance.errors %}
+                {{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <div>
+              <label
+                for="{{ form.total_deposits.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Total Deposits
+              </label>
+              {{ form.total_deposits }} {% if form.total_deposits.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.total_deposits.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                for="{{ form.total_withdrawals.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Total Withdrawals
+              </label>
+              {{ form.total_withdrawals }} 
+              {% if form.total_withdrawals.errors%}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.total_withdrawals.errors %}
+                {{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <div>
+              <label
+                for="{{ form.total_fees.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Total Fees
+              </label>
+              {{ form.total_fees }} {% if form.total_fees.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.total_fees.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div>
+            <label
+              for="{{ form.notes.id_for_label }}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Notes
+            </label>
+            {{ form.notes }} {% if form.notes.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {% for error in form.notes.errors %}{{ error }}{% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex justify-between pt-6">
+            <a
+              href="{% url 'bank_reconciliation:dashboard' %}"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            >
+              Cancel
+            </a>
+            <button
+              type="submit"
+              class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            >
+              {% if object %}
+              <i class="fas fa-save mr-2"></i>
+              Update Statement {% else %}
+              <i class="fas fa-upload mr-2"></i>
+              Upload Statement {% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Tips Sidebar -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+  <div class="bg-blue-50 rounded-lg p-6">
+    <h4 class="text-lg font-semibold text-blue-900 mb-4">
+      Statement Upload Tips
+    </h4>
+    <div class="space-y-3 text-sm text-blue-800">
+      <div class="flex items-start">
+        <i class="fas fa-lightbulb text-blue-600 mt-0.5 mr-2"></i>
+        <p>
+          Ensure your statement period dates match exactly with your bank's
+          records.
+        </p>
+      </div>
+      <div class="flex items-start">
+        <i class="fas fa-calculator text-blue-600 mt-0.5 mr-2"></i>
+        <p>
+          Double-check that beginning + deposits - withdrawals - fees = ending
+          balance.
+        </p>
+      </div>
+      <div class="flex items-start">
+        <i class="fas fa-clock text-blue-600 mt-0.5 mr-2"></i>
+        <p>
+          Upload statements regularly to maintain accurate reconciliation
+          records.
+        </p>
+      </div>
+      <div class="flex items-start">
+        <i class="fas fa-file-alt text-blue-600 mt-0.5 mr-2"></i>
+        <p>Add detailed notes to help with future reconciliation processes.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Add Tailwind classes to form fields
+    const inputs = document.querySelectorAll(
+      'input[type="text"], input[type="number"], input[type="date"], select, textarea'
+    );
+
+    inputs.forEach((input) => {
+      input.classList.add(
+        "block",
+        "w-full",
+        "px-3",
+        "py-2",
+        "border",
+        "border-gray-300",
+        "rounded-md",
+        "shadow-sm",
+        "placeholder-gray-400",
+        "focus:outline-none",
+        "focus:ring-indigo-500",
+        "focus:border-indigo-500",
+        "sm:text-sm"
+      );
+    });
+
+    // Add specific styling for textareas
+    const textareas = document.querySelectorAll("textarea");
+    textareas.forEach((textarea) => {
+      textarea.classList.add("h-24", "resize-none");
+    });
+
+    // Auto-calculate balance validation
+    const beginningBalance = document.querySelector(
+      '[name="beginning_balance"]'
+    );
+    const totalDeposits = document.querySelector('[name="total_deposits"]');
+    const totalWithdrawals = document.querySelector(
+      '[name="total_withdrawals"]'
+    );
+    const totalFees = document.querySelector('[name="total_fees"]');
+    const endingBalance = document.querySelector('[name="ending_balance"]');
+
+    function calculateBalance() {
+      if (
+        beginningBalance &&
+        totalDeposits &&
+        totalWithdrawals &&
+        totalFees &&
+        endingBalance
+      ) {
+        const beginning = parseFloat(beginningBalance.value) || 0;
+        const deposits = parseFloat(totalDeposits.value) || 0;
+        const withdrawals = parseFloat(totalWithdrawals.value) || 0;
+        const fees = parseFloat(totalFees.value) || 0;
+        const calculated = beginning + deposits - withdrawals - fees;
+        const actual = parseFloat(endingBalance.value) || 0;
+
+        // Show balance calculation helper
+        let helper = document.getElementById("balance-helper");
+        if (!helper) {
+          helper = document.createElement("div");
+          helper.id = "balance-helper";
+          helper.className = "mt-2 p-3 rounded-md text-sm";
+          endingBalance.parentNode.appendChild(helper);
+        }
+
+        if (Math.abs(calculated - actual) < 0.01) {
+          helper.className =
+            "mt-2 p-3 rounded-md text-sm bg-green-50 text-green-700 border border-green-200";
+          helper.innerHTML =
+            '<i class="fas fa-check-circle mr-1"></i>Balance calculation is correct!';
+        } else if (actual !== 0) {
+          helper.className =
+            "mt-2 p-3 rounded-md text-sm bg-yellow-50 text-yellow-700 border border-yellow-200";
+          helper.innerHTML = `<i class="fas fa-info-circle mr-1"></i>Calculated: GH₵${calculated.toFixed(
+            2
+          )}, Entered: GH₵${actual.toFixed(2)} (Difference: GH₵${(
+            actual - calculated
+          ).toFixed(2)})`;
+        } else {
+          helper.style.display = "none";
+        }
+      }
+    }
+
+    // Add event listeners for balance calculation
+    [
+      beginningBalance,
+      totalDeposits,
+      totalWithdrawals,
+      totalFees,
+      endingBalance,
+    ].forEach((field) => {
+      if (field) {
+        field.addEventListener("input", calculateBalance);
+        field.addEventListener("blur", calculateBalance);
+      }
+    });
+
+    // Form validation
+    const form = document.querySelector("form");
+    form.addEventListener("submit", function (e) {
+      let isValid = true;
+      const errorMessages = [];
+
+      // Check required fields
+      const requiredFields = [
+        { field: "bank_account", label: "Bank Account" },
+        { field: "statement_date", label: "Statement Date" },
+        { field: "ending_balance", label: "Ending Balance" },
+      ];
+
+      requiredFields.forEach((item) => {
+        const field = document.querySelector(`[name="${item.field}"]`);
+        if (field && !field.value.trim()) {
+          field.classList.remove("border-gray-300", "focus:border-indigo-500");
+          field.classList.add("border-red-300", "focus:border-red-500");
+          errorMessages.push(item.label);
+          isValid = false;
+        } else if (field) {
+          field.classList.remove("border-red-300", "focus:border-red-500");
+          field.classList.add("border-gray-300", "focus:border-indigo-500");
+        }
+      });
+
+      if (!isValid) {
+        e.preventDefault();
+        // Show error notification
+        const errorDiv = document.createElement("div");
+        errorDiv.className =
+          "fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50";
+        errorDiv.innerHTML = `
+          <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span class="font-medium">Please fix the following errors:</span>
+          </div>
+          <ul class="mt-2 text-sm list-disc list-inside">
+            ${errorMessages
+              .map((msg) => `<li>GH{msg} is required</li>`)
+              .join("")}
+          </ul>
+        `;
+
+        document.body.appendChild(errorDiv);
+        setTimeout(() => {
+          errorDiv.remove();
+        }, 5000);
+      }
+    });
+  });
+</script>
+{% endblock %}

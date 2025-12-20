@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Employee - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Back Button -->
+    <div class="mb-6">
+      <a
+        href="{% url 'hr:employee_detail' object.pk %}"
+        class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+      >
+        <i class="fas fa-arrow-left mr-2"></i>
+        Back to Employee Details
+      </a>
+    </div>
+
+    <!-- Delete Confirmation Card -->
+    <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+      <!-- Warning Header -->
+      <div class="bg-gradient-to-r from-red-500 to-red-600 px-6 py-8">
+        <div class="flex items-center justify-center">
+          <div class="bg-white rounded-full p-4">
+            <i class="fas fa-exclamation-triangle text-red-500 text-4xl"></i>
+          </div>
+        </div>
+        <h1 class="text-center text-3xl font-bold text-white mt-4">
+          Delete Employee
+        </h1>
+        <p class="text-center text-red-100 mt-2">
+          This action cannot be undone
+        </p>
+      </div>
+
+      <!-- Employee Information -->
+      <div class="px-6 py-8 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">
+          Employee to be deleted:
+        </h2>
+        
+        <div class="bg-gray-50 rounded-lg p-6">
+          <div class="flex items-center space-x-4 mb-6">
+            <div class="flex-shrink-0 h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center">
+              <span class="text-indigo-600 font-bold text-xl">
+                {{ object.user.first_name.0 }}{{ object.user.last_name.0 }}
+              </span>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-gray-900">{{ object.full_name }}</h3>
+              <p class="text-gray-600">{{ object.job_title }}</p>
+              <p class="text-sm text-gray-500">{{ object.employee_id }}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm font-medium text-gray-500">Department</p>
+              <p class="text-base text-gray-900">{{ object.department }}</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Employment Type</p>
+              <p class="text-base text-gray-900">{{ object.get_employment_type_display }}</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Status</p>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                {% if object.status == 'active' %}bg-green-100 text-green-800
+                {% elif object.status == 'on_leave' %}bg-yellow-100 text-yellow-800
+                {% elif object.status == 'terminated' %}bg-red-100 text-red-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ object.get_status_display }}
+              </span>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Hire Date</p>
+              <p class="text-base text-gray-900">{{ object.hire_date|date:"F d, Y" }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Warning Message -->
+      <div class="px-6 py-6 bg-red-50 border-l-4 border-red-400">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <i class="fas fa-exclamation-circle text-red-400 text-xl"></i>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+              Warning: This will permanently delete
+            </h3>
+            <div class="mt-2 text-sm text-red-700">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Employee record and personal information</li>
+                <li>All associated time entries</li>
+                <li>All leave requests</li>
+                <li>All performance reviews</li>
+                <li>Historical payroll data</li>
+              </ul>
+            </div>
+            <div class="mt-4 p-3 bg-white border border-red-200 rounded">
+              <p class="text-sm text-red-800">
+                <strong>Alternative:</strong> Consider marking the employee as "Terminated" instead of deleting the record. This preserves historical data for compliance and reporting purposes.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmation Form -->
+      <form method="post" class="px-6 py-8">
+        {% csrf_token %}
+        
+        <div class="mb-6">
+          <label for="confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+            Type <span class="font-bold text-red-600">DELETE</span> to confirm:
+          </label>
+          <input
+            type="text"
+            id="confirmation"
+            name="confirmation"
+            required
+            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm"
+            placeholder="Type DELETE here"
+          />
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row-reverse gap-3">
+          <button
+            type="submit"
+            id="deleteButton"
+            disabled
+            class="flex-1 inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          >
+            <i class="fas fa-trash mr-2"></i>
+            Permanently Delete Employee
+          </button>
+          <a
+            href="{% url 'hr:employee_detail' object.pk %}"
+            class="flex-1 inline-flex justify-center items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <i class="fas fa-times mr-2"></i>
+            Cancel
+          </a>
+        </div>
+
+        <!-- Alternative Action -->
+        <div class="mt-4 text-center">
+          <a
+            href="{% url 'hr:employee_update' object.pk %}"
+            class="text-sm text-indigo-600 hover:text-indigo-900"
+          >
+            <i class="fas fa-user-edit mr-1"></i>
+            Mark as Terminated Instead
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Additional Information -->
+    <div class="mt-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <i class="fas fa-info-circle text-blue-400"></i>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-blue-700">
+            <strong>Best Practice:</strong> For compliance with employment laws and audit requirements, it's recommended to retain employee records even after termination. Consider using the "Terminated" status instead.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Enable delete button only when "DELETE" is typed correctly
+  document.addEventListener('DOMContentLoaded', function() {
+    const confirmationInput = document.getElementById('confirmation');
+    const deleteButton = document.getElementById('deleteButton');
+
+    confirmationInput.addEventListener('input', function() {
+      if (this.value.trim().toUpperCase() === 'DELETE') {
+        deleteButton.disabled = false;
+        deleteButton.classList.add('hover:bg-red-700');
+      } else {
+        deleteButton.disabled = true;
+        deleteButton.classList.remove('hover:bg-red-700');
+      }
+    });
+
+    // Additional confirmation on submit
+    deleteButton.closest('form').addEventListener('submit', function(e) {
+      if (!confirm('Are you absolutely sure? This action cannot be undone.')) {
+        e.preventDefault();
+        return false;
+      }
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add to Expense Report - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto p-6">
+  <div class="mb-6">
+    <a href="{% url 'expenses:expense_detail' expense.id %}" class="text-blue-600 hover:text-blue-800 flex items-center">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Back to Expense
+    </a>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-8">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">Add Expense to Report</h1>
+      <p class="text-gray-600">Select an existing report or create a new one</p>
+    </div>
+
+    <!-- Expense Summary -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <h3 class="text-sm font-medium text-blue-800 mb-2">Expense Details</h3>
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <span class="text-blue-600">Description:</span>
+          <span class="text-blue-900 font-medium ml-2">{{ expense.description }}</span>
+        </div>
+        <div>
+          <span class="text-blue-600">Amount:</span>
+          <span class="text-blue-900 font-medium ml-2">GH{{ expense.amount }}</span>
+        </div>
+        <div>
+          <span class="text-blue-600">Date:</span>
+          <span class="text-blue-900 font-medium ml-2">{{ expense.date|date:"M d, Y" }}</span>
+        </div>
+        <div>
+          <span class="text-blue-600">Category:</span>
+          <span class="text-blue-900 font-medium ml-2">{{ expense.category.name }}</span>
+        </div>
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'expenses:expense_add_to_report' expense.id %}">
+      {% csrf_token %}
+      
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-3">Select Report</label>
+        
+        <!-- Create New Report Option -->
+        <div class="mb-4">
+          <label class="flex items-center p-4 border-2 border-green-200 rounded-lg hover:bg-green-50 cursor-pointer transition-colors">
+            <input type="radio" name="report_id" value="new" class="mr-3" checked>
+            <div>
+              <div class="font-medium text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Create New Report
+              </div>
+              <div class="text-sm text-gray-600 ml-7">Start a new expense report for this period</div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Existing Reports -->
+        {% if reports %}
+        <div class="space-y-3">
+          <p class="text-sm text-gray-600 mb-2">Or add to an existing draft report:</p>
+          {% for report in reports %}
+          <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+            <input type="radio" name="report_id" value="{{ report.id }}" class="mt-1 mr-3">
+            <div class="flex-1">
+              <div class="font-medium text-gray-900">{{ report.title }}</div>
+              <div class="text-sm text-gray-600 mt-1">
+                <span class="inline-flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Created: {{ report.created_at|date:"M d, Y" }}
+                </span>
+                <span class="mx-2">•</span>
+                <span class="inline-flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {{ report.expenses.count }} expense{{ report.expenses.count|pluralize }}
+                </span>
+              </div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-gray-500">
+          <p class="text-sm">No draft reports available. Create a new one to get started.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="flex space-x-3 pt-4 border-t">
+        <a href="{% url 'expenses:expense_detail' expense.id %}" 
+           class="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-200 transition-colors text-center font-medium">
+          Cancel
+        </a>
+        <button type="submit" 
+                class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+          Add to Report
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

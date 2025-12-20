@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cash Flow Prediction - DreamBiz Accounting{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Page Header -->
+  <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Cash Flow Prediction</h1>
+      <p class="text-gray-600">AI-powered cash flow forecasting for the next 3 months</p>
+    </div>
+    <div>
+      <a
+        href="{% url 'ai_insights:insights' %}"
+        class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium"
+      >
+        <i class="fas fa-arrow-left mr-2"></i>
+        Back to Insights
+      </a>
+    </div>
+  </div>
+
+  <!-- Current Cash Position -->
+  <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-8 text-white mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-xl font-semibold mb-2">Current Cash Position</h2>
+        <p class="text-3xl font-bold">GH{{ current_cash_position|floatformat:2 }}</p>
+        <p class="text-blue-100 mt-2">
+          Trend: 
+          <span class="font-semibold">
+            {% if trend == 'improving' %}
+              <i class="fas fa-arrow-up"></i> Improving
+            {% else %}
+              <i class="fas fa-arrow-down"></i> Declining
+            {% endif %}
+          </span>
+        </p>
+      </div>
+      <div class="bg-white bg-opacity-20 rounded-full p-6">
+        <i class="fas fa-money-bill-wave fa-3x"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Predictions -->
+  <div class="bg-white rounded-lg shadow-sm mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">3-Month Cash Flow Forecast</h2>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {% for pred in predictions %}
+          <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ pred.month }}</h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Predicted Income:</span>
+                <span class="font-semibold text-green-600">GH{{ pred.predicted_income|floatformat:2 }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Predicted Expenses:</span>
+                <span class="font-semibold text-red-600">GH{{ pred.predicted_expenses|floatformat:2 }}</span>
+              </div>
+              <div class="border-t pt-3 flex justify-between items-center">
+                <span class="text-sm font-medium text-gray-700">Net Cash Flow:</span>
+                <span class="font-bold {% if pred.predicted_income > pred.predicted_expenses %}text-green-600{% else %}text-red-600{% endif %}">
+                  GH{{ pred.predicted_income|add:"-"|add:pred.predicted_expenses|floatformat:2 }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between pt-2 border-t">
+                <span class="text-xs text-gray-500">Confidence:</span>
+                <div class="flex items-center">
+                  <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ pred.confidence }}%"></div>
+                  </div>
+                  <span class="text-xs font-medium text-gray-600">{{ pred.confidence }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Chart -->
+      <div class="mt-8">
+        <canvas id="cashFlowChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Insights & Recommendations -->
+  <div class="bg-white rounded-lg shadow-sm">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">AI-Generated Insights & Recommendations</h2>
+    </div>
+    <div class="p-6">
+      {% if insights %}
+        <div class="space-y-4">
+          {% for insight in insights %}
+            <div class="border-l-4 {% if insight.type == 'critical' %}border-red-500 bg-red-50{% elif insight.type == 'warning' %}border-yellow-500 bg-yellow-50{% else %}border-blue-500 bg-blue-50{% endif %} p-4 rounded-r-lg">
+              <div class="flex items-start">
+                <div class="flex-shrink-0 mr-4">
+                  {% if insight.type == 'critical' %}
+                    <i class="fas fa-exclamation-triangle text-red-600 fa-2x"></i>
+                  {% elif insight.type == 'warning' %}
+                    <i class="fas fa-exclamation-circle text-yellow-600 fa-2x"></i>
+                  {% else %}
+                    <i class="fas fa-info-circle text-blue-600 fa-2x"></i>
+                  {% endif %}
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-900 mb-2">{{ insight.title }}</h3>
+                  <p class="text-gray-700 mb-3">{{ insight.description }}</p>
+                  <div class="bg-white bg-opacity-60 rounded-lg p-3">
+                    <p class="text-sm font-medium text-gray-900 mb-1">Recommendation:</p>
+                    <p class="text-sm text-gray-700">{{ insight.recommendation }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-12">
+          <i class="fas fa-check-circle fa-3x text-green-500 mb-4"></i>
+          <p class="text-lg font-semibold text-gray-900">Great News!</p>
+          <p class="text-gray-600 mt-2">Your cash flow looks healthy with no critical issues detected.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Historical Data -->
+  <div class="bg-white rounded-lg shadow-sm mt-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Historical Cash Flow (Last 12 Months)</h2>
+    </div>
+    <div class="p-6">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Income</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expenses</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net Cash Flow</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for month in monthly_data %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ month.month }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">GH{{ month.income|floatformat:2 }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">GH{{ month.expenses|floatformat:2 }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold {% if month.net_cash_flow >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                  GH{{ month.net_cash_flow|floatformat:2 }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const ctx = document.getElementById('cashFlowChart').getContext('2d');
+  
+  const historicalMonths = {{ monthly_data|safe|slice:":-3"|map:"month"|json_script:"historical-months" }};
+  const historicalIncome = {{ monthly_data|safe|slice:":-3"|map:"income"|json_script:"historical-income" }};
+  const historicalExpenses = {{ monthly_data|safe|slice:":-3"|map:"expenses"|json_script:"historical-expenses" }};
+  
+  const predictionMonths = [{% for pred in predictions %}'{{ pred.month }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+  const predictionIncome = [{% for pred in predictions %}{{ pred.predicted_income }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+  const predictionExpenses = [{% for pred in predictions %}{{ pred.predicted_expenses }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+  
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [
+        {% for month in monthly_data %}'{{ month.month }}'{% if not forloop.last %}, {% endif %}{% endfor %},
+        {% for pred in predictions %}'{{ pred.month }}'{% if not forloop.last %}, {% endif %}{% endfor %}
+      ],
+      datasets: [
+        {
+          label: 'Income',
+          data: [
+            {% for month in monthly_data %}{{ month.income }}{% if not forloop.last %}, {% endif %}{% endfor %},
+            ...predictionIncome
+          ],
+          borderColor: 'rgb(34, 197, 94)',
+          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+          tension: 0.4
+        },
+        {
+          label: 'Expenses',
+          data: [
+            {% for month in monthly_data %}{{ month.expenses }}{% if not forloop.last %}, {% endif %}{% endfor %},
+            ...predictionExpenses
+          ],
+          borderColor: 'rgb(239, 68, 68)',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: 'Cash Flow Trend & Predictions'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return 'GH' + value.toLocaleString();
+            }
+          }
+        }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

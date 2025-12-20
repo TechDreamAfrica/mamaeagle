@@ -1,0 +1,84 @@
+{% extends 'docs/doc_layout.html' %}
+{% block doc_content %}
+<h1 class="text-3xl font-bold text-gray-900 mb-6">
+  <i class="fas fa-user-cog text-dreambiz-600"></i> Account Management
+</h1>
+<div class="prose prose-blue max-w-none">
+  <p class="text-lg text-gray-700 mb-6">Manage user accounts, company settings, permissions, and system preferences.</p>
+  
+  <h2>User Management</h2>
+  <h3>User Roles</h3>
+  <div class="space-y-3 my-4">
+    <div class="border-l-4 border-red-500 pl-4 bg-red-50 p-3 rounded">
+      <h4 class="font-semibold text-red-900">Super Admin</h4>
+      <p class="text-sm">Full system access and user management</p>
+    </div>
+    <div class="border-l-4 border-blue-500 pl-4 bg-blue-50 p-3 rounded">
+      <h4 class="font-semibold text-blue-900">Accountant</h4>
+      <p class="text-sm">Financial records and reporting access</p>
+    </div>
+    <div class="border-l-4 border-purple-500 pl-4 bg-purple-50 p-3 rounded">
+      <h4 class="font-semibold text-purple-900">Manager</h4>
+      <p class="text-sm">Department-specific access and approvals</p>
+    </div>
+    <div class="border-l-4 border-green-500 pl-4 bg-green-50 p-3 rounded">
+      <h4 class="font-semibold text-green-900">Employee</h4>
+      <p class="text-sm">Personal records and expense submission</p>
+    </div>
+  </div>
+
+  <h2>Company Settings</h2>
+  <h3>Basic Information</h3>
+  <ul>
+    <li>Company name and logo</li>
+    <li>Registration and tax numbers</li>
+    <li>Business address</li>
+    <li>Contact information</li>
+  </ul>
+
+  <h3>Financial Settings</h3>
+  <ul>
+    <li>Fiscal year configuration</li>
+    <li>Base currency selection</li>
+    <li>Tax rates and types</li>
+    <li>Payment terms defaults</li>
+    <li>Invoice numbering format</li>
+  </ul>
+
+  <h2>User Preferences</h2>
+  <h3>Personal Settings</h3>
+  <ul>
+    <li>Profile information and photo</li>
+    <li>Password and security</li>
+    <li>Two-factor authentication</li>
+    <li>Email notifications</li>
+    <li>Dashboard customization</li>
+  </ul>
+
+  <h3>Display Preferences</h3>
+  <ul>
+    <li>Language selection</li>
+    <li>Date and time format</li>
+    <li>Time zone</li>
+    <li>Number format</li>
+    <li>Currency display</li>
+  </ul>
+
+  <h2>Security Settings</h2>
+  <ul>
+    <li>Password policy enforcement</li>
+    <li>Session timeout configuration</li>
+    <li>IP address restrictions</li>
+    <li>Login history tracking</li>
+    <li>Activity audit logs</li>
+    <li>Data backup schedule</li>
+  </ul>
+
+  <div class="bg-red-50 border-l-4 border-red-500 p-4 my-6">
+    <p class="text-red-800 m-0">
+      <i class="fas fa-shield-alt mr-2"></i>
+      <strong>Security:</strong> Always enable two-factor authentication and use strong passwords for admin accounts.
+    </p>
+  </div>
+</div>
+{% endblock %}

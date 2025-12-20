@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+        .button { display: inline-block; padding: 12px 30px; background: #3b82f6; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px; }
+        h1 { margin: 0; font-size: 28px; }
+        h2 { color: #1f2937; margin-top: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Welcome to DreamBiz!</h1>
+        </div>
+        <div class="content">
+            <h2>Hello {{ user.get_full_name }},</h2>
+            <p>Thank you for registering with DreamBiz - your AI-powered accounting platform!</p>
+            
+            <p>Your account has been successfully created. You can now access all features including:</p>
+            <ul>
+                <li>📊 Real-time dashboard with key metrics</li>
+                <li>📄 Professional invoicing</li>
+                <li>💰 Expense tracking</li>
+                <li>📦 Inventory management</li>
+                <li>👥 HR & payroll management</li>
+                <li>🤖 AI-powered financial insights</li>
+            </ul>
+            
+            <p style="text-align: center;">
+                <a href="{{ dashboard_url }}" class="button">Go to Dashboard</a>
+            </p>
+            
+            <h3>Getting Started</h3>
+            <p>We recommend you start by:</p>
+            <ol>
+                <li>Setting up your company profile</li>
+                <li>Adding your team members</li>
+                <li>Importing your existing data (if any)</li>
+                <li>Exploring our comprehensive documentation</li>
+            </ol>
+            
+            <p>Need help? Check out our <a href="{{ docs_url }}">documentation</a> or contact our support team at <a href="mailto:support@techdreamafrica.com">support@techdreamafrica.com</a></p>
+            
+            <p>Happy accounting! 🚀</p>
+            <p><strong>The DreamBiz Team</strong></p>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ current_year }} DreamBiz by Tech Dream Africa. All rights reserved.</p>
+            <p>This email was sent to {{ user.email }}</p>
+        </div>
+    </div>
+</body>
+</html>

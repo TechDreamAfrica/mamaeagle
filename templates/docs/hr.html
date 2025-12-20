@@ -1,0 +1,48 @@
+{% extends 'docs/doc_layout.html' %}
+{% block doc_content %}
+<h1 class="text-3xl font-bold text-gray-900 mb-6">
+  <i class="fas fa-users text-dreambiz-600"></i> HR Management
+</h1>
+<div class="prose prose-blue max-w-none">
+  <p class="text-lg text-gray-700 mb-6">Complete human resource management including payroll, leave, and performance tracking.</p>
+  
+  <h2>Employee Management</h2>
+  <ul>
+    <li><strong>Employee Records:</strong> Personal info, employment details, documents</li>
+    <li><strong>Payroll Processing:</strong> Salaries, allowances, deductions, tax calculation</li>
+    <li><strong>Leave Management:</strong> Annual, sick, maternity/paternity leave tracking</li>
+    <li><strong>Performance Reviews:</strong> Goal setting and performance evaluations</li>
+  </ul>
+
+  <h2>Payroll Components</h2>
+  <div class="grid grid-cols-2 gap-4 my-4">
+    <div class="bg-green-50 p-4 rounded">
+      <h4 class="font-semibold text-green-900">Earnings</h4>
+      <ul class="text-sm">
+        <li>Basic Salary</li>
+        <li>Housing Allowance</li>
+        <li>Transport Allowance</li>
+        <li>Performance Bonuses</li>
+      </ul>
+    </div>
+    <div class="bg-red-50 p-4 rounded">
+      <h4 class="font-semibold text-red-900">Deductions</h4>
+      <ul class="text-sm">
+        <li>Income Tax (PAYE)</li>
+        <li>Pension Contributions</li>
+        <li>Health Insurance</li>
+        <li>Loan Repayments</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Leave Management</h2>
+  <p>Track employee leave with automated approval workflows:</p>
+  <ol>
+    <li>Employee submits leave request</li>
+    <li>Manager approves or rejects</li>
+    <li>HR records leave</li>
+    <li>Leave balance automatically updated</li>
+  </ol>
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+/* Invoice Modal Styles */
+.modal-backdrop {
+    backdrop-filter: blur(4px);
+}
+
+.modal-container {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.line-item-row {
+    transition: all 0.2s ease-in-out;
+}
+
+.line-item-row:hover {
+    background-color: rgba(59, 130, 246, 0.05);
+}
+
+.remove-line-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.line-item-row:hover .remove-line-btn {
+    opacity: 1;
+}
+
+.customer-select {
+    position: relative;
+}
+
+.customer-dropdown {
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.total-section {
+    border-top: 2px solid #e5e7eb;
+    background: linear-gradient(to bottom, #f9fafb, #ffffff);
+}
+
+.form-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(to right, #3b82f6, #1d4ed8);
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(to right, #1d4ed8, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(to right, #6b7280, #4b5563);
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(to right, #4b5563, #374151);
+}
+
+.invoice-preview {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .modal-container {
+        margin: 1rem;
+        max-height: 95vh;
+    }
+    
+    .line-item-row {
+        display: block;
+    }
+    
+    .line-item-row > div {
+        margin-bottom: 0.5rem;
+    }
+    
+    .remove-line-btn {
+        opacity: 1;
+        position: absolute;
+        right: 0.5rem;
+        top: 0.5rem;
+    }
+}
+
+/* Print styles for invoice preview */
+@media print {
+    .modal-backdrop,
+    .modal-actions {
+        display: none !important;
+    }
+    
+    .modal-container {
+        box-shadow: none;
+        border: none;
+        background: white;
+    }
+}

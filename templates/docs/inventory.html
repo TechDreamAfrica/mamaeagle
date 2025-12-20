@@ -1,0 +1,34 @@
+{% extends 'docs/doc_layout.html' %}
+{% block doc_content %}
+<h1 class="text-3xl font-bold text-gray-900 mb-6">
+  <i class="fas fa-boxes text-dreambiz-600"></i> Inventory Management
+</h1>
+<div class="prose prose-blue max-w-none">
+  <p class="text-lg text-gray-700 mb-6">Comprehensive stock management with multi-warehouse support and automated reordering.</p>
+  
+  <h2>Key Features</h2>
+  <ul>
+    <li><strong>Product Management:</strong> Track products with SKUs, variants, and pricing</li>
+    <li><strong>Warehouse Management:</strong> Multiple locations with stock transfers</li>
+    <li><strong>Real-Time Tracking:</strong> Automatic stock updates from sales and purchases</li>
+    <li><strong>Automated Reordering:</strong> Set minimum levels for automatic PO generation</li>
+    <li><strong>Stock Valuation:</strong> FIFO, LIFO, and weighted average methods</li>
+  </ul>
+
+  <h2>Stock Tracking</h2>
+  <p>Monitor inventory across all warehouses with real-time updates:</p>
+  <ul>
+    <li>Stock level reports</li>
+    <li>Stock movement history</li>
+    <li>Aging inventory analysis</li>
+    <li>Dead stock identification</li>
+  </ul>
+
+  <div class="bg-blue-50 border-l-4 border-blue-500 p-4 my-6">
+    <p class="text-blue-800 m-0">
+      <i class="fas fa-lightbulb mr-2"></i>
+      <strong>Tip:</strong> Set reorder points 2 weeks before you typically run out to maintain optimal stock levels.
+    </p>
+  </div>
+</div>
+{% endblock %}

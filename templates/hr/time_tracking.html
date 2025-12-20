@@ -1,0 +1,1375 @@
+{% extends 'base.html' %} {% block title %}Time Tracking - DreamBiz Accounting{%
+endblock %} {% block content %}
+<div class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="py-6">
+        <div class="md:flex md:items-center md:justify-between">
+          <div class="flex-1 min-w-0">
+            <h2
+              class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate"
+            >
+              Time Tracking
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+              Track employee hours and manage time off requests
+            </p>
+          </div>
+          <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+            <button
+              type="button"
+              class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              <i class="fas fa-download mr-2"></i>
+              Export Timesheet
+            </button>
+            <button
+              type="button"
+              class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+              @click="showClockInModal = true"
+            >
+              <i class="fas fa-clock mr-2"></i>
+              Clock In/Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+    x-data="timeTracking()"
+  >
+    <!-- Time Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center"
+              >
+                <i class="fas fa-clock text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Hours Today
+                </dt>
+                <dd
+                  class="text-lg font-medium text-gray-900"
+                  x-text="timeSummary.hoursToday"
+                ></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center"
+              >
+                <i class="fas fa-calendar-week text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Hours This Week
+                </dt>
+                <dd
+                  class="text-lg font-medium text-gray-900"
+                  x-text="timeSummary.hoursThisWeek"
+                ></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center"
+              >
+                <i class="fas fa-umbrella-beach text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  PTO Remaining
+                </dt>
+                <dd
+                  class="text-lg font-medium text-gray-900"
+                  x-text="timeSummary.ptoRemaining + ' hrs'"
+                ></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 rounded-md flex items-center justify-center"
+                :class="isCurrentlyClockedIn ? 'bg-green-500' : 'bg-gray-400'"
+              >
+                <i
+                  class="text-white text-sm"
+                  :class="isCurrentlyClockedIn ? 'fas fa-play' : 'fas fa-pause'"
+                ></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Current Status
+                </dt>
+                <dd
+                  class="text-lg font-medium"
+                  :class="isCurrentlyClockedIn ? 'text-green-600' : 'text-gray-900'"
+                  x-text="isCurrentlyClockedIn ? 'Clocked In' : 'Clocked Out'"
+                ></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white shadow rounded-lg">
+      <div class="border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+          <button
+            @click="activeTab = 'timesheet'"
+            :class="activeTab === 'timesheet' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+          >
+            My Timesheet
+          </button>
+          <button
+            @click="activeTab = 'team'"
+            :class="activeTab === 'team' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+          >
+            Team Overview
+          </button>
+          <button
+            @click="activeTab = 'pto'"
+            :class="activeTab === 'pto' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+          >
+            Time Off Requests
+          </button>
+          <button
+            @click="activeTab = 'reports'"
+            :class="activeTab === 'reports' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+          >
+            Reports
+          </button>
+        </nav>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="p-6">
+        <!-- My Timesheet Tab -->
+        <div x-show="activeTab === 'timesheet'" x-cloak>
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-medium text-gray-900">My Timesheet</h3>
+            <div class="flex items-center space-x-4">
+              <select
+                x-model="selectedWeek"
+                class="block py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+              >
+                <option value="current">Current Week</option>
+                <option value="last">Last Week</option>
+                <option value="custom">Custom Range</option>
+              </select>
+              <button
+                type="button"
+                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+                @click="showTimeEntryModal = true"
+              >
+                <i class="fas fa-plus mr-2"></i>
+                Add Entry
+              </button>
+            </div>
+          </div>
+
+          <!-- Weekly Timesheet Grid -->
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Date
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Clock In
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Clock Out
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Break Time
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Total Hours
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Project/Task
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Status
+                  </th>
+                  <th scope="col" class="relative px-6 py-3">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <template x-for="entry in myTimeEntries" :key="entry.id">
+                  <tr class="hover:bg-gray-50">
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      x-text="entry.date"
+                    ></td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      x-text="entry.clockIn"
+                    ></td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      x-text="entry.clockOut"
+                    ></td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      x-text="entry.breakTime"
+                    ></td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+                      x-text="entry.totalHours"
+                    ></td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      x-text="entry.project"
+                    ></td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                        :class="entry.status === 'Approved' ? 'bg-green-100 text-green-800' : 
+                                   entry.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                   'bg-red-100 text-red-800'"
+                        x-text="entry.status"
+                      >
+                      </span>
+                    </td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                    >
+                      <div class="flex space-x-2">
+                        <button
+                          @click="editTimeEntry(entry)"
+                          class="text-blue-600 hover:text-blue-900"
+                        >
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button
+                          @click="deleteTimeEntry(entry)"
+                          class="text-red-600 hover:text-red-900"
+                        >
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+              <tfoot class="bg-gray-50">
+                <tr>
+                  <td
+                    colspan="4"
+                    class="px-6 py-3 text-right text-sm font-medium text-gray-900"
+                  >
+                    Total Hours:
+                  </td>
+                  <td
+                    class="px-6 py-3 text-sm font-bold text-gray-900"
+                    x-text="weeklyTotalHours"
+                  ></td>
+                  <td colspan="3"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Team Overview Tab -->
+        <div x-show="activeTab === 'team'" x-cloak>
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-medium text-gray-900">
+              Team Time Tracking
+            </h3>
+            <div class="flex space-x-3">
+              <select
+                class="block py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+              >
+                <option>All Departments</option>
+                <option>Engineering</option>
+                <option>Sales</option>
+                <option>Marketing</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Who's Working Now -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+              <h4 class="text-lg font-medium text-gray-900 mb-4">
+                Currently Clocked In
+              </h4>
+              <div class="space-y-3">
+                <template
+                  x-for="employee in currentlyClockedIn"
+                  :key="employee.id"
+                >
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                      <img
+                        class="h-8 w-8 rounded-full"
+                        :src="employee.avatar"
+                        :alt="employee.name"
+                      />
+                      <div class="ml-3">
+                        <p
+                          class="text-sm font-medium text-gray-900"
+                          x-text="employee.name"
+                        ></p>
+                        <p
+                          class="text-xs text-gray-500"
+                          x-text="employee.department"
+                        ></p>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <p
+                        class="text-sm text-gray-900"
+                        x-text="employee.clockedInSince"
+                      ></p>
+                      <p
+                        class="text-xs text-gray-500"
+                        x-text="employee.hoursToday + ' hrs today'"
+                      ></p>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Team Stats -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+              <h4 class="text-lg font-medium text-gray-900 mb-4">
+                Team Statistics
+              </h4>
+              <div class="space-y-3">
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-500">Average Hours/Week</span>
+                  <span
+                    class="text-sm font-medium text-gray-900"
+                    x-text="teamStats.avgHoursPerWeek"
+                  ></span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-500">On Time Rate</span>
+                  <span
+                    class="text-sm font-medium text-gray-900"
+                    x-text="teamStats.onTimeRate + '%'"
+                  ></span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-500">Overtime Hours</span>
+                  <span
+                    class="text-sm font-medium text-gray-900"
+                    x-text="teamStats.overtimeHours"
+                  ></span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-500">Pending Approvals</span>
+                  <span
+                    class="text-sm font-medium text-orange-600"
+                    x-text="teamStats.pendingApprovals"
+                  ></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team Time Entries -->
+          <div class="bg-white border border-gray-200 rounded-lg">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+              <h4 class="text-lg font-medium text-gray-900">
+                Recent Team Entries
+              </h4>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Employee
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Date
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Hours
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Project
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Status
+                    </th>
+                    <th scope="col" class="relative px-6 py-3">
+                      <span class="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <template x-for="entry in teamTimeEntries" :key="entry.id">
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                          <img
+                            class="h-8 w-8 rounded-full"
+                            :src="entry.employee.avatar"
+                            :alt="entry.employee.name"
+                          />
+                          <div class="ml-4">
+                            <div
+                              class="text-sm font-medium text-gray-900"
+                              x-text="entry.employee.name"
+                            ></div>
+                            <div
+                              class="text-sm text-gray-500"
+                              x-text="entry.employee.department"
+                            ></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td
+                        class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                        x-text="entry.date"
+                      ></td>
+                      <td
+                        class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                        x-text="entry.hours"
+                      ></td>
+                      <td
+                        class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                        x-text="entry.project"
+                      ></td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <span
+                          class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                          :class="entry.status === 'Approved' ? 'bg-green-100 text-green-800' : 
+                                     entry.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                     'bg-red-100 text-red-800'"
+                          x-text="entry.status"
+                        >
+                        </span>
+                      </td>
+                      <td
+                        class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                      >
+                        <button
+                          @click="approveTimeEntry(entry)"
+                          class="text-green-600 hover:text-green-900 mr-3"
+                          x-show="entry.status === 'Pending'"
+                        >
+                          <i class="fas fa-check"></i>
+                        </button>
+                        <button
+                          @click="rejectTimeEntry(entry)"
+                          class="text-red-600 hover:text-red-900"
+                          x-show="entry.status === 'Pending'"
+                        >
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Time Off Requests Tab -->
+        <div x-show="activeTab === 'pto'" x-cloak>
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-medium text-gray-900">Time Off Requests</h3>
+            <button
+              type="button"
+              class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+              @click="showPtoModal = true"
+            >
+              <i class="fas fa-plus mr-2"></i>
+              Request Time Off
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="bg-blue-50 p-4 rounded-lg">
+              <div
+                class="text-2xl font-bold text-blue-600"
+                x-text="ptoStats.available"
+              ></div>
+              <div class="text-sm text-blue-600">PTO Hours Available</div>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg">
+              <div
+                class="text-2xl font-bold text-green-600"
+                x-text="ptoStats.used"
+              ></div>
+              <div class="text-sm text-green-600">Hours Used This Year</div>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-lg">
+              <div
+                class="text-2xl font-bold text-purple-600"
+                x-text="ptoStats.pending"
+              ></div>
+              <div class="text-sm text-purple-600">Pending Requests</div>
+            </div>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-lg">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+              <h4 class="text-lg font-medium text-gray-900">Recent Requests</h4>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Employee
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Type
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Start Date
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      End Date
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Days
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Status
+                    </th>
+                    <th scope="col" class="relative px-6 py-3">
+                      <span class="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <template x-for="request in ptoRequests" :key="request.id">
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                          <img
+                            class="h-8 w-8 rounded-full"
+                            :src="request.employee.avatar"
+                            :alt="request.employee.name"
+                          />
+                          <div class="ml-4">
+                            <div
+                              class="text-sm font-medium text-gray-900"
+                              x-text="request.employee.name"
+                            ></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td
+                        class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                        x-text="request.type"
+                      ></td>
+                      <td
+                        class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                        x-text="request.startDate"
+                      ></td>
+                      <td
+                        class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                        x-text="request.endDate"
+                      ></td>
+                      <td
+                        class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                        x-text="request.days"
+                      ></td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <span
+                          class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                          :class="request.status === 'Approved' ? 'bg-green-100 text-green-800' : 
+                                     request.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                     'bg-red-100 text-red-800'"
+                          x-text="request.status"
+                        >
+                        </span>
+                      </td>
+                      <td
+                        class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                      >
+                        <button
+                          @click="approvePtoRequest(request)"
+                          class="text-green-600 hover:text-green-900 mr-3"
+                          x-show="request.status === 'Pending'"
+                        >
+                          <i class="fas fa-check"></i>
+                        </button>
+                        <button
+                          @click="rejectPtoRequest(request)"
+                          class="text-red-600 hover:text-red-900"
+                          x-show="request.status === 'Pending'"
+                        >
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div x-show="activeTab === 'reports'" x-cloak>
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
+                Time Tracking Reports
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <template x-for="report in timeReports" :key="report.id">
+                  <div
+                    class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    @click="generateReport(report)"
+                  >
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0">
+                        <div
+                          class="w-10 h-10 rounded-lg flex items-center justify-center"
+                          :class="report.iconBg"
+                        >
+                          <i :class="report.icon + ' text-white'"></i>
+                        </div>
+                      </div>
+                      <div class="ml-4">
+                        <h4
+                          class="text-sm font-medium text-gray-900"
+                          x-text="report.name"
+                        ></h4>
+                        <p
+                          class="text-xs text-gray-500"
+                          x-text="report.description"
+                        ></p>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clock In/Out Modal -->
+    <div
+      x-show="showClockInModal"
+      x-cloak
+      class="fixed inset-0 z-50 overflow-y-auto"
+      @keydown.escape.window="showClockInModal = false"
+    >
+      <div
+        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div
+          x-show="showClockInModal"
+          x-transition:enter="ease-out duration-300"
+          x-transition:enter-start="opacity-0"
+          x-transition:enter-end="opacity-100"
+          x-transition:leave="ease-in duration-200"
+          x-transition:leave-start="opacity-100"
+          x-transition:leave-end="opacity-0"
+          class="fixed inset-0 transition-opacity"
+          @click="showClockInModal = false"
+        >
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          >&#8203;</span
+        >
+
+        <div
+          x-show="showClockInModal"
+          x-transition:enter="ease-out duration-300"
+          x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+          x-transition:leave="ease-in duration-200"
+          x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+          x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+        >
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="text-center">
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
+                Clock In/Out
+              </h3>
+
+              <div
+                class="text-4xl font-bold text-gray-900 mb-2"
+                x-text="currentTime"
+              ></div>
+              <div
+                class="text-sm text-gray-500 mb-6"
+                x-text="currentDate"
+              ></div>
+
+              <div class="space-y-4">
+                <div x-show="!isCurrentlyClockedIn">
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Project/Task (Optional)</label
+                  >
+                  <select
+                    class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                  >
+                    <option>Select Project</option>
+                    <option>Website Redesign</option>
+                    <option>Mobile App Development</option>
+                    <option>Client Consultation</option>
+                    <option>Administrative Tasks</option>
+                  </select>
+                </div>
+
+                <button
+                  @click="toggleClockStatus()"
+                  class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-3 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 sm:text-sm"
+                  :class="isCurrentlyClockedIn ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'"
+                >
+                  <i
+                    :class="isCurrentlyClockedIn ? 'fas fa-stop mr-2' : 'fas fa-play mr-2'"
+                  ></i>
+                  <span
+                    x-text="isCurrentlyClockedIn ? 'Clock Out' : 'Clock In'"
+                  ></span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button
+              type="button"
+              @click="showClockInModal = false"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 sm:mt-0 sm:w-auto sm:text-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Time Entry Modal -->
+    <div
+      x-show="showTimeEntryModal"
+      x-cloak
+      class="fixed inset-0 z-50 overflow-y-auto"
+      @keydown.escape.window="showTimeEntryModal = false"
+    >
+      <div
+        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div
+          x-show="showTimeEntryModal"
+          x-transition:enter="ease-out duration-300"
+          x-transition:enter-start="opacity-0"
+          x-transition:enter-end="opacity-100"
+          x-transition:leave="ease-in duration-200"
+          x-transition:leave-start="opacity-100"
+          x-transition:leave-end="opacity-0"
+          class="fixed inset-0 transition-opacity"
+          @click="showTimeEntryModal = false"
+        >
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          >&#8203;</span
+        >
+
+        <div
+          x-show="showTimeEntryModal"
+          x-transition:enter="ease-out duration-300"
+          x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+          x-transition:leave="ease-in duration-200"
+          x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+          x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+        >
+          <form @submit.prevent="addTimeEntry()">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
+                Add Time Entry
+              </h3>
+
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Date</label
+                  >
+                  <input
+                    type="date"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                  />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700"
+                      >Start Time</label
+                    >
+                    <input
+                      type="time"
+                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700"
+                      >End Time</label
+                    >
+                    <input
+                      type="time"
+                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Break Time (minutes)</label
+                  >
+                  <input
+                    type="number"
+                    value="30"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Project/Task</label
+                  >
+                  <select
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                  >
+                    <option>Website Redesign</option>
+                    <option>Mobile App Development</option>
+                    <option>Client Consultation</option>
+                    <option>Administrative Tasks</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Notes (Optional)</label
+                  >
+                  <textarea
+                    rows="3"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse"
+            >
+              <button
+                type="submit"
+                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-dreambiz-600 text-base font-medium text-white hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Add Entry
+              </button>
+              <button
+                type="button"
+                @click="showTimeEntryModal = false"
+                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Request PTO Modal -->
+    <div
+      x-show="showPtoModal"
+      x-cloak
+      class="fixed inset-0 z-50 overflow-y-auto"
+      @keydown.escape.window="showPtoModal = false"
+    >
+      <div
+        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div
+          x-show="showPtoModal"
+          x-transition:enter="ease-out duration-300"
+          x-transition:enter-start="opacity-0"
+          x-transition:enter-end="opacity-100"
+          x-transition:leave="ease-in duration-200"
+          x-transition:leave-start="opacity-100"
+          x-transition:leave-end="opacity-0"
+          class="fixed inset-0 transition-opacity"
+          @click="showPtoModal = false"
+        >
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          >&#8203;</span
+        >
+
+        <div
+          x-show="showPtoModal"
+          x-transition:enter="ease-out duration-300"
+          x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+          x-transition:leave="ease-in duration-200"
+          x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+          x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+        >
+          <form @submit.prevent="submitPtoRequest()">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
+                Request Time Off
+              </h3>
+
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Time Off Type</label
+                  >
+                  <select
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                  >
+                    <option>Vacation</option>
+                    <option>Sick Leave</option>
+                    <option>Personal Day</option>
+                    <option>Bereavement</option>
+                    <option>Maternity/Paternity</option>
+                  </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700"
+                      >Start Date</label
+                    >
+                    <input
+                      type="date"
+                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700"
+                      >End Date</label
+                    >
+                    <input
+                      type="date"
+                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Reason (Optional)</label
+                  >
+                  <textarea
+                    rows="3"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                    placeholder="Brief description of the reason for time off..."
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse"
+            >
+              <button
+                type="submit"
+                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-dreambiz-600 text-base font-medium text-white hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Submit Request
+              </button>
+              <button
+                type="button"
+                @click="showPtoModal = false"
+                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function timeTracking() {
+    return {
+      activeTab: "timesheet",
+      selectedWeek: "current",
+      showClockInModal: false,
+      showTimeEntryModal: false,
+      showPtoModal: false,
+      isCurrentlyClockedIn: false,
+      currentTime: "",
+      currentDate: "",
+
+      timeSummary: {
+        hoursToday: "7.5",
+        hoursThisWeek: "38.5",
+        ptoRemaining: 45,
+      },
+
+      myTimeEntries: [
+        {
+          id: 1,
+          date: "Dec 2, 2024",
+          clockIn: "9:00 AM",
+          clockOut: "5:30 PM",
+          breakTime: "30 min",
+          totalHours: "8.0",
+          project: "Website Redesign",
+          status: "Approved",
+        },
+        {
+          id: 2,
+          date: "Dec 1, 2024",
+          clockIn: "8:45 AM",
+          clockOut: "5:15 PM",
+          breakTime: "30 min",
+          totalHours: "8.0",
+          project: "Client Consultation",
+          status: "Pending",
+        },
+        {
+          id: 3,
+          date: "Nov 30, 2024",
+          clockIn: "9:15 AM",
+          clockOut: "5:45 PM",
+          breakTime: "30 min",
+          totalHours: "8.0",
+          project: "Mobile App Development",
+          status: "Approved",
+        },
+      ],
+
+      currentlyClockedIn: [
+        {
+          id: 1,
+          name: "Jane Smith",
+          department: "Sales",
+          clockedInSince: "9:00 AM",
+          hoursToday: "6.5",
+          avatar:
+            "https://ui-avatars.com/api/?name=Jane+Smith&background=10b981&color=fff",
+        },
+        {
+          id: 2,
+          name: "Mike Johnson",
+          department: "Marketing",
+          clockedInSince: "8:30 AM",
+          hoursToday: "7.0",
+          avatar:
+            "https://ui-avatars.com/api/?name=Mike+Johnson&background=f59e0b&color=fff",
+        },
+      ],
+
+      teamStats: {
+        avgHoursPerWeek: "39.2",
+        onTimeRate: "94",
+        overtimeHours: "12.5",
+        pendingApprovals: "7",
+      },
+
+      teamTimeEntries: [
+        {
+          id: 1,
+          employee: {
+            name: "Jane Smith",
+            department: "Sales",
+            avatar:
+              "https://ui-avatars.com/api/?name=Jane+Smith&background=10b981&color=fff",
+          },
+          date: "Dec 2, 2024",
+          hours: "8.0",
+          project: "Client Meetings",
+          status: "Pending",
+        },
+        {
+          id: 2,
+          employee: {
+            name: "Mike Johnson",
+            department: "Marketing",
+            avatar:
+              "https://ui-avatars.com/api/?name=Mike+Johnson&background=f59e0b&color=fff",
+          },
+          date: "Dec 2, 2024",
+          hours: "7.5",
+          project: "Campaign Planning",
+          status: "Approved",
+        },
+      ],
+
+      ptoStats: {
+        available: "45",
+        used: "35",
+        pending: "2",
+      },
+
+      ptoRequests: [
+        {
+          id: 1,
+          employee: {
+            name: "John Doe",
+            avatar:
+              "https://ui-avatars.com/api/?name=John+Doe&background=3b82f6&color=fff",
+          },
+          type: "Vacation",
+          startDate: "Dec 23, 2024",
+          endDate: "Dec 30, 2024",
+          days: "6",
+          status: "Pending",
+        },
+        {
+          id: 2,
+          employee: {
+            name: "Sarah Wilson",
+            avatar:
+              "https://ui-avatars.com/api/?name=Sarah+Wilson&background=ef4444&color=fff",
+          },
+          type: "Sick Leave",
+          startDate: "Dec 5, 2024",
+          endDate: "Dec 5, 2024",
+          days: "1",
+          status: "Approved",
+        },
+      ],
+
+      timeReports: [
+        {
+          id: 1,
+          name: "Weekly Timesheet",
+          description: "Individual employee timesheet report",
+          icon: "fas fa-calendar-week",
+          iconBg: "bg-blue-500",
+        },
+        {
+          id: 2,
+          name: "Team Summary",
+          description: "Team-wide time tracking summary",
+          icon: "fas fa-users",
+          iconBg: "bg-green-500",
+        },
+        {
+          id: 3,
+          name: "Project Hours",
+          description: "Hours logged by project",
+          icon: "fas fa-project-diagram",
+          iconBg: "bg-purple-500",
+        },
+        {
+          id: 4,
+          name: "Overtime Report",
+          description: "Overtime hours analysis",
+          icon: "fas fa-clock",
+          iconBg: "bg-orange-500",
+        },
+        {
+          id: 5,
+          name: "PTO Balance",
+          description: "Time off balances and usage",
+          icon: "fas fa-umbrella-beach",
+          iconBg: "bg-teal-500",
+        },
+        {
+          id: 6,
+          name: "Attendance Summary",
+          description: "Employee attendance patterns",
+          icon: "fas fa-chart-bar",
+          iconBg: "bg-red-500",
+        },
+      ],
+
+      get weeklyTotalHours() {
+        return this.myTimeEntries
+          .reduce((sum, entry) => sum + parseFloat(entry.totalHours), 0)
+          .toFixed(1);
+      },
+
+      init() {
+        this.updateTime();
+        setInterval(() => {
+          this.updateTime();
+        }, 1000);
+      },
+
+      updateTime() {
+        const now = new Date();
+        this.currentTime = now.toLocaleTimeString();
+        this.currentDate = now.toLocaleDateString();
+      },
+
+      toggleClockStatus() {
+        this.isCurrentlyClockedIn = !this.isCurrentlyClockedIn;
+        this.showClockInModal = false;
+
+        if (this.isCurrentlyClockedIn) {
+          alert("Clocked in successfully!");
+        } else {
+          alert("Clocked out successfully!");
+        }
+      },
+
+      editTimeEntry(entry) {
+        alert("Editing time entry for " + entry.date);
+      },
+
+      deleteTimeEntry(entry) {
+        if (confirm("Are you sure you want to delete this time entry?")) {
+          this.myTimeEntries = this.myTimeEntries.filter(
+            (e) => e.id !== entry.id
+          );
+        }
+      },
+
+      addTimeEntry() {
+        alert("Time entry added successfully!");
+        this.showTimeEntryModal = false;
+      },
+
+      approveTimeEntry(entry) {
+        entry.status = "Approved";
+        alert("Time entry approved for " + entry.employee.name);
+      },
+
+      rejectTimeEntry(entry) {
+        entry.status = "Rejected";
+        alert("Time entry rejected for " + entry.employee.name);
+      },
+
+      submitPtoRequest() {
+        alert("PTO request submitted successfully!");
+        this.showPtoModal = false;
+      },
+
+      approvePtoRequest(request) {
+        request.status = "Approved";
+        alert("PTO request approved for " + request.employee.name);
+      },
+
+      rejectPtoRequest(request) {
+        request.status = "Rejected";
+        alert("PTO request rejected for " + request.employee.name);
+      },
+
+      generateReport(report) {
+        alert("Generating " + report.name + " report...");
+      },
+    };
+  }
+</script>
+{% endblock %}

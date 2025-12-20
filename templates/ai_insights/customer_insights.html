@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Customer Insights - DreamBiz Accounting{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Page Header -->
+  <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Customer Insights</h1>
+      <p class="text-gray-600">AI-powered customer payment behavior and risk analysis</p>
+    </div>
+    <div>
+      <a
+        href="{% url 'ai_insights:insights' %}"
+        class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium"
+      >
+        <i class="fas fa-arrow-left mr-2"></i>
+        Back to Insights
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm p-6">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-gray-600">Total Customers</h3>
+        <i class="fas fa-users text-blue-500"></i>
+      </div>
+      <p class="text-2xl font-bold text-gray-900">{{ total_customers }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-gray-600">High Risk</h3>
+        <i class="fas fa-exclamation-triangle text-red-500"></i>
+      </div>
+      <p class="text-2xl font-bold text-red-600">{{ high_risk_count }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-gray-600">Medium Risk</h3>
+        <i class="fas fa-exclamation-circle text-yellow-500"></i>
+      </div>
+      <p class="text-2xl font-bold text-yellow-600">{{ medium_risk_count }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm p-6">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-gray-600">Low Risk</h3>
+        <i class="fas fa-check-circle text-green-500"></i>
+      </div>
+      <p class="text-2xl font-bold text-green-600">{{ low_risk_count }}</p>
+    </div>
+  </div>
+
+  <!-- Risk Distribution Chart -->
+  <div class="bg-white rounded-lg shadow-sm mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Customer Risk Distribution</h2>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+          <canvas id="riskDistributionChart"></canvas>
+        </div>
+        <div class="flex items-center">
+          <div class="w-full space-y-4">
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="font-semibold text-red-900">High Risk Customers</h4>
+                  <p class="text-sm text-red-700 mt-1">Payment rate < 50% or 3+ overdue invoices</p>
+                </div>
+                <p class="text-2xl font-bold text-red-600">{{ high_risk_count }}</p>
+              </div>
+            </div>
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-lg">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="font-semibold text-yellow-900">Medium Risk Customers</h4>
+                  <p class="text-sm text-yellow-700 mt-1">Payment rate 50-80% or 1-2 overdue invoices</p>
+                </div>
+                <p class="text-2xl font-bold text-yellow-600">{{ medium_risk_count }}</p>
+              </div>
+            </div>
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="font-semibold text-green-900">Low Risk Customers</h4>
+                  <p class="text-sm text-green-700 mt-1">Payment rate > 80% and no overdue invoices</p>
+                </div>
+                <p class="text-2xl font-bold text-green-600">{{ low_risk_count }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- High Risk Customers Alert -->
+  {% if high_risk_customers %}
+    <div class="bg-white rounded-lg shadow-sm mb-8">
+      <div class="px-6 py-4 border-b border-gray-200 bg-red-50 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-red-900">High Risk Customers - Immediate Attention Required</h2>
+        <span class="bg-red-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded">{{ high_risk_customers|length }} Alert{{ high_risk_customers|length|pluralize }}</span>
+      </div>
+      <div class="p-6">
+        <div class="space-y-4">
+          {% for customer in high_risk_customers %}
+            <div class="border-l-4 border-red-500 bg-red-50 p-4 rounded-r-lg">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <div class="flex items-center mb-2">
+                    <i class="fas fa-user-times text-red-600 mr-2"></i>
+                    <h3 class="font-semibold text-gray-900">{{ customer.name }}</h3>
+                    <span class="ml-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">HIGH RISK</span>
+                  </div>
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 bg-white bg-opacity-60 rounded-lg p-3">
+                    <div>
+                      <p class="text-xs text-gray-600 mb-1">Total Invoices:</p>
+                      <p class="text-sm font-semibold text-gray-900">{{ customer.total_invoices }}</p>
+                    </div>
+                    <div>
+                      <p class="text-xs text-gray-600 mb-1">Paid Invoices:</p>
+                      <p class="text-sm font-semibold text-green-600">{{ customer.paid_invoices }}</p>
+                    </div>
+                    <div>
+                      <p class="text-xs text-gray-600 mb-1">Overdue Count:</p>
+                      <p class="text-sm font-semibold text-red-600">{{ customer.overdue_count }}</p>
+                    </div>
+                    <div>
+                      <p class="text-xs text-gray-600 mb-1">Payment Rate:</p>
+                      <p class="text-sm font-semibold text-gray-900">{{ customer.payment_rate|floatformat:1 }}%</p>
+                    </div>
+                  </div>
+                  <div class="mt-3 bg-red-100 rounded-lg p-3">
+                    <p class="text-sm font-medium text-red-900 mb-1">Recommendation:</p>
+                    <p class="text-sm text-red-800">{{ customer.recommendation }}</p>
+                  </div>
+                </div>
+                <div class="ml-4 text-right">
+                  <p class="text-xs text-gray-600 mb-1">Payment Rate</p>
+                  <div class="w-16 h-16 relative">
+                    <svg class="transform -rotate-90 w-16 h-16">
+                      <circle cx="32" cy="32" r="28" stroke="#fee2e2" stroke-width="4" fill="none" />
+                      <circle cx="32" cy="32" r="28" stroke="#dc2626" stroke-width="4" fill="none"
+                              stroke-dasharray="{{ customer.payment_rate|floatformat:0|add:',100' }}"
+                              stroke-linecap="round" />
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                      <span class="text-sm font-bold text-red-600">{{ customer.payment_rate|floatformat:0 }}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- All Customers Table -->
+  <div class="bg-white rounded-lg shadow-sm">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">All Customer Insights</h2>
+    </div>
+    <div class="p-6">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Level</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Invoices</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Rate</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for customer in customers %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="h-10 w-10 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center">
+                      <i class="fas fa-user text-gray-600"></i>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">{{ customer.name }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    {% if customer.risk_level == 'high' %}bg-red-100 text-red-800
+                    {% elif customer.risk_level == 'medium' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-green-100 text-green-800{% endif %}">
+                    {% if customer.risk_level == 'high' %}
+                      <i class="fas fa-exclamation-triangle mr-1"></i>
+                    {% elif customer.risk_level == 'medium' %}
+                      <i class="fas fa-exclamation-circle mr-1"></i>
+                    {% else %}
+                      <i class="fas fa-check-circle mr-1"></i>
+                    {% endif %}
+                    {{ customer.risk_level|upper }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ customer.total_invoices }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">{{ customer.paid_invoices }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">{{ customer.overdue_count }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                      <div class="{% if customer.payment_rate >= 80 %}bg-green-600{% elif customer.payment_rate >= 50 %}bg-yellow-600{% else %}bg-red-600{% endif %} h-2 rounded-full" 
+                           style="width: {{ customer.payment_rate }}%"></div>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">{{ customer.payment_rate|floatformat:1 }}%</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <a href="#" class="text-blue-600 hover:text-blue-900">View Details</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Behavior Analysis -->
+  <div class="bg-white rounded-lg shadow-sm mt-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Payment Behavior Trends</h2>
+    </div>
+    <div class="p-6">
+      <canvas id="paymentTrendChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Risk Distribution Pie Chart
+  const riskCtx = document.getElementById('riskDistributionChart').getContext('2d');
+  new Chart(riskCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['High Risk', 'Medium Risk', 'Low Risk'],
+      datasets: [{
+        data: [{{ high_risk_count }}, {{ medium_risk_count }}, {{ low_risk_count }}],
+        backgroundColor: [
+          'rgb(239, 68, 68)',
+          'rgb(234, 179, 8)',
+          'rgb(34, 197, 94)'
+        ],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+        }
+      }
+    }
+  });
+
+  // Payment Trend Chart
+  const trendCtx = document.getElementById('paymentTrendChart').getContext('2d');
+  new Chart(trendCtx, {
+    type: 'line',
+    data: {
+      labels: [{% for trend in payment_trend %}'{{ trend.month }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+      datasets: [{
+        label: 'On-Time Payments',
+        data: [{% for trend in payment_trend %}{{ trend.on_time }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+        borderColor: 'rgb(34, 197, 94)',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        tension: 0.4
+      }, {
+        label: 'Late Payments',
+        data: [{% for trend in payment_trend %}{{ trend.late }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+        borderColor: 'rgb(239, 68, 68)',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

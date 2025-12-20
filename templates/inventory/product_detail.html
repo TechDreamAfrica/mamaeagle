@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - Product Details - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">{{ product.name }}</h1>
+          <p class="mt-1 text-sm text-gray-600">
+            SKU: {{ product.sku }} | Category: {% if product.category %}{{ product.category.name }}{% else %}-{% endif %}
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'inventory:product_list' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Products
+          </a>
+          <a
+            href="{% url 'inventory:product_update' product.pk %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-edit mr-2"></i>
+            Edit Product
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Product Information Card -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Basic Information -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-semibold text-gray-900">Product Information</h3>
+          </div>
+          <div class="p-6">
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">SKU</dt>
+                <dd class="mt-1 text-lg font-semibold text-gray-900">{{ product.sku }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Barcode</dt>
+                <dd class="mt-1 text-lg font-semibold text-gray-900">
+                  {% if product.barcode %}{{ product.barcode }}{% else %}-{% endif %}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Product Type</dt>
+                <dd class="mt-1 text-lg font-semibold text-gray-900">{{ product.get_product_type_display }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Unit Type</dt>
+                <dd class="mt-1 text-lg font-semibold text-gray-900">{{ product.get_unit_type_display }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Category</dt>
+                <dd class="mt-1 text-lg font-semibold text-gray-900">
+                  {% if product.category %}{{ product.category.name }}{% else %}-{% endif %}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Status</dt>
+                <dd class="mt-1">
+                  {% if product.is_active %}
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    <i class="fas fa-check-circle mr-1"></i> Active
+                  </span>
+                  {% else %}
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                    <i class="fas fa-times-circle mr-1"></i> Inactive
+                  </span>
+                  {% endif %}
+                </dd>
+              </div>
+            </dl>
+
+            {% if product.description %}
+            <div class="mt-6">
+              <dt class="text-sm font-medium text-gray-500 mb-2">Description</dt>
+              <dd class="text-gray-900">{{ product.description }}</dd>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Pricing Information -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-semibold text-gray-900">Pricing & Financials</h3>
+          </div>
+          <div class="p-6">
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Cost Price</dt>
+                <dd class="mt-1 text-2xl font-bold text-gray-900">GH{{ product.cost_price|floatformat:2 }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Selling Price</dt>
+                <dd class="mt-1 text-2xl font-bold text-green-600">GH{{ product.selling_price|floatformat:2 }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Profit Margin</dt>
+                <dd class="mt-1 text-lg font-semibold text-gray-900">
+                  {% widthratio product.selling_price 1 1 as sp %}
+                  {% widthratio product.cost_price 1 1 as cp %}
+                  {% if cp > 0 %}
+                    {% widthratio sp cp 100 as margin %}
+                    {{ margin|floatformat:1 }}%
+                  {% else %}
+                    -
+                  {% endif %}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Tax Status</dt>
+                <dd class="mt-1 text-lg font-semibold text-gray-900">
+                  {% if product.tax_exempt %}
+                    <span class="text-yellow-600">Tax Exempt</span>
+                  {% else %}
+                    <span class="text-green-600">Taxable</span>
+                  {% endif %}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <!-- Stock Information -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-semibold text-gray-900">Stock Levels</h3>
+          </div>
+          <div class="p-6">
+            <dl class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Minimum Stock</dt>
+                <dd class="mt-1 text-xl font-bold text-gray-900">{{ product.minimum_stock_level }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Reorder Point</dt>
+                <dd class="mt-1 text-xl font-bold text-yellow-600">{{ product.reorder_point }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Maximum Stock</dt>
+                <dd class="mt-1 text-xl font-bold text-gray-900">{{ product.maximum_stock_level }}</dd>
+              </div>
+            </dl>
+
+            {% if stock_levels %}
+            <div class="mt-6">
+              <h4 class="text-sm font-medium text-gray-700 mb-3">Current Stock by Warehouse</h4>
+              <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+                <table class="min-w-full divide-y divide-gray-300">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Warehouse</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">On Hand</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reserved</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Available</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    {% for level in stock_levels %}
+                    <tr>
+                      <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ level.warehouse.name }}</td>
+                      <td class="px-4 py-3 text-sm text-gray-900">{{ level.quantity_on_hand }}</td>
+                      <td class="px-4 py-3 text-sm text-gray-900">{{ level.quantity_reserved }}</td>
+                      <td class="px-4 py-3 text-sm font-medium text-green-600">{{ level.quantity_available }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Recent Stock Movements -->
+        {% if stock_movements %}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-semibold text-gray-900">Recent Stock Movements</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-300">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Warehouse</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {% for movement in stock_movements %}
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ movement.movement_date|date:"M d, Y" }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                      {% if movement.movement_type == 'in' %}bg-green-100 text-green-800
+                      {% elif movement.movement_type == 'out' %}bg-red-100 text-red-800
+                      {% else %}bg-blue-100 text-blue-800{% endif %}">
+                      {{ movement.get_movement_type_display }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium
+                    {% if movement.quantity_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {% if movement.quantity_change > 0 %}+{% endif %}{{ movement.quantity_change }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ movement.warehouse.name }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {% if movement.reference_number %}{{ movement.reference_number }}{% else %}-{% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-6">
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+          </div>
+          <div class="p-6 space-y-3">
+            <a
+              href="{% url 'inventory:product_update' product.pk %}"
+              class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            >
+              <i class="fas fa-edit mr-2"></i>
+              Edit Product
+            </a>
+            <a
+              href="{% url 'inventory:stock_movement_create' %}"
+              class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            >
+              <i class="fas fa-exchange-alt mr-2"></i>
+              Record Movement
+            </a>
+            <a
+              href="{% url 'inventory:purchase_order_create' %}"
+              class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            >
+              <i class="fas fa-shopping-cart mr-2"></i>
+              Create Purchase Order
+            </a>
+            <a
+              href="{% url 'inventory:product_delete' product.pk %}"
+              class="w-full inline-flex items-center justify-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100"
+            >
+              <i class="fas fa-trash mr-2"></i>
+              Delete Product
+            </a>
+          </div>
+        </div>
+
+        <!-- Product Attributes -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-semibold text-gray-900">Attributes</h3>
+          </div>
+          <div class="p-6">
+            <dl class="space-y-4">
+              {% if product.weight %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Weight</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ product.weight }}</dd>
+              </div>
+              {% endif %}
+              {% if product.dimensions %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Dimensions</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ product.dimensions }}</dd>
+              </div>
+              {% endif %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Serialized</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {% if product.is_serialized %}
+                    <span class="text-green-600"><i class="fas fa-check"></i> Yes</span>
+                  {% else %}
+                    <span class="text-gray-500"><i class="fas fa-times"></i> No</span>
+                  {% endif %}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Reorder Quantity</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ product.reorder_quantity }}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <!-- Meta Information -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-semibold text-gray-900">Meta Information</h3>
+          </div>
+          <div class="p-6">
+            <dl class="space-y-4">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Created</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ product.created_at|date:"M d, Y H:i" }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ product.updated_at|date:"M d, Y H:i" }}</dd>
+              </div>
+              {% if product.created_by %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Created By</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ product.created_by.get_full_name|default:product.created_by.username }}
+                </dd>
+              </div>
+              {% endif %}
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

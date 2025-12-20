@@ -1,0 +1,421 @@
+{% extends 'website/base.html' %}
+
+{% block title %}Mama Eagle Enterprise - Quality Plumbing Materials & Solutions{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<section class="relative bg-primary text-white overflow-hidden">
+    <!-- Background Image -->
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20" style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 600%22%3E%3Cdefs%3E%3Cpattern id=%22plumbing%22 patternUnits=%22userSpaceOnUse%22 width=%2240%22 height=%2240%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.1%22%3E%3Cpath d=%22M20 5L35 20L20 35L5 20Z%22/%3E%3C/g%3E%3C/pattern%3E%3C/defs%3E%3Crect width=%221200%22 height=%22600%22 fill=%22url(%23plumbing)%22/%3E%3C/svg%3E')"></div>
+    <div class="absolute inset-0 bg-primary opacity-85"></div>
+    <div class="relative w-full px-4 py-12 md:py-16">  <!-- Reduced from py-16 md:py-24 (20% reduction) -->
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center max-w-4xl mx-auto">  <!-- Centered content, full width approach -->
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                    Quality Plumbing Materials & Professional Solutions
+                </h1>
+                <p class="text-xl md:text-2xl mb-8 text-gray-100 max-w-3xl mx-auto leading-relaxed">
+                    Ghana's leading supplier of premium plumbing materials, fixtures, and tools. 
+                    Trusted by contractors and homeowners nationwide for over 15 years.
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-8">
+                    <a href="{% url 'website:product_list' %}" class="bg-secondary text-white px-10 py-4 rounded-lg font-semibold text-lg hover:bg-orange-400 transition duration-300 text-center shadow-lg">
+                        Shop Now
+                    </a>
+                    <a href="#featured-categories" class="border-2 border-white text-white px-10 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-primary transition duration-300 text-center">
+                        Browse Categories
+                    </a>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8">
+                    <div class="flex items-center">
+                        <span class="text-secondary text-2xl mr-3">✓</span>
+                        <span class="text-lg">Free Delivery Above GHS 500</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-secondary text-2xl mr-3">✓</span>
+                        <span class="text-lg">Professional Installation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<section class="py-16 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Trusted by Thousands</h2>
+            <p class="text-lg text-gray-600">Real numbers from our growing community</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div class="text-center group">
+                <div class="w-16 h-16 mx-auto rounded-full bg-primary bg-opacity-10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition duration-300">
+                    <span class="text-3xl">🔧</span>
+                </div>
+                <div class="text-3xl font-bold text-primary mb-2">{{ stats.total_products|default:'2000+' }}</div>
+                <div class="text-sm text-gray-600 font-medium">Products Available</div>
+            </div>
+            <div class="text-center group">
+                <div class="w-16 h-16 mx-auto rounded-full bg-secondary bg-opacity-10 flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-white transition duration-300">
+                    <span class="text-3xl">📦</span>
+                </div>
+                <div class="text-3xl font-bold text-secondary mb-2">{{ stats.total_orders|default:'500+' }}</div>
+                <div class="text-sm text-gray-600 font-medium">Orders Completed</div>
+            </div>
+            <div class="text-center group">
+                <div class="w-16 h-16 mx-auto rounded-full bg-green-500 bg-opacity-10 flex items-center justify-center mb-4 group-hover:bg-green-500 group-hover:text-white transition duration-300">
+                    <span class="text-3xl">👥</span>
+                </div>
+                <div class="text-3xl font-bold text-green-600 mb-2">{{ stats.total_customers|default:'1200+' }}</div>
+                <div class="text-sm text-gray-600 font-medium">Happy Customers</div>
+            </div>
+            <div class="text-center group">
+                <div class="w-16 h-16 mx-auto rounded-full bg-purple-500 bg-opacity-10 flex items-center justify-center mb-4 group-hover:bg-purple-500 group-hover:text-white transition duration-300">
+                    <span class="text-3xl">⭐</span>
+                </div>
+                <div class="text-3xl font-bold text-purple-600 mb-2">{{ stats.avg_rating|default:'4.8' }}</div>
+                <div class="text-sm text-gray-600 font-medium">Average Rating</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Search Bar -->
+<section class="bg-white shadow-md py-8">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
+            <h3 class="text-lg font-semibold text-gray-700">Quick Product Search:</h3>
+            <form method="GET" action="{% url 'website:product_list' %}" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <input type="search" name="search" placeholder="e.g., PVC pipe, water heater, bathroom sink..." 
+                       class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent w-full sm:w-80">
+                <select name="category" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <option value="">All Categories</option>
+                    <option value="pipes-fittings">Pipes & Fittings</option>
+                    <option value="bathroom-fixtures">Bathroom Fixtures</option>
+                    <option value="kitchen-plumbing">Kitchen Plumbing</option>
+                    <option value="water-heaters">Water Heaters</option>
+                    <option value="pumps-motors">Pumps & Motors</option>
+                    <option value="tools-equipment">Tools & Equipment</option>
+                    <option value="drainage-systems">Drainage Systems</option>
+                    <option value="water-storage">Water Storage</option>
+                </select>
+                <button type="submit" class="bg-primary text-white px-8 py-3 rounded-lg hover:bg-primary-dark font-semibold">
+                    Search
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Categories -->
+<section id="featured-categories" class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Shop by Category</h2>
+            <p class="text-lg text-gray-600">Find exactly what you need from our comprehensive range of plumbing materials</p>
+        </div>
+        <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for category in categories %}
+            <div class="group bg-white rounded-lg shadow-md hover:shadow-lg transition duration-300 overflow-hidden">
+                <a href="{% url 'website:product_list' %}?category={{ category.slug }}">
+                    <div class="p-6 text-center">
+                        {% if category.name == 'Pipes & Fittings' %}
+                            <div class="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition duration-300">
+                                <span class="text-3xl">🔧</span>
+                            </div>
+                        {% elif category.name == 'Bathroom Fixtures' %}
+                            <div class="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition duration-300">
+                                <span class="text-3xl">🚿</span>
+                            </div>
+                        {% elif category.name == 'Kitchen Plumbing' %}
+                            <div class="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition duration-300">
+                                <span class="text-3xl">🍽️</span>
+                            </div>
+                        {% elif category.name == 'Water Heaters' %}
+                            <div class="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition duration-300">
+                                <span class="text-3xl">🔥</span>
+                            </div>
+                        {% elif category.name == 'Pumps & Motors' %}
+                            <div class="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition duration-300">
+                                <span class="text-3xl">⚙️</span>
+                            </div>
+                        {% elif category.name == 'Drainage Systems' %}
+                            <div class="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition duration-300">
+                                <span class="text-3xl">🚰</span>
+                            </div>
+                        {% elif category.name == 'Water Storage' %}
+                            <div class="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition duration-300">
+                                <span class="text-3xl">🪣</span>
+                            </div>
+                        {% else %}
+                            <div class="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition duration-300">
+                                <span class="text-3xl">🔨</span>
+                            </div>
+                        {% endif %}
+                        <h3 class="font-semibold text-lg mb-2 group-hover:text-primary transition duration-300">{{ category.name }}</h3>
+                        <p class="text-gray-600 text-sm">{{ category.description }}</p>
+                        <div class="mt-4">
+                            <span class="text-primary font-semibold">Shop Now →</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between items-center mb-12">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Featured Products</h2>
+                <p class="text-gray-600">Hand-picked products recommended by our experts</p>
+            </div>
+            <a href="{% url 'website:product_list' %}" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark font-semibold">
+                View All Products
+            </a>
+        </div>
+        
+        {% if featured_products %}
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for product in featured_products %}
+                <div class="bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition duration-300 overflow-hidden group">
+                    <div class="relative">
+                        {% if product.images.first %}
+                            <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
+                        {% else %}
+                            <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                                <span class="text-4xl text-gray-400">🔧</span>
+                            </div>
+                        {% endif %}
+                        {% if product.is_on_sale %}
+                            <div class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                                {{ product.sale_percentage }}% OFF
+                            </div>
+                        {% endif %}
+                        {% if product.stock_quantity < 10 %}
+                            <div class="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
+                                Low Stock
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-lg mb-2 group-hover:text-primary transition duration-300">{{ product.name }}</h3>
+                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ product.short_description }}</p>
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                {% if product.is_on_sale %}
+                                    <span class="text-xl font-bold text-red-600">GHS {{ product.price }}</span>
+                                    <span class="text-sm text-gray-500 line-through ml-2">GHS {{ product.compare_at_price }}</span>
+                                {% else %}
+                                    <span class="text-xl font-bold text-primary">GHS {{ product.price }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                Stock: {{ product.stock_quantity }}
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <a href="{{ product.get_absolute_url }}" 
+                               class="flex-1 bg-gray-100 text-gray-700 text-center py-2 rounded-lg hover:bg-gray-200 transition duration-300 font-medium">
+                                View Details
+                            </a>
+                            {% if user.is_authenticated and product.in_stock %}
+                                <form method="post" action="{% url 'website:add_to_cart' product.id %}" class="inline add-to-cart-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="bg-secondary text-white px-4 py-2 rounded-lg hover:bg-orange-400 transition duration-300 font-medium">
+                                        Add to Cart
+                                    </button>
+                                </form>
+                            {% elif not product.in_stock %}
+                                <button class="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg cursor-not-allowed font-medium" disabled>
+                                    Out of Stock
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="py-16 bg-light-blue">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Why Choose Mama Eagle?</h2>
+            <p class="text-lg text-gray-600">Your trusted plumbing partner with unmatched quality and service</p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="text-center">
+                <div class="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">🏆</span>
+                </div>
+                <h3 class="font-semibold text-xl mb-2">Premium Quality</h3>
+                <p class="text-gray-600">ISO certified products from trusted international and local manufacturers</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">🚚</span>
+                </div>
+                <h3 class="font-semibold text-xl mb-2">Fast Delivery</h3>
+                <p class="text-gray-600">Same-day delivery in Accra, nationwide shipping within 2-3 business days</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">🔧</span>
+                </div>
+                <h3 class="font-semibold text-xl mb-2">Expert Support</h3>
+                <p class="text-gray-600">Professional installation services and technical support from certified plumbers</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">💰</span>
+                </div>
+                <h3 class="font-semibold text-xl mb-2">Best Prices</h3>
+                <p class="text-gray-600">Competitive wholesale and retail pricing with bulk order discounts</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-16 bg-accent text-white">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold mb-4">Need Professional Installation?</h2>
+        <p class="text-xl mb-8 max-w-3xl mx-auto">
+            Our certified plumbers provide professional installation services across Ghana. 
+            Get a free quote for your plumbing project today.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <a href="{% url 'website:contact' %}" class="bg-secondary text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-400 transition duration-300">
+                Get Free Quote
+            </a>
+            <a href="tel:+233xxxxxxxxx" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-accent transition duration-300">
+                Call +233 XXX XXX XXX
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter -->
+<section class="py-12 bg-gray-100">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Stay Updated with Plumbing Tips & Offers</h2>
+        <p class="text-gray-600 mb-6">Get the latest product updates, installation guides, and exclusive offers.</p>
+        
+        <form id="newsletter-form" class="flex flex-col sm:flex-row max-w-md mx-auto">
+            {% csrf_token %}
+            <input type="email" name="email" placeholder="Enter your email address" required 
+                   class="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg sm:rounded-r-none rounded-r-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <button type="submit" class="bg-primary text-white px-6 py-3 rounded-r-lg sm:rounded-l-none rounded-l-lg hover:bg-primary-dark font-semibold">
+                Subscribe
+            </button>
+        </form>
+    </div>
+</section>
+
+<script>
+document.getElementById('newsletter-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{% url "website:newsletter_subscribe" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Thank you for subscribing to our newsletter!');
+            this.reset();
+        } else {
+            alert('Error: Please check your email address.');
+        }
+    })
+    .catch(error => {
+        alert('An error occurred. Please try again.');
+    });
+});
+
+// Handle add to cart forms with AJAX
+document.querySelectorAll('.add-to-cart-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const button = form.querySelector('button[type="submit"]');
+        const originalText = button.textContent;
+        button.textContent = 'Adding...';
+        button.disabled = true;
+        
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                button.textContent = 'Added!';
+                button.classList.remove('bg-secondary', 'hover:bg-orange-400');
+                button.classList.add('bg-green-500');
+                
+                // Update cart count if it exists
+                const cartCountElement = document.querySelector('.cart-count');
+                if (cartCountElement) {
+                    cartCountElement.textContent = data.cart_items;
+                    // Add visual feedback
+                    cartCountElement.style.transform = 'scale(1.3)';
+                    setTimeout(() => {
+                        cartCountElement.style.transform = 'scale(1)';
+                    }, 200);
+                }
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    button.classList.remove('bg-green-500');
+                    button.classList.add('bg-secondary', 'hover:bg-orange-400');
+                }, 2000);
+                
+                // Optional: Show toast notification
+                if (typeof showToast === 'function') {
+                    showToast(data.message || 'Item added to cart!');
+                }
+            } else {
+                alert(data.message || 'Error adding item to cart');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error adding item to cart. Please try again.');
+            button.textContent = originalText;
+            button.disabled = false;
+        });
+    });
+});
+</script>
+{% endblock %}

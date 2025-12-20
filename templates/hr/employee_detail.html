@@ -1,0 +1,1681 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Employee Details - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="py-6">
+        <div class="md:flex md:items-center md:justify-between">
+          <div class="flex-1 min-w-0">
+            <nav class="flex" aria-label="Breadcrumb">
+              <ol class="flex items-center space-x-4">
+                <li>
+                  <div>
+                    <a href="/hr/" class="text-gray-400 hover:text-gray-500">
+                      <i class="fas fa-users"></i>
+                      <span class="sr-only">HR</span>
+                    </a>
+                  </div>
+                </li>
+                <li>
+                  <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                    <a
+                      href="/hr/employees/"
+                      class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700"
+                      >Employees</a
+                    >
+                  </div>
+                </li>
+                <li>
+                  <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                    <span
+                      class="ml-4 text-sm font-medium text-gray-500"
+                      x-text="employee.name"
+                    ></span>
+                  </div>
+                </li>
+              </ol>
+            </nav>
+            <h2
+              class="mt-2 text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate"
+            >
+              Employee Details
+            </h2>
+          </div>
+          <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3 flex-wrap gap-2">
+            <button
+              type="button"
+              onclick="sendMessage()"
+              class="bg-green-600 hover:bg-green-700 text-white border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              <i class="fas fa-envelope mr-2"></i>
+              Send Message
+            </button>
+            <button
+              type="button"
+              onclick="scheduleMeeting()"
+              class="bg-blue-600 hover:bg-blue-700 text-white border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <i class="fas fa-calendar-plus mr-2"></i>
+              Schedule Meeting
+            </button>
+            <button
+              type="button"
+              onclick="printProfile()"
+              class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              <i class="fas fa-print mr-2"></i>
+              Print Profile
+            </button>
+            <a
+              href="{% url 'hr:employee_update' employee.pk %}"
+              class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              <i class="fas fa-edit mr-2"></i>
+              Edit Employee
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+    x-data="employeeDetail()"
+  >
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Employee Info Card -->
+      <div class="lg:col-span-1">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <img
+                  class="h-20 w-20 rounded-full"
+                  :src="employee.avatar"
+                  :alt="employee.name"
+                />
+              </div>
+              <div class="ml-5">
+                <h3
+                  class="text-lg font-medium text-gray-900"
+                  x-text="employee.name"
+                ></h3>
+                <p class="text-sm text-gray-500" x-text="employee.position"></p>
+                <p
+                  class="text-sm text-gray-500"
+                  x-text="employee.department"
+                ></p>
+                <div class="mt-2">
+                  <span
+                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                    :class="employee.status === 'Active' ? 'bg-green-100 text-green-800' : 
+                               employee.status === 'On Leave' ? 'bg-yellow-100 text-yellow-800' : 
+                               'bg-red-100 text-red-800'"
+                    x-text="employee.status"
+                  >
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="mt-6 border-t border-gray-200 pt-6">
+              <dl class="space-y-3">
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Email</dt>
+                  <dd
+                    class="text-sm text-gray-900"
+                    x-text="employee.email"
+                  ></dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Phone</dt>
+                  <dd
+                    class="text-sm text-gray-900"
+                    x-text="employee.phone"
+                  ></dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Address</dt>
+                  <dd
+                    class="text-sm text-gray-900"
+                    x-text="employee.address"
+                  ></dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">
+                    Emergency Contact
+                  </dt>
+                  <dd
+                    class="text-sm text-gray-900"
+                    x-text="employee.emergencyContact"
+                  ></dd>
+                </div>
+              </dl>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mt-6 border-t border-gray-200 pt-6">
+              <div class="space-y-2">
+                <button
+                  class="w-full bg-dreambiz-50 text-dreambiz-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-dreambiz-100 focus:outline-none focus:ring-2 focus:ring-dreambiz-500"
+                >
+                  <i class="fas fa-envelope mr-2"></i>
+                  Send Message
+                </button>
+                <button
+                  class="w-full bg-gray-50 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                >
+                  <i class="fas fa-calendar mr-2"></i>
+                  Schedule Meeting
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="lg:col-span-2">
+        <!-- Tabs -->
+        <div class="bg-white shadow rounded-lg">
+          <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+              <button
+                @click="activeTab = 'overview'"
+                :class="activeTab === 'overview' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+              >
+                Overview
+              </button>
+              <button
+                @click="activeTab = 'employment'"
+                :class="activeTab === 'employment' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+              >
+                Employment
+              </button>
+              <button
+                @click="activeTab = 'payroll'"
+                :class="activeTab === 'payroll' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+              >
+                Payroll
+              </button>
+              <button
+                @click="activeTab = 'time'"
+                :class="activeTab === 'time' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+              >
+                Time & Attendance
+              </button>
+              <button
+                @click="activeTab = 'performance'"
+                :class="activeTab === 'performance' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+              >
+                Performance
+              </button>
+            </nav>
+          </div>
+
+          <!-- Tab Content -->
+          <div class="p-6">
+            <!-- Overview Tab -->
+            <div x-show="activeTab === 'overview'" x-cloak>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Personal Information -->
+                <div>
+                  <h4 class="text-lg font-medium text-gray-900 mb-4">
+                    Personal Information
+                  </h4>
+                  <dl class="space-y-3">
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">
+                        Full Name
+                      </dt>
+                      <dd
+                        class="text-sm text-gray-900"
+                        x-text="employee.name"
+                      ></dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">
+                        Date of Birth
+                      </dt>
+                      <dd
+                        class="text-sm text-gray-900"
+                        x-text="employee.dateOfBirth"
+                      ></dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">
+                        Social Security Number
+                      </dt>
+                      <dd class="text-sm text-gray-900">***-**-****</dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">
+                        Marital Status
+                      </dt>
+                      <dd
+                        class="text-sm text-gray-900"
+                        x-text="employee.maritalStatus"
+                      ></dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <!-- Employment Summary -->
+                <div>
+                  <h4 class="text-lg font-medium text-gray-900 mb-4">
+                    Employment Summary
+                  </h4>
+                  <dl class="space-y-3">
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">
+                        Employee ID
+                      </dt>
+                      <dd
+                        class="text-sm text-gray-900"
+                        x-text="employee.employeeId"
+                      ></dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">
+                        Hire Date
+                      </dt>
+                      <dd
+                        class="text-sm text-gray-900"
+                        x-text="employee.hireDate"
+                      ></dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">
+                        Years of Service
+                      </dt>
+                      <dd
+                        class="text-sm text-gray-900"
+                        x-text="employee.yearsOfService"
+                      ></dd>
+                    </div>
+                    <div>
+                      <dt class="text-sm font-medium text-gray-500">
+                        Current Salary
+                      </dt>
+                      <dd
+                        class="text-sm text-gray-900"
+                        x-text="formatCurrency(employee.salary)"
+                      ></dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+
+              <!-- Recent Activity -->
+              <div class="mt-8">
+                <h4 class="text-lg font-medium text-gray-900 mb-4">
+                  Recent Activity
+                </h4>
+                <div class="flow-root">
+                  <ul class="-mb-8">
+                    <template
+                      x-for="(activity, index) in recentActivity"
+                      :key="activity.id"
+                    >
+                      <li>
+                        <div
+                          class="relative pb-8"
+                          :class="index < recentActivity.length - 1 ? '' : 'pb-0'"
+                        >
+                          <div
+                            x-show="index < recentActivity.length - 1"
+                            class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                          ></div>
+                          <div class="relative flex space-x-3">
+                            <div>
+                              <span
+                                class="h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white"
+                                :class="activity.iconBg"
+                              >
+                                <i
+                                  :class="activity.icon + ' text-white text-sm'"
+                                ></i>
+                              </span>
+                            </div>
+                            <div
+                              class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4"
+                            >
+                              <div>
+                                <p
+                                  class="text-sm text-gray-500"
+                                  x-text="activity.description"
+                                ></p>
+                              </div>
+                              <div
+                                class="text-right text-sm whitespace-nowrap text-gray-500"
+                              >
+                                <span x-text="activity.date"></span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    </template>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Employment Tab -->
+            <div x-show="activeTab === 'employment'" x-cloak>
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-lg font-medium text-gray-900 mb-4">
+                    Employment Details
+                  </h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <dl class="space-y-3">
+                      <div>
+                        <dt class="text-sm font-medium text-gray-500">
+                          Employment Type
+                        </dt>
+                        <dd
+                          class="text-sm text-gray-900"
+                          x-text="employee.employmentType"
+                        ></dd>
+                      </div>
+                      <div>
+                        <dt class="text-sm font-medium text-gray-500">
+                          Work Schedule
+                        </dt>
+                        <dd
+                          class="text-sm text-gray-900"
+                          x-text="employee.workSchedule"
+                        ></dd>
+                      </div>
+                      <div>
+                        <dt class="text-sm font-medium text-gray-500">
+                          Reports To
+                        </dt>
+                        <dd
+                          class="text-sm text-gray-900"
+                          x-text="employee.manager"
+                        ></dd>
+                      </div>
+                    </dl>
+                    <dl class="space-y-3">
+                      <div>
+                        <dt class="text-sm font-medium text-gray-500">
+                          Office Location
+                        </dt>
+                        <dd
+                          class="text-sm text-gray-900"
+                          x-text="employee.officeLocation"
+                        ></dd>
+                      </div>
+                      <div>
+                        <dt class="text-sm font-medium text-gray-500">
+                          Remote Work
+                        </dt>
+                        <dd
+                          class="text-sm text-gray-900"
+                          x-text="employee.remoteWork"
+                        ></dd>
+                      </div>
+                      <div>
+                        <dt class="text-sm font-medium text-gray-500">
+                          Probation End Date
+                        </dt>
+                        <dd
+                          class="text-sm text-gray-900"
+                          x-text="employee.probationEndDate"
+                        ></dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+
+                <!-- Benefits -->
+                <div>
+                  <h4 class="text-lg font-medium text-gray-900 mb-4">
+                    Benefits Enrollment
+                  </h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <template
+                      x-for="benefit in employee.benefits"
+                      :key="benefit.name"
+                    >
+                      <div
+                        class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div>
+                          <p
+                            class="text-sm font-medium text-gray-900"
+                            x-text="benefit.name"
+                          ></p>
+                          <p
+                            class="text-xs text-gray-500"
+                            x-text="benefit.plan"
+                          ></p>
+                        </div>
+                        <span
+                          class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                          :class="benefit.enrolled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
+                          x-text="benefit.enrolled ? 'Enrolled' : 'Not Enrolled'"
+                        >
+                        </span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payroll Tab -->
+            <div x-show="activeTab === 'payroll'" x-cloak>
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-lg font-medium text-gray-900 mb-4">
+                    Payroll Information
+                  </h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <dl class="space-y-3">
+                      <div>
+                        <dt class="text-sm font-medium text-gray-500">
+                          Annual Salary
+                        </dt>
+                        <dd
+                          class="text-sm text-gray-900"
+                          x-text="formatCurrency(employee.salary)"
+                        ></dd>
+                      </div>
+                      <div>
+                        <dt class="text-sm font-medium text-gray-500">
+                          Pay Frequency
+                        </dt>
+                        <dd
+                          class="text-sm text-gray-900"
+                          x-text="employee.payFrequency"
+                        ></dd>
+                      </div>
+                      <div>
+                        <dt class="text-sm font-medium text-gray-500">
+                          Tax Filing Status
+                        </dt>
+                        <dd
+                          class="text-sm text-gray-900"
+                          x-text="employee.taxFilingStatus"
+                        ></dd>
+                      </div>
+                    </dl>
+                    <dl class="space-y-3">
+                      <div>
+                        <dt class="text-sm font-medium text-gray-500">
+                          Direct Deposit
+                        </dt>
+                        <dd
+                          class="text-sm text-gray-900"
+                          x-text="employee.directDeposit ? 'Enabled' : 'Disabled'"
+                        ></dd>
+                      </div>
+                      <div>
+                        <dt class="text-sm font-medium text-gray-500">
+                          W-4 Allowances
+                        </dt>
+                        <dd
+                          class="text-sm text-gray-900"
+                          x-text="employee.w4Allowances"
+                        ></dd>
+                      </div>
+                      <div>
+                        <dt class="text-sm font-medium text-gray-500">
+                          Last Pay Date
+                        </dt>
+                        <dd
+                          class="text-sm text-gray-900"
+                          x-text="employee.lastPayDate"
+                        ></dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+
+                <!-- Recent Pay Stubs -->
+                <div>
+                  <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-lg font-medium text-gray-900">
+                      Recent Pay Stubs
+                    </h4>
+                    <button onclick="showAddPayrollForm()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm">
+                      <i class="fas fa-plus mr-1"></i>
+                      Add Payroll
+                    </button>
+                  </div>
+                  <div
+                    class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg"
+                  >
+                    <table class="min-w-full divide-y divide-gray-300">
+                      <thead class="bg-gray-50">
+                        <tr>
+                          <th
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Pay Period
+                          </th>
+                          <th
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Gross Pay
+                          </th>
+                          <th
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Deductions
+                          </th>
+                          <th
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Net Pay
+                          </th>
+                          <th
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Action
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody class="bg-white divide-y divide-gray-200">
+                        <template
+                          x-for="payStub in recentPayStubs"
+                          :key="payStub.id"
+                        >
+                          <tr>
+                            <td
+                              class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                              x-text="payStub.period"
+                            ></td>
+                            <td
+                              class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                              x-text="formatCurrency(payStub.grossPay)"
+                            ></td>
+                            <td
+                              class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                              x-text="formatCurrency(payStub.deductions)"
+                            ></td>
+                            <td
+                              class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                              x-text="formatCurrency(payStub.netPay)"
+                            ></td>
+                            <td
+                              class="px-6 py-4 whitespace-nowrap text-sm font-medium"
+                            >
+                              <button
+                                class="text-dreambiz-600 hover:text-dreambiz-900"
+                              >
+                                View
+                              </button>
+                            </td>
+                          </tr>
+                        </template>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Time & Attendance Tab -->
+            <div x-show="activeTab === 'time'" x-cloak>
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-lg font-medium text-gray-900 mb-4">
+                    Time Tracking Summary
+                  </h4>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                      <div
+                        class="text-2xl font-bold text-blue-600"
+                        x-text="timeStats.hoursThisWeek"
+                      ></div>
+                      <div class="text-sm text-blue-600">Hours This Week</div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                      <div
+                        class="text-2xl font-bold text-green-600"
+                        x-text="timeStats.hoursThisMonth"
+                      ></div>
+                      <div class="text-sm text-green-600">Hours This Month</div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                      <div
+                        class="text-2xl font-bold text-purple-600"
+                        x-text="timeStats.ptoRemaining"
+                      ></div>
+                      <div class="text-sm text-purple-600">
+                        PTO Hours Remaining
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Recent Time Entries -->
+                <div>
+                  <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-lg font-medium text-gray-900">
+                      Recent Time Entries
+                    </h4>
+                    <button onclick="showAddTimeEntryForm()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm">
+                      <i class="fas fa-plus mr-1"></i>
+                      Add Time Entry
+                    </button>
+                  </div>
+                  <div
+                    class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg"
+                  >
+                    <table class="min-w-full divide-y divide-gray-300">
+                      <thead class="bg-gray-50">
+                        <tr>
+                          <th
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Date
+                          </th>
+                          <th
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Clock In
+                          </th>
+                          <th
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Clock Out
+                          </th>
+                          <th
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Hours
+                          </th>
+                          <th
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            Status
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody class="bg-white divide-y divide-gray-200">
+                        <template
+                          x-for="entry in recentTimeEntries"
+                          :key="entry.id"
+                        >
+                          <tr>
+                            <td
+                              class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                              x-text="entry.date"
+                            ></td>
+                            <td
+                              class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                              x-text="entry.clockIn"
+                            ></td>
+                            <td
+                              class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                              x-text="entry.clockOut"
+                            ></td>
+                            <td
+                              class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                              x-text="entry.hours"
+                            ></td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                              <span
+                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                :class="entry.status === 'Approved' ? 'bg-green-100 text-green-800' : 
+                                           entry.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                           'bg-red-100 text-red-800'"
+                                x-text="entry.status"
+                              >
+                              </span>
+                            </td>
+                          </tr>
+                        </template>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div x-show="activeTab === 'performance'" x-cloak>
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-lg font-medium text-gray-900 mb-4">
+                    Performance Overview
+                  </h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <div class="bg-gray-50 p-4 rounded-lg">
+                        <div
+                          class="text-3xl font-bold text-dreambiz-600"
+                          x-text="performanceData.overallRating"
+                        ></div>
+                        <div class="text-sm text-gray-600">Overall Rating</div>
+                        <div class="mt-2">
+                          <div class="flex space-x-1">
+                            <template x-for="i in 5" :key="i">
+                              <i
+                                :class="i <= performanceData.overallRating ? 'fas fa-star text-yellow-400' : 'far fa-star text-gray-300'"
+                              ></i>
+                            </template>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="space-y-3">
+                        <div>
+                          <div class="flex justify-between text-sm">
+                            <span>Goals Completed</span>
+                            <span
+                              x-text="performanceData.goalsCompleted + '%'"
+                            ></span>
+                          </div>
+                          <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              class="bg-green-600 h-2 rounded-full"
+                              :style="'width: ' + performanceData.goalsCompleted + '%'"
+                            ></div>
+                          </div>
+                        </div>
+                        <div>
+                          <div class="flex justify-between text-sm">
+                            <span>Training Progress</span>
+                            <span
+                              x-text="performanceData.trainingProgress + '%'"
+                            ></span>
+                          </div>
+                          <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              class="bg-blue-600 h-2 rounded-full"
+                              :style="'width: ' + performanceData.trainingProgress + '%'"
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Recent Reviews -->
+                <div>
+                  <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-lg font-medium text-gray-900">
+                      Performance Reviews
+                    </h4>
+                    <button onclick="showAddPerformanceReviewForm()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-md text-sm">
+                      <i class="fas fa-plus mr-1"></i>
+                      Add Review
+                    </button>
+                  </div>
+                  <div class="space-y-4">
+                    <template
+                      x-for="review in performanceReviews"
+                      :key="review.id"
+                    >
+                      <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex justify-between items-start">
+                          <div>
+                            <h5
+                              class="text-sm font-medium text-gray-900"
+                              x-text="review.title"
+                            ></h5>
+                            <p
+                              class="text-sm text-gray-500"
+                              x-text="review.date"
+                            ></p>
+                          </div>
+                          <div class="flex items-center">
+                            <template x-for="i in 5" :key="i">
+                              <i
+                                :class="i <= review.rating ? 'fas fa-star text-yellow-400' : 'far fa-star text-gray-300'"
+                              ></i>
+                            </template>
+                            <span
+                              class="ml-2 text-sm text-gray-600"
+                              x-text="review.rating + '/5'"
+                            ></span>
+                          </div>
+                        </div>
+                        <p
+                          class="mt-2 text-sm text-gray-700"
+                          x-text="review.summary"
+                        ></p>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function employeeDetail() {
+    return {
+      activeTab: "overview",
+
+      employee: {
+        id: {{ employee.id }},
+        name: "{{ employee.full_name }}",
+        email: "{{ employee.user.email }}",
+        phone: "{{ employee.user.phone|default:'' }}",
+        address: "{{ employee.user.address|default:'' }}",
+        emergencyContact: "{{ employee.emergency_contact_name|default:'' }}{% if employee.emergency_contact_phone %} - {{ employee.emergency_contact_phone }}{% endif %}",
+        position: "{{ employee.job_title|default:'' }}",
+        department: "{{ employee.department|default:'' }}",
+        status: "{{ employee.get_status_display }}",
+        employeeId: "{{ employee.employee_id|default:'' }}",
+        hireDate: "{{ employee.hire_date|date:'F d, Y' }}",
+        dateOfBirth: "{{ employee.user.date_of_birth|date:'F d, Y'|default:'' }}",
+        maritalStatus: "{{ employee.user.marital_status|default:'' }}",
+        yearsOfService: "{% now 'Y' as current_year %}{{ current_year|add:'-'|add:employee.hire_date.year }} years",
+        salary: {{ employee.base_salary|default:0 }},
+        employmentType: "{{ employee.get_employment_type_display }}",
+        workSchedule: "Monday - Friday, 9:00 AM - 5:00 PM",
+        manager: "{{ employee.manager.full_name|default:'No Manager Assigned' }}",
+        officeLocation: "Main Office",
+        remoteWork: "In-office",
+        probationEndDate: "",
+        payFrequency: "Monthly",
+        taxFilingStatus: "",
+        directDeposit: true,
+        w4Allowances: {{ employee.tax_exemptions|default:0 }},
+        lastPayDate: "",
+        avatar: "https://ui-avatars.com/api/?name={{ employee.full_name|urlencode }}&background=3b82f6&color=fff",
+        benefits: [
+          { name: "Health Insurance", plan: "Basic Plan", enrolled: {{ employee.health_insurance|yesno:'true,false' }} },
+          { name: "Dental Insurance", plan: "Basic Plan", enrolled: {{ employee.dental_insurance|yesno:'true,false' }} },
+          { name: "Vision Insurance", plan: "Standard Plan", enrolled: {{ employee.vision_insurance|yesno:'true,false' }} },
+          { name: "Retirement Plan", plan: "Company Plan", enrolled: {{ employee.retirement_plan|yesno:'true,false' }} },
+        ],
+      },
+
+      recentActivity: [
+        {% for entry in time_entries|slice:":2" %}
+        {
+          id: {{ entry.id }},
+          description: "Time entry: {{ entry.hours|default:'8' }} hours",
+          date: "{{ entry.date|date:'M d, Y' }}",
+          icon: "fas fa-clock",
+          iconBg: "bg-blue-500",
+        },
+        {% endfor %}
+        {% for request in leave_requests|slice:":2" %}
+        {
+          id: {{ request.id }},
+          description: "{{ request.get_leave_type_display }} request",
+          date: "{{ request.start_date|date:'M d, Y' }}",
+          icon: "fas fa-calendar",
+          iconBg: "bg-green-500",
+        },
+        {% endfor %}
+        {% for review in performance_reviews|slice:":1" %}
+        {
+          id: {{ review.id }},
+          description: "Performance Review - {{ review.get_review_type_display|default:'Annual Review' }}",
+          date: "{{ review.review_period_start|date:'M d, Y' }}",
+          icon: "fas fa-star",
+          iconBg: "bg-yellow-500",
+        },
+        {% endfor %}
+      ],
+
+      recentPayStubs: [
+        {% for payroll in recent_payrolls %}
+        {
+          id: {{ payroll.id }},
+          period: "{{ payroll.payroll_period.start_date|date:'M d' }} - {{ payroll.payroll_period.end_date|date:'M d, Y' }}",
+          grossPay: {{ payroll.regular_pay|add:payroll.overtime_pay|add:payroll.bonus|add:payroll.commission|default:0 }},
+          deductions: {{ payroll.health_insurance_deduction|add:payroll.dental_insurance_deduction|add:payroll.retirement_contribution|add:payroll.federal_tax|default:0 }},
+          netPay: {{ payroll.regular_pay|add:payroll.overtime_pay|add:payroll.bonus|add:payroll.commission|default:0|floatformat:2 }},
+        },
+        {% empty %}
+        {
+          id: 0,
+          period: "No payroll records",
+          grossPay: 0,
+          deductions: 0,
+          netPay: 0,
+        },
+        {% endfor %}
+      ],
+
+      timeStats: {
+        hoursThisWeek: "{{ time_stats.hours_this_week|floatformat:1 }}",
+        hoursThisMonth: "{{ time_stats.hours_this_month|floatformat:0 }}",
+        ptoRemaining: "{{ time_stats.pto_remaining|floatformat:0 }}",
+      },
+
+      recentTimeEntries: [
+        {% for entry in time_entries|slice:":3" %}
+        {
+          id: {{ entry.id }},
+          date: "{{ entry.date|date:'M d, Y' }}",
+          clockIn: "{{ entry.start_time|time:'g:i A'|default:'--' }}",
+          clockOut: "{{ entry.end_time|time:'g:i A'|default:'--' }}",
+          hours: "{{ entry.total_hours|floatformat:1 }}",
+          status: "{{ entry.is_approved|yesno:'Approved,Pending' }}",
+        },
+        {% empty %}
+        {
+          id: 0,
+          date: "No time entries",
+          clockIn: "--",
+          clockOut: "--",
+          hours: "0",
+          status: "N/A",
+        },
+        {% endfor %}
+      ],
+
+      performanceData: {
+        overallRating: 4,
+        goalsCompleted: 85,
+        trainingProgress: 92,
+      },
+
+      performanceReviews: [
+        {% for review in performance_reviews %}
+        {
+          id: {{ review.id }},
+          title: "{{ review.get_review_type_display|default:'Performance Review' }} - {{ review.review_period_start|date:'F Y' }}",
+          date: "{{ review.review_period_start|date:'F d, Y' }}",
+          rating: {{ review.overall_rating|default:0 }},
+          summary: "{{ review.strengths|default:'No summary available'|truncatewords:20 }}",
+        },
+        {% empty %}
+        {
+          id: 0,
+          title: "No Performance Reviews",
+          date: "N/A",
+          rating: 0,
+          summary: "No performance reviews have been completed yet.",
+        },
+        {% endfor %}
+      ],
+
+      formatCurrency(amount) {
+        return new Intl.NumberFormat("en-GH", {
+          style: "currency",
+          currency: "GHS",
+        }).format(amount);
+      },
+    };
+  }
+
+  // Additional functionality for messaging, meetings, and printing
+  function sendMessage() {
+    document.getElementById('messageModal').classList.remove('hidden');
+  }
+
+  function scheduleMeeting() {
+    document.getElementById('meetingModal').classList.remove('hidden');
+  }
+
+  function printProfile() {
+    // Create a print-friendly view
+    const printWindow = window.open('', '_blank');
+    const employeeData = document.querySelector('[x-data="employeeDetail()"]').__x.$data.employee;
+    
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <title>Employee Profile - ${employeeData.name}</title>
+          <style>
+              body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+              .header { border-bottom: 2px solid #3b82f6; padding-bottom: 10px; margin-bottom: 20px; }
+              .employee-name { font-size: 24px; font-weight: bold; color: #1f2937; }
+              .employee-title { font-size: 16px; color: #6b7280; margin: 5px 0; }
+              .section { margin: 20px 0; }
+              .section-title { font-size: 18px; font-weight: bold; color: #1f2937; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; }
+              .info-row { display: flex; margin: 8px 0; }
+              .info-label { font-weight: bold; width: 150px; }
+              .info-value { flex: 1; }
+              .benefits-list { list-style: none; padding: 0; }
+              .benefits-list li { margin: 5px 0; padding: 5px; background: #f3f4f6; border-radius: 4px; }
+              .print-date { text-align: right; color: #6b7280; font-size: 12px; margin-top: 30px; }
+              @media print { body { margin: 0; } }
+          </style>
+      </head>
+      <body>
+          <div class="header">
+              <div class="employee-name">${employeeData.name}</div>
+              <div class="employee-title">${employeeData.position} - ${employeeData.department}</div>
+              <div style="color: #6b7280; font-size: 14px;">Employee ID: ${employeeData.employeeId}</div>
+          </div>
+          
+          <div class="section">
+              <div class="section-title">Personal Information</div>
+              <div class="info-row">
+                  <span class="info-label">Email:</span>
+                  <span class="info-value">${employeeData.email}</span>
+              </div>
+              <div class="info-row">
+                  <span class="info-label">Phone:</span>
+                  <span class="info-value">${employeeData.phone || 'N/A'}</span>
+              </div>
+              <div class="info-row">
+                  <span class="info-label">Address:</span>
+                  <span class="info-value">${employeeData.address || 'N/A'}</span>
+              </div>
+              <div class="info-row">
+                  <span class="info-label">Emergency Contact:</span>
+                  <span class="info-value">${employeeData.emergencyContact || 'N/A'}</span>
+              </div>
+          </div>
+
+          <div class="section">
+              <div class="section-title">Employment Information</div>
+              <div class="info-row">
+                  <span class="info-label">Hire Date:</span>
+                  <span class="info-value">${employeeData.hireDate}</span>
+              </div>
+              <div class="info-row">
+                  <span class="info-label">Employment Type:</span>
+                  <span class="info-value">${employeeData.employmentType}</span>
+              </div>
+              <div class="info-row">
+                  <span class="info-label">Status:</span>
+                  <span class="info-value">${employeeData.status}</span>
+              </div>
+              <div class="info-row">
+                  <span class="info-label">Manager:</span>
+                  <span class="info-value">${employeeData.manager}</span>
+              </div>
+              <div class="info-row">
+                  <span class="info-label">Years of Service:</span>
+                  <span class="info-value">${employeeData.yearsOfService}</span>
+              </div>
+              <div class="info-row">
+                  <span class="info-label">Base Salary:</span>
+                  <span class="info-value">GHS ${employeeData.salary.toLocaleString()}</span>
+              </div>
+          </div>
+
+          <div class="section">
+              <div class="section-title">Benefits Enrollment</div>
+              <ul class="benefits-list">
+                  ${employeeData.benefits.map(benefit => 
+                      `<li><strong>${benefit.name}</strong> - ${benefit.plan} 
+                       <span style="float: right; color: ${benefit.enrolled ? '#059669' : '#dc2626'};">
+                           ${benefit.enrolled ? '✓ Enrolled' : '✗ Not Enrolled'}
+                       </span></li>`
+                  ).join('')}
+              </ul>
+          </div>
+
+          <div class="print-date">
+              Printed on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}
+          </div>
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+    }, 250);
+  }
+
+  function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+  }
+
+  function sendMessageSubmit() {
+    const form = document.getElementById('messageForm');
+    const formData = new FormData(form);
+    
+    // Show success message
+    alert(`Message sent successfully to ${document.querySelector('[x-data="employeeDetail()"]').__x.$data.employee.name}!`);
+    
+    // Reset form and close modal
+    form.reset();
+    closeModal('messageModal');
+  }
+
+  function scheduleMeetingSubmit() {
+    const form = document.getElementById('meetingForm');
+    const formData = new FormData(form);
+    
+    // Show success message
+    alert(`Meeting scheduled successfully with ${document.querySelector('[x-data="employeeDetail()"]').__x.$data.employee.name}!`);
+    
+    // Reset form and close modal
+    form.reset();
+    closeModal('meetingModal');
+  }
+
+  // Additional form functions
+  function showAddTimeEntryForm() {
+    document.getElementById('timeEntryModal').classList.remove('hidden');
+  }
+
+  function showAddPayrollForm() {
+    document.getElementById('payrollModal').classList.remove('hidden');
+  }
+
+  function showAddPerformanceReviewForm() {
+    document.getElementById('performanceReviewModal').classList.remove('hidden');
+  }
+
+  function showAddLeaveRequestForm() {
+    document.getElementById('leaveRequestModal').classList.remove('hidden');
+  }
+
+  function submitTimeEntry() {
+    const form = document.getElementById('timeEntryForm');
+    const formData = new FormData(form);
+    
+    // In a real application, this would submit to a Django view
+    alert('Time entry added successfully!');
+    form.reset();
+    closeModal('timeEntryModal');
+    // Refresh the page to show new data
+    location.reload();
+  }
+
+  function submitPayroll() {
+    const form = document.getElementById('payrollForm');
+    const formData = new FormData(form);
+    
+    alert('Payroll record added successfully!');
+    form.reset();
+    closeModal('payrollModal');
+    location.reload();
+  }
+
+  function submitPerformanceReview() {
+    const form = document.getElementById('performanceReviewForm');
+    const formData = new FormData(form);
+    
+    alert('Performance review added successfully!');
+    form.reset();
+    closeModal('performanceReviewModal');
+    location.reload();
+  }
+
+  function submitLeaveRequest() {
+    const form = document.getElementById('leaveRequestForm');
+    const formData = new FormData(form);
+    
+    alert('Leave request submitted successfully!');
+    form.reset();
+    closeModal('leaveRequestModal');
+    location.reload();
+  }
+</script>
+
+<!-- Message Modal -->
+<div id="messageModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Send Message to {{ employee.full_name }}</h3>
+        <button onclick="closeModal('messageModal')" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form id="messageForm" onsubmit="event.preventDefault(); sendMessageSubmit();">
+        <div class="mb-4">
+          <label for="messageSubject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+          <input type="text" id="messageSubject" name="subject" required
+                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                 placeholder="Enter message subject">
+        </div>
+        
+        <div class="mb-4">
+          <label for="messagePriority" class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+          <select id="messagePriority" name="priority"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="low">Low</option>
+            <option value="normal" selected>Normal</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+        
+        <div class="mb-4">
+          <label for="messageBody" class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+          <textarea id="messageBody" name="message" rows="5" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Type your message here..."></textarea>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+          <button type="button" onclick="closeModal('messageModal')"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 border border-gray-300 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+            <i class="fas fa-paper-plane mr-2"></i>
+            Send Message
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Meeting Modal -->
+<div id="meetingModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Schedule Meeting with {{ employee.full_name }}</h3>
+        <button onclick="closeModal('meetingModal')" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form id="meetingForm" onsubmit="event.preventDefault(); scheduleMeetingSubmit();">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="meetingTitle" class="block text-sm font-medium text-gray-700 mb-2">Meeting Title</label>
+            <input type="text" id="meetingTitle" name="title" required
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="Enter meeting title">
+          </div>
+          
+          <div>
+            <label for="meetingType" class="block text-sm font-medium text-gray-700 mb-2">Meeting Type</label>
+            <select id="meetingType" name="type"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="one-on-one">One-on-One</option>
+              <option value="performance">Performance Review</option>
+              <option value="team">Team Meeting</option>
+              <option value="training">Training Session</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="meetingDate" class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+            <input type="date" id="meetingDate" name="date" required
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          
+          <div>
+            <label for="meetingTime" class="block text-sm font-medium text-gray-700 mb-2">Time</label>
+            <input type="time" id="meetingTime" name="time" required
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="meetingDuration" class="block text-sm font-medium text-gray-700 mb-2">Duration (minutes)</label>
+            <select id="meetingDuration" name="duration"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="15">15 minutes</option>
+              <option value="30" selected>30 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">1 hour</option>
+              <option value="90">1.5 hours</option>
+              <option value="120">2 hours</option>
+            </select>
+          </div>
+          
+          <div>
+            <label for="meetingLocation" class="block text-sm font-medium text-gray-700 mb-2">Location/Link</label>
+            <input type="text" id="meetingLocation" name="location"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="Conference room or meeting link">
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <label for="meetingAgenda" class="block text-sm font-medium text-gray-700 mb-2">Agenda/Notes</label>
+          <textarea id="meetingAgenda" name="agenda" rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Meeting agenda or additional notes..."></textarea>
+        </div>
+        
+        <div class="mb-4">
+          <label class="flex items-center">
+            <input type="checkbox" id="sendNotification" name="notification" checked
+                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+            <span class="ml-2 text-sm text-gray-700">Send calendar invitation to employee</span>
+          </label>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+          <button type="button" onclick="closeModal('meetingModal')"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 border border-gray-300 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <i class="fas fa-calendar-plus mr-2"></i>
+            Schedule Meeting
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Time Entry Modal -->
+<div id="timeEntryModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Add Time Entry for {{ employee.full_name }}</h3>
+        <button onclick="closeModal('timeEntryModal')" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form id="timeEntryForm" onsubmit="event.preventDefault(); submitTimeEntry();">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="entryDate" class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+            <input type="date" id="entryDate" name="date" required
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          
+          <div>
+            <label for="entryType" class="block text-sm font-medium text-gray-700 mb-2">Entry Type</label>
+            <select id="entryType" name="entry_type"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="regular">Regular</option>
+              <option value="overtime">Overtime</option>
+              <option value="vacation">Vacation</option>
+              <option value="sick">Sick Leave</option>
+              <option value="personal">Personal Time</option>
+              <option value="holiday">Holiday</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label for="startTime" class="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+            <input type="time" id="startTime" name="start_time"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          
+          <div>
+            <label for="endTime" class="block text-sm font-medium text-gray-700 mb-2">End Time</label>
+            <input type="time" id="endTime" name="end_time"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          
+          <div>
+            <label for="totalHours" class="block text-sm font-medium text-gray-700 mb-2">Total Hours</label>
+            <input type="number" step="0.25" id="totalHours" name="total_hours" required
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <label for="project" class="block text-sm font-medium text-gray-700 mb-2">Project (Optional)</label>
+          <input type="text" id="project" name="project"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                 placeholder="Project name or code">
+        </div>
+        
+        <div class="mb-4">
+          <label for="taskDescription" class="block text-sm font-medium text-gray-700 mb-2">Task Description</label>
+          <textarea id="taskDescription" name="task_description" rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Describe what was worked on..."></textarea>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+          <button type="button" onclick="closeModal('timeEntryModal')"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 border border-gray-300 rounded-md hover:bg-gray-300">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
+            <i class="fas fa-clock mr-2"></i>
+            Add Time Entry
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Payroll Modal -->
+<div id="payrollModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white max-h-screen overflow-y-auto">
+    <div class="mt-3">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Add Payroll Record for {{ employee.full_name }}</h3>
+        <button onclick="closeModal('payrollModal')" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form id="payrollForm" onsubmit="event.preventDefault(); submitPayroll();">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="payrollPeriodStart" class="block text-sm font-medium text-gray-700 mb-2">Period Start Date</label>
+            <input type="date" id="payrollPeriodStart" name="period_start" required
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+          
+          <div>
+            <label for="payrollPeriodEnd" class="block text-sm font-medium text-gray-700 mb-2">Period End Date</label>
+            <input type="date" id="payrollPeriodEnd" name="period_end" required
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+        </div>
+        
+        <h4 class="text-md font-medium text-gray-900 mb-2">Hours & Earnings</h4>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div>
+            <label for="regularHours" class="block text-sm font-medium text-gray-700 mb-2">Regular Hours</label>
+            <input type="number" step="0.25" id="regularHours" name="regular_hours"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+          
+          <div>
+            <label for="overtimeHours" class="block text-sm font-medium text-gray-700 mb-2">Overtime Hours</label>
+            <input type="number" step="0.25" id="overtimeHours" name="overtime_hours"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+          
+          <div>
+            <label for="regularPay" class="block text-sm font-medium text-gray-700 mb-2">Regular Pay</label>
+            <input type="number" step="0.01" id="regularPay" name="regular_pay"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+          
+          <div>
+            <label for="overtimePay" class="block text-sm font-medium text-gray-700 mb-2">Overtime Pay</label>
+            <input type="number" step="0.01" id="overtimePay" name="overtime_pay"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="bonus" class="block text-sm font-medium text-gray-700 mb-2">Bonus</label>
+            <input type="number" step="0.01" id="bonus" name="bonus"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+          
+          <div>
+            <label for="commission" class="block text-sm font-medium text-gray-700 mb-2">Commission</label>
+            <input type="number" step="0.01" id="commission" name="commission"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+        </div>
+        
+        <h4 class="text-md font-medium text-gray-900 mb-2">Deductions</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label for="healthInsurance" class="block text-sm font-medium text-gray-700 mb-2">Health Insurance</label>
+            <input type="number" step="0.01" id="healthInsurance" name="health_insurance_deduction"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+          
+          <div>
+            <label for="dentalInsurance" class="block text-sm font-medium text-gray-700 mb-2">Dental Insurance</label>
+            <input type="number" step="0.01" id="dentalInsurance" name="dental_insurance_deduction"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+          
+          <div>
+            <label for="retirementContrib" class="block text-sm font-medium text-gray-700 mb-2">Retirement Contribution</label>
+            <input type="number" step="0.01" id="retirementContrib" name="retirement_contribution"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+          <button type="button" onclick="closeModal('payrollModal')"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 border border-gray-300 rounded-md hover:bg-gray-300">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700">
+            <i class="fas fa-dollar-sign mr-2"></i>
+            Add Payroll Record
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Performance Review Modal -->
+<div id="performanceReviewModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white max-h-screen overflow-y-auto">
+    <div class="mt-3">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Add Performance Review for {{ employee.full_name }}</h3>
+        <button onclick="closeModal('performanceReviewModal')" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form id="performanceReviewForm" onsubmit="event.preventDefault(); submitPerformanceReview();">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="reviewType" class="block text-sm font-medium text-gray-700 mb-2">Review Type</label>
+            <select id="reviewType" name="review_type" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+              <option value="annual">Annual Review</option>
+              <option value="quarterly">Quarterly Review</option>
+              <option value="probationary">Probationary Review</option>
+              <option value="project">Project Review</option>
+            </select>
+          </div>
+          
+          <div>
+            <label for="overallRating" class="block text-sm font-medium text-gray-700 mb-2">Overall Rating (1-5)</label>
+            <input type="number" min="1" max="5" step="0.1" id="overallRating" name="overall_rating" required
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="reviewPeriodStart" class="block text-sm font-medium text-gray-700 mb-2">Review Period Start</label>
+            <input type="date" id="reviewPeriodStart" name="review_period_start" required
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+          </div>
+          
+          <div>
+            <label for="reviewPeriodEnd" class="block text-sm font-medium text-gray-700 mb-2">Review Period End</label>
+            <input type="date" id="reviewPeriodEnd" name="review_period_end" required
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+          </div>
+        </div>
+        
+        <h4 class="text-md font-medium text-gray-900 mb-2">Skill Ratings (1-5)</h4>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div>
+            <label for="technicalSkills" class="block text-sm font-medium text-gray-700 mb-2">Technical Skills</label>
+            <input type="number" min="1" max="5" step="0.1" id="technicalSkills" name="technical_skills"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+          </div>
+          
+          <div>
+            <label for="communication" class="block text-sm font-medium text-gray-700 mb-2">Communication</label>
+            <input type="number" min="1" max="5" step="0.1" id="communication" name="communication"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+          </div>
+          
+          <div>
+            <label for="teamwork" class="block text-sm font-medium text-gray-700 mb-2">Teamwork</label>
+            <input type="number" min="1" max="5" step="0.1" id="teamwork" name="teamwork"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+          </div>
+          
+          <div>
+            <label for="leadership" class="block text-sm font-medium text-gray-700 mb-2">Leadership</label>
+            <input type="number" min="1" max="5" step="0.1" id="leadership" name="leadership"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <label for="strengths" class="block text-sm font-medium text-gray-700 mb-2">Strengths</label>
+          <textarea id="strengths" name="strengths" rows="3" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Employee's key strengths and accomplishments..."></textarea>
+        </div>
+        
+        <div class="mb-4">
+          <label for="improvements" class="block text-sm font-medium text-gray-700 mb-2">Areas for Improvement</label>
+          <textarea id="improvements" name="areas_for_improvement" rows="3" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Areas where the employee can improve..."></textarea>
+        </div>
+        
+        <div class="mb-4">
+          <label for="goals" class="block text-sm font-medium text-gray-700 mb-2">Goals for Next Period</label>
+          <textarea id="goals" name="goals" rows="3" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Goals and objectives for the upcoming period..."></textarea>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+          <button type="button" onclick="closeModal('performanceReviewModal')"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 border border-gray-300 rounded-md hover:bg-gray-300">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700">
+            <i class="fas fa-star mr-2"></i>
+            Add Performance Review
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

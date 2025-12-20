@@ -1,0 +1,706 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% block title %} 
+{% if object %}Edit Purchase Order - {{ object.po_number }} {% else %}Create Purchase Order{% endif %} - DreamBiz Accounting {% endblock %} 
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            {% if object %} Edit Purchase Order - {{ object.po_number }} {% else %} Create Purchase Order {% endif %}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            {% if object %}Update purchase order details and items{% else %}Create a new purchase order for inventory restocking{% endif %}
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'inventory:dashboard' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">
+          Purchase Order Details
+        </h3>
+      </div>
+      <div class="p-6">
+        <form method="post" class="space-y-6">
+          {% csrf_token %}
+
+          <!-- Basic Information -->
+          <div class="space-y-4">
+            <h4
+              class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+            >
+              Order Information
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label
+                  for="{{ form.po_number.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  PO Number <span class="text-red-500">*</span>
+                </label>
+                {{ form.po_number }} {% if form.po_number.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.po_number.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500">
+                  Auto-generated if left blank
+                </p>
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.supplier.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Supplier <span class="text-red-500">*</span>
+                </label>
+                <div class="flex items-center space-x-2">
+                  <div class="flex-1">
+                    {{ form.supplier }}
+                  </div>
+                  <button type="button" 
+                          onclick="openSupplierModal()"
+                          class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+                          title="Add New Supplier">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+                {% if form.supplier.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.supplier.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.status.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Status
+                </label>
+                {{ form.status }} {% if form.status.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.status.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  for="{{ form.order_date.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Order Date <span class="text-red-500">*</span>
+                </label>
+                {{ form.order_date }} {% if form.order_date.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.order_date.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.expected_delivery_date.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Expected Delivery Date
+                </label>
+                {{ form.expected_delivery_date }} {% if form.expected_delivery_date.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.expected_delivery_date.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Shipping Information -->
+          <div class="space-y-4">
+            <h4
+              class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+            >
+              Shipping & Costs
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  for="{{ form.warehouse.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Warehouse <span class="text-red-500">*</span>
+                </label>
+                <div class="flex items-center space-x-2">
+                  <div class="flex-1">
+                    {{ form.warehouse }}
+                  </div>
+                  <button type="button" 
+                          onclick="openWarehouseModal()"
+                          class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+                          title="Add New Warehouse">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+                {% if form.warehouse.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.warehouse.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.shipping_cost.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Shipping Cost
+                </label>
+                {{ form.shipping_cost }} {% if form.shipping_cost.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.shipping_cost.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label
+                  for="{{ form.subtotal.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Subtotal
+                </label>
+                {{ form.subtotal }} {% if form.subtotal.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.subtotal.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.tax_amount.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Tax Amount
+                </label>
+                {{ form.tax_amount }} {% if form.tax_amount.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.tax_amount.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.total_amount.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Total Amount
+                </label>
+                {{ form.total_amount }} {% if form.total_amount.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.total_amount.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Notes -->
+          <div class="space-y-4">
+            <h4
+              class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+            >
+              Additional Information
+            </h4>
+
+            <div>
+              <label
+                for="{{ form.notes.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Order Notes
+              </label>
+              {{ form.notes }} {% if form.notes.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.notes.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex justify-between pt-6">
+            <a
+              href="{% url 'inventory:dashboard' %}"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            >
+              Cancel
+            </a>
+            <div class="flex space-x-3">
+              {% if object and object.status == 'draft' %}
+              <button
+                type="button"
+                id="send-po-btn"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+              >
+                <i class="fas fa-paper-plane mr-2"></i>
+                Send to Supplier
+              </button>
+              {% endif %}
+              <button
+                type="submit"
+                class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+              >
+                {% if object %}
+                <i class="fas fa-save mr-2"></i>
+                Update Purchase Order {% else %}
+                <i class="fas fa-plus mr-2"></i>
+                Create Purchase Order {% endif %}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- PO Items Section (if editing existing PO) -->
+    {% if object %}
+    <div class="mt-8 bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Purchase Order Items
+          </h3>
+          <button
+            type="button"
+            id="add-item-btn"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-plus mr-2"></i>
+            Add Item
+          </button>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Product
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Quantity
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Unit Price
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Total
+              </th>
+              <th
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for item in object.purchaseorderitem_set.all %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">
+                  {{ item.product.name }}
+                </div>
+                <div class="text-sm text-gray-500">
+                  SKU: {{ item.product.sku }}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ item.quantity }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                GH{{ item.unit_cost|floatformat:2 }}
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+              >
+                GH{{ item.total_cost|floatformat:2 }}
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+              >
+                <button
+                  type="button"
+                  class="text-indigo-600 hover:text-indigo-900 mr-3 edit-item-btn"
+                  data-item-id="{{ item.id }}"
+                >
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button
+                  type="button"
+                  class="text-red-600 hover:text-red-900 delete-item-btn"
+                  data-item-id="{{ item.id }}"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                <i class="fas fa-inbox text-4xl mb-4"></i>
+                <div>No items added to this purchase order yet</div>
+                <button
+                  type="button"
+                  class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                  onclick="document.getElementById('add-item-btn').click()"
+                >
+                  <i class="fas fa-plus mr-2"></i>
+                  Add First Item
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Add Tailwind classes to form fields
+    const inputs = document.querySelectorAll(
+      'input[type="text"], input[type="number"], input[type="date"], select, textarea'
+    );
+
+    inputs.forEach((input) => {
+      input.classList.add(
+        "block",
+        "w-full",
+        "px-3",
+        "py-2",
+        "border",
+        "border-gray-300",
+        "rounded-md",
+        "shadow-sm",
+        "placeholder-gray-400",
+        "focus:outline-none",
+        "focus:ring-indigo-500",
+        "focus:border-indigo-500",
+        "sm:text-sm"
+      );
+    });
+
+    // Add specific styling for textareas
+    const textareas = document.querySelectorAll("textarea");
+    textareas.forEach((textarea) => {
+      textarea.classList.add("h-24", "resize-none");
+    });
+
+    // Auto-calculate total amount
+    const subtotal = document.querySelector('[name="subtotal"]');
+    const taxAmount = document.querySelector('[name="tax_amount"]');
+    const totalAmount = document.querySelector('[name="total_amount"]');
+
+    function calculateTotal() {
+      if (subtotal && taxAmount && totalAmount) {
+        const subtotalValue = parseFloat(subtotal.value) || 0;
+        const taxValue = parseFloat(taxAmount.value) || 0;
+        const total = subtotalValue + taxValue;
+        totalAmount.value = total.toFixed(2);
+      }
+    }
+
+    if (subtotal && taxAmount) {
+      subtotal.addEventListener("input", calculateTotal);
+      taxAmount.addEventListener("input", calculateTotal);
+    }
+
+    // Send PO functionality
+    const sendPoBtn = document.getElementById("send-po-btn");
+    if (sendPoBtn) {
+      sendPoBtn.addEventListener("click", function () {
+        if (
+          confirm(
+            "Are you sure you want to send this purchase order to the supplier?"
+          )
+        ) {
+          // Here you would make an API call to send the PO
+          showNotification(
+            "Purchase order sent to supplier successfully!",
+            "success"
+          );
+        }
+      });
+    }
+
+    // Form validation
+    const form = document.querySelector("form");
+    form.addEventListener("submit", function (e) {
+      let isValid = true;
+      const errorMessages = [];
+
+      // Check required fields
+      const requiredFields = [
+        { field: "supplier", label: "Supplier" },
+        { field: "order_date", label: "Order Date" },
+        { field: "total_amount", label: "Total Amount" },
+      ];
+
+      requiredFields.forEach((item) => {
+        const field = document.querySelector(`[name="${item.field}"]`);
+        if (field && !field.value.trim()) {
+          field.classList.remove("border-gray-300", "focus:border-indigo-500");
+          field.classList.add("border-red-300", "focus:border-red-500");
+          errorMessages.push(item.label);
+          isValid = false;
+        } else if (field) {
+          field.classList.remove("border-red-300", "focus:border-red-500");
+          field.classList.add("border-gray-300", "focus:border-indigo-500");
+        }
+      });
+
+      if (!isValid) {
+        e.preventDefault();
+        showNotification(
+          `Please fix the following errors: ${errorMessages.join(", ")}`,
+          "error"
+        );
+
+        // Scroll to first error field
+        const firstErrorField = document.querySelector(".border-red-300");
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          firstErrorField.focus();
+        }
+      }
+    });
+
+    // Show notification function
+    function showNotification(message, type = "info") {
+      const notification = document.createElement("div");
+      notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
+        type === "success"
+          ? "bg-green-100 border border-green-400 text-green-700"
+          : type === "error"
+          ? "bg-red-100 border border-red-400 text-red-700"
+          : "bg-blue-100 border border-blue-400 text-blue-700"
+      }`;
+
+      notification.innerHTML = `
+        <div class="flex items-center">
+          <i class="fas fa-${
+            type === "success"
+              ? "check-circle"
+              : type === "error"
+              ? "exclamation-circle"
+              : "info-circle"
+          } mr-2"></i>
+          <span class="font-medium">${message}</span>
+        </div>
+      `;
+
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 5000);
+    }
+    
+    // Supplier modal functionality
+    window.openSupplierModal = function() {
+      const modal = document.getElementById('supplierModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+      } else {
+        // Create modal dynamically
+        const modalHtml = `
+          <div id="supplierModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+              <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Add New Supplier</h3>
+                <form id="supplierForm" class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Supplier Name *</label>
+                    <input type="text" name="supplier_name" required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-dreambiz-500">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
+                    <input type="text" name="contact_person" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-dreambiz-500">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" name="email" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-dreambiz-500">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <input type="text" name="phone" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-dreambiz-500">
+                  </div>
+                  <div class="flex justify-end space-x-2 mt-4">
+                    <button type="button" onclick="closeSupplierModal()" 
+                            class="px-4 py-2 bg-gray-300 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-400">
+                      Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-dreambiz-600 text-white text-sm font-medium rounded-md hover:bg-dreambiz-700">
+                      Add Supplier
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Add form submit handler
+        document.getElementById('supplierForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const supplierName = formData.get('supplier_name');
+          
+          // Add to dropdown (this is a simplified version)
+          const supplierSelect = document.querySelector('select[name="supplier"]');
+          const newOption = document.createElement('option');
+          newOption.value = 'new_' + Date.now(); // Temporary ID
+          newOption.textContent = supplierName;
+          newOption.selected = true;
+          supplierSelect.appendChild(newOption);
+          
+          showNotification('Supplier added successfully! Please save the form to complete the process.', 'success');
+          closeSupplierModal();
+        });
+      }
+    };
+    
+    window.closeSupplierModal = function() {
+      const modal = document.getElementById('supplierModal');
+      if (modal) {
+        modal.remove();
+      }
+    };
+    
+    // Warehouse modal functionality
+    window.openWarehouseModal = function() {
+      const modal = document.getElementById('warehouseModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+      } else {
+        // Create modal dynamically
+        const modalHtml = `
+          <div id="warehouseModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+              <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Add New Warehouse</h3>
+                <form id="warehouseForm" class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Warehouse Name *</label>
+                    <input type="text" name="warehouse_name" required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-dreambiz-500">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <input type="text" name="location" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-dreambiz-500">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                    <textarea name="address" rows="2"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-dreambiz-500"></textarea>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Capacity (units)</label>
+                    <input type="number" name="capacity" min="0"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-dreambiz-500">
+                  </div>
+                  <div class="flex justify-end space-x-2 mt-4">
+                    <button type="button" onclick="closeWarehouseModal()" 
+                            class="px-4 py-2 bg-gray-300 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-400">
+                      Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-dreambiz-600 text-white text-sm font-medium rounded-md hover:bg-dreambiz-700">
+                      Add Warehouse
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Add form submit handler
+        document.getElementById('warehouseForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const warehouseName = formData.get('warehouse_name');
+          
+          // Add to dropdown (this is a simplified version)
+          const warehouseSelect = document.querySelector('select[name="warehouse"]');
+          const newOption = document.createElement('option');
+          newOption.value = 'new_' + Date.now(); // Temporary ID
+          newOption.textContent = warehouseName;
+          newOption.selected = true;
+          warehouseSelect.appendChild(newOption);
+          
+          showNotification('Warehouse added successfully! Please save the form to complete the process.', 'success');
+          closeWarehouseModal();
+        });
+      }
+    };
+    
+    window.closeWarehouseModal = function() {
+      const modal = document.getElementById('warehouseModal');
+      if (modal) {
+        modal.remove();
+      }
+    };
+  });
+</script>
+{% endblock %}

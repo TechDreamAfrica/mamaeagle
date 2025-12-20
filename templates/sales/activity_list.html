@@ -1,0 +1,331 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Sales Activities -
+DreamBiz{% endblock %} {% block content %}
+<div class="bg-white shadow rounded-lg">
+  <div class="px-4 py-5 sm:p-6">
+    <div class="sm:flex sm:items-center">
+      <div class="sm:flex-auto">
+        <h1 class="text-xl font-semibold text-gray-900">Sales Activities</h1>
+        <p class="mt-2 text-sm text-gray-700">
+          Track and manage all sales activities and interactions.
+        </p>
+      </div>
+      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        <a
+          href="{% url 'sales:activity_create' %}"
+          class="inline-flex items-center justify-center rounded-md border border-transparent bg-dreambiz-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-dreambiz-500 focus:ring-offset-2"
+        >
+          <i class="fas fa-plus mr-2"></i>Log Activity
+        </a>
+      </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-clipboard-list text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Total Activities
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">
+                  {{ activities.count|default:0 }}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-phone text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Calls Today
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">0</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-users text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Meetings This Week
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">0</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-calendar-check text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Follow-ups Due
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">0</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activities List -->
+    <div class="mt-8">
+      {% if activities %}
+      <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <ul role="list" class="divide-y divide-gray-200">
+          {% for activity in activities %}
+          <li>
+            <div class="px-4 py-4 sm:px-6">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <span
+                      class="inline-flex items-center justify-center h-10 w-10 rounded-lg {% if activity.activity_type == 'call' %}bg-green-100 text-green-800 {% elif activity.activity_type == 'email' %}bg-blue-100 text-blue-800 {% elif activity.activity_type == 'meeting' %}bg-purple-100 text-purple-800 {% elif activity.activity_type == 'demo' %}bg-indigo-100 text-indigo-800 {% elif activity.activity_type == 'proposal' %}bg-yellow-100 text-yellow-800 {% elif activity.activity_type == 'follow_up' %}bg-orange-100 text-orange-800 {% elif activity.activity_type == 'note' %}bg-gray-100 text-gray-800 {% elif activity.activity_type == 'task' %}bg-pink-100 text-pink-800 {% else %}bg-gray-100 text-gray-800{% endif %}"
+                    >
+                      {% if activity.activity_type == 'call' %}
+                      <i class="fas fa-phone text-sm"></i>
+                      {% elif activity.activity_type == 'email' %}
+                      <i class="fas fa-envelope text-sm"></i>
+                      {% elif activity.activity_type == 'meeting' %}
+                      <i class="fas fa-users text-sm"></i>
+                      {% elif activity.activity_type == 'demo' %}
+                      <i class="fas fa-desktop text-sm"></i>
+                      {% elif activity.activity_type == 'proposal' %}
+                      <i class="fas fa-file-contract text-sm"></i>
+                      {% elif activity.activity_type == 'follow_up' %}
+                      <i class="fas fa-redo text-sm"></i>
+                      {% elif activity.activity_type == 'note' %}
+                      <i class="fas fa-sticky-note text-sm"></i>
+                      {% elif activity.activity_type == 'task' %}
+                      <i class="fas fa-tasks text-sm"></i>
+                      {% else %}
+                      <i class="fas fa-circle text-sm"></i>
+                      {% endif %}
+                    </span>
+                  </div>
+                  <div class="ml-4 min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-medium text-gray-900 truncate">
+                          {{ activity.subject }}
+                        </p>
+                        <p class="text-sm text-gray-500">
+                          {{ activity.get_activity_type_display }} {% if activity.lead %} •
+                          <a
+                            href="{% url 'sales:lead_detail' activity.lead.pk %}"
+                            class="text-dreambiz-600 hover:text-dreambiz-700"
+                            >{{ activity.lead.full_name }}</a
+                          >
+                          {% endif %} {% if activity.opportunity %} •
+                          <a
+                            href="{% url 'sales:opportunity_detail' activity.opportunity.pk %}"
+                            class="text-dreambiz-600 hover:text-dreambiz-700"
+                            >{{ activity.opportunity.name }}</a
+                          >
+                          {% endif %}
+                        </p>
+                        {% if activity.description %}
+                        <p class="text-sm text-gray-600 mt-1">
+                          {{ activity.description|truncatewords:20 }}
+                        </p>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="mt-2 flex items-center text-sm text-gray-500">
+                      <i class="fas fa-user mr-1"></i>
+                      <span class="mr-4"
+                        >{{ activity.sales_rep.full_name }}</span
+                      >
+                      <i class="fas fa-calendar mr-1"></i>
+                      <time datetime="{{ activity.activity_date|date:'c' }}">
+                        {{ activity.activity_date|date:"M j, Y g:i A" }}
+                      </time>
+                      {% if activity.duration %}
+                      <span class="ml-4">
+                        <i class="fas fa-clock mr-1"></i>
+                        {{ activity.duration }}
+                      </span>
+                      {% endif %}
+                    </div>
+                    {% if activity.outcome %}
+                    <div class="mt-2">
+                      <p class="text-sm text-gray-700">
+                        <strong>Outcome:</strong> {{ activity.outcome|truncatewords:15 }}
+                      </p>
+                    </div>
+                    {% endif %} {% if activity.requires_follow_up %}
+                    <div class="mt-2">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+                      >
+                        <i class="fas fa-clock mr-1"></i>
+                        Follow-up required {% if activity.follow_up_date %} - {{ activity.follow_up_date|date:"M j, Y" }} {% endif %}
+                      </span>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    class="text-gray-400 hover:text-gray-600"
+                    title="Edit Activity"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="text-gray-400 hover:text-red-600"
+                    title="Delete Activity"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+      <div class="mt-6 flex justify-between items-center">
+        <div class="flex-1 flex justify-between sm:hidden">
+          {% if page_obj.has_previous %}
+          <a
+            href="?page={{ page_obj.previous_page_number }}"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Previous
+          </a>
+          {% endif %} {% if page_obj.has_next %}
+          <a
+            href="?page={{ page_obj.next_page_number }}"
+            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Next
+          </a>
+          {% endif %}
+        </div>
+        <div
+          class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"
+        >
+          <div>
+            <p class="text-sm text-gray-700">
+              Showing
+              <span class="font-medium">{{ page_obj.start_index }}</span>
+              to
+              <span class="font-medium">{{ page_obj.end_index }}</span>
+              of
+              <span class="font-medium">{{ paginator.count }}</span>
+              results
+            </p>
+          </div>
+          <div>
+            <nav
+              class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+            >
+              {% if page_obj.has_previous %}
+              <a
+                href="?page={{ page_obj.previous_page_number }}"
+                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              >
+                <span class="sr-only">Previous</span>
+                <i class="fas fa-chevron-left"></i>
+              </a>
+              {% endif %} {% for num in page_obj.paginator.page_range %} {% if page_obj.number == num %}
+              <span
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-dreambiz-50 text-sm font-medium text-dreambiz-600"
+              >
+                {{ num }}
+              </span>
+              {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <a
+                href="?page={{ num }}"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                {{ num }}
+              </a>
+              {% endif %} {% endfor %} {% if page_obj.has_next %}
+              <a
+                href="?page={{ page_obj.next_page_number }}"
+                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              >
+                <span class="sr-only">Next</span>
+                <i class="fas fa-chevron-right"></i>
+              </a>
+              {% endif %}
+            </nav>
+          </div>
+        </div>
+      </div>
+      {% endif %} {% else %}
+      <!-- Empty State -->
+      <div class="text-center py-12">
+        <div class="mx-auto h-12 w-12 text-gray-400">
+          <i class="fas fa-clipboard-list text-3xl"></i>
+        </div>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No activities</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          Get started by logging your first sales activity.
+        </p>
+        <div class="mt-6">
+          <a
+            href="{% url 'sales:activity_create' %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+          >
+            <i class="fas fa-plus mr-2"></i>
+            Log First Activity
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

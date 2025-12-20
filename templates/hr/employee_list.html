@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Employees - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="py-6">
+        <div class="md:flex md:items-center md:justify-between">
+          <div class="flex-1 min-w-0">
+            <h2
+              class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate"
+            >
+              Employees
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+              Manage your team and employee information
+            </p>
+          </div>
+          <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+            <!-- Regular Actions -->
+            <button
+              type="button"
+              onclick="window.location.href='{% url 'hr:bulk_export_employees' %}'"
+              class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              <i class="fas fa-download mr-2"></i>
+              Export All
+            </button>
+            <button
+              type="button"
+              onclick="window.location.href='{% url 'hr:employee_create' %}'"
+              class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              <i class="fas fa-plus mr-2"></i>
+              Add Employee
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center"
+              >
+                <i class="fas fa-users text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Total Employees
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">{{ total_employees }}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center"
+              >
+                <i class="fas fa-user-check text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Active
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">{{ active_employees }}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center"
+              >
+                <i class="fas fa-clock text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  On Leave
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">{{ employees|length }}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center"
+              >
+                <i class="fas fa-graduation-cap text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  New Hires (30d)
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">{{ departments|length }}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="bg-white shadow rounded-lg p-6 mb-8">
+      <form method="GET" class="flex flex-col sm:flex-row gap-4">
+        <div class="flex-1">
+          <label for="search" class="sr-only">Search employees</label>
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <i class="fas fa-search text-gray-400"></i>
+            </div>
+            <input
+              type="text"
+              name="q"
+              id="search"
+              value="{{ request.GET.q }}"
+              class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+              placeholder="Search by name, email, or department..."
+            />
+          </div>
+        </div>
+        <div class="sm:w-48">
+          <label for="department-filter" class="sr-only">Department</label>
+          <select
+            name="department"
+            id="department-filter"
+            class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+          >
+            <option value="">All Departments</option>
+            {% for dept in departments %}
+            <option value="{{ dept }}" {% if request.GET.department == dept %}selected{% endif %}>{{ dept }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="sm:w-32">
+          <label for="status-filter" class="sr-only">Status</label>
+          <select
+            name="status"
+            id="status-filter"
+            class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+          >
+            <option value="">All Status</option>
+            {% for status_code, status_label in status_choices %}
+            <option value="{{ status_code }}" {% if request.GET.status == status_code %}selected{% endif %}>{{ status_label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <button
+            type="submit"
+            class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+          >
+            <i class="fas fa-search mr-2"></i>
+            Search
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Employee Table -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          Employee Directory
+        </h3>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Employee
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Department
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Position
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Hire Date
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Salary
+              </th>
+              <th scope="col" class="relative px-6 py-3">
+                <span class="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for employee in employees %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10">
+                      <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span class="text-blue-600 font-medium text-sm">
+                          {{ employee.user.first_name.0 }}{{ employee.user.last_name.0 }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">
+                        <a href="{% url 'hr:employee_detail' employee.pk %}" class="hover:text-dreambiz-600">
+                          {{ employee.full_name }}
+                        </a>
+                      </div>
+                      <div class="text-sm text-gray-500">{{ employee.user.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ employee.department }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ employee.job_title }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ employee.hire_date|date:"M d, Y" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span
+                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                    {% if employee.status == 'active' %}bg-green-100 text-green-800
+                    {% elif employee.status == 'on_leave' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-red-100 text-red-800{% endif %}"
+                  >
+                    {{ employee.get_status_display }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {% if employee.base_salary %}
+                    GH{{ employee.base_salary|floatformat:0 }}
+                  {% elif employee.hourly_rate %}
+                    GH{{ employee.hourly_rate }}/hr
+                  {% else %}
+                    N/A
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex space-x-2">
+                    <a href="{% url 'hr:employee_detail' employee.pk %}" class="text-dreambiz-600 hover:text-dreambiz-900" title="View">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{% url 'hr:employee_update' employee.pk %}" class="text-blue-600 hover:text-blue-900" title="Edit">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'hr:employee_delete' employee.pk %}" class="text-red-600 hover:text-red-900" title="Delete">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="px-6 py-12 text-center">
+                  <div class="flex flex-col items-center justify-center">
+                    <i class="fas fa-users text-gray-300 text-5xl mb-4"></i>
+                    <p class="text-lg font-medium text-gray-900 mb-2">No employees found</p>
+                    <p class="text-gray-500 mb-4">Get started by adding your first employee.</p>
+                    <a
+                      href="{% url 'hr:employee_create' %}"
+                      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-dreambiz-600 hover:bg-dreambiz-700"
+                    >
+                      <i class="fas fa-user-plus mr-2"></i>
+                      Add Employee
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+      <div
+        class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"
+      >
+        <div class="flex-1 flex justify-between sm:hidden">
+          {% if page_obj.has_previous %}
+          <a
+            href="?page={{ page_obj.previous_page_number }}"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Previous
+          </a>
+          {% endif %}
+          {% if page_obj.has_next %}
+          <a
+            href="?page={{ page_obj.next_page_number }}"
+            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Next
+          </a>
+          {% endif %}
+        </div>
+        <div
+          class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"
+        >
+          <div>
+            <p class="text-sm text-gray-700">
+              Showing <span class="font-medium">{{ page_obj.start_index }}</span> to
+              <span class="font-medium">{{ page_obj.end_index }}</span>
+              of
+              <span class="font-medium">{{ paginator.count }}</span>
+              results
+            </p>
+          </div>
+          <div>
+            <nav
+              class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+              aria-label="Pagination"
+            >
+              {% if page_obj.has_previous %}
+              <a
+                href="?page={{ page_obj.previous_page_number }}"
+                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </a>
+              {% endif %}
+              
+              {% for num in paginator.page_range %}
+                {% if page_obj.number == num %}
+                  <span class="bg-dreambiz-50 border-dreambiz-500 text-dreambiz-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                    {{ num }}
+                  </span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                  <a href="?page={{ num }}" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                    {{ num }}
+                  </a>
+                {% endif %}
+              {% endfor %}
+              
+              {% if page_obj.has_next %}
+              <a
+                href="?page={{ page_obj.next_page_number }}"
+                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </a>
+              {% endif %}
+            </nav>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

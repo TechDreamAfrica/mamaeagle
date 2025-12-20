@@ -1,0 +1,136 @@
+{% extends 'docs/doc_layout.html' %}
+{% block doc_content %}
+<h1 class="text-3xl font-bold text-gray-900 mb-6">
+  <i class="fas fa-tools text-dreambiz-600"></i> Troubleshooting
+</h1>
+<div class="prose prose-blue max-w-none">
+  <p class="text-lg text-gray-700 mb-6">Common issues and solutions to help you resolve problems quickly.</p>
+  
+  <h2>Login Issues</h2>
+  <div class="bg-gray-50 p-4 rounded my-4">
+    <h4 class="font-semibold text-gray-900">❌ Cannot log in</h4>
+    <p class="text-sm text-gray-700"><strong>Solutions:</strong></p>
+    <ol class="text-sm">
+      <li>Reset password via "Forgot Password" link</li>
+      <li>Clear browser cache and cookies</li>
+      <li>Try a different browser</li>
+      <li>Contact admin to verify account status</li>
+    </ol>
+  </div>
+
+  <div class="bg-gray-50 p-4 rounded my-4">
+    <h4 class="font-semibold text-gray-900">❌ Two-factor authentication not working</h4>
+    <p class="text-sm text-gray-700"><strong>Solutions:</strong></p>
+    <ol class="text-sm">
+      <li>Verify device time is correct</li>
+      <li>Use backup codes</li>
+      <li>Contact support to reset 2FA</li>
+    </ol>
+  </div>
+
+  <h2>Invoice Issues</h2>
+  <div class="bg-gray-50 p-4 rounded my-4">
+    <h4 class="font-semibold text-gray-900">❌ Invoice not sending via email</h4>
+    <p class="text-sm text-gray-700"><strong>Solutions:</strong></p>
+    <ol class="text-sm">
+      <li>Verify email address is correct</li>
+      <li>Check spam/junk folder</li>
+      <li>Verify SMTP settings</li>
+      <li>Try manual download and send</li>
+    </ol>
+  </div>
+
+  <div class="bg-gray-50 p-4 rounded my-4">
+    <h4 class="font-semibold text-gray-900">❌ Wrong tax calculation</h4>
+    <p class="text-sm text-gray-700"><strong>Solutions:</strong></p>
+    <ol class="text-sm">
+      <li>Verify tax rate settings</li>
+      <li>Check customer tax exemption status</li>
+      <li>Review product tax categories</li>
+    </ol>
+  </div>
+
+  <h2>Bank Reconciliation Issues</h2>
+  <div class="bg-gray-50 p-4 rounded my-4">
+    <h4 class="font-semibold text-gray-900">❌ Transactions not matching</h4>
+    <p class="text-sm text-gray-700"><strong>Solutions:</strong></p>
+    <ol class="text-sm">
+      <li>Check date ranges match</li>
+      <li>Verify amounts match exactly</li>
+      <li>Look for timing differences</li>
+      <li>Check for duplicate entries</li>
+    </ol>
+  </div>
+
+  <h2>AI Insights Issues</h2>
+  <div class="bg-gray-50 p-4 rounded my-4">
+    <h4 class="font-semibold text-gray-900">❌ "OpenAI API key not configured"</h4>
+    <p class="text-sm text-gray-700"><strong>Solutions:</strong></p>
+    <ol class="text-sm">
+      <li>Add API key to <code>.env</code> file</li>
+      <li>Verify key is correct (starts with sk-)</li>
+      <li>Check OpenAI account has credits</li>
+      <li>Restart server after adding key</li>
+    </ol>
+  </div>
+
+  <div class="bg-gray-50 p-4 rounded my-4">
+    <h4 class="font-semibold text-gray-900">❌ Insights not generating</h4>
+    <p class="text-sm text-gray-700"><strong>Solutions:</strong></p>
+    <ol class="text-sm">
+      <li>Verify you have financial data in system</li>
+      <li>Check OpenAI service status</li>
+      <li>Run: <code>python manage.py test_openai</code></li>
+      <li>Check browser console for errors</li>
+    </ol>
+  </div>
+
+  <h2>Performance Issues</h2>
+  <div class="bg-gray-50 p-4 rounded my-4">
+    <h4 class="font-semibold text-gray-900">❌ Slow loading times</h4>
+    <p class="text-sm text-gray-700"><strong>Solutions:</strong></p>
+    <ol class="text-sm">
+      <li>Clear browser cache</li>
+      <li>Check internet connection speed</li>
+      <li>Reduce date range in reports</li>
+      <li>Contact support if persistent</li>
+    </ol>
+  </div>
+
+  <h2>Getting Help</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+    <div class="bg-blue-50 p-4 rounded">
+      <h4 class="font-semibold text-blue-900"><i class="fas fa-envelope mr-2"></i>Email Support</h4>
+      <p class="text-sm">support@techdreamafrica.com</p>
+    </div>
+    <div class="bg-green-50 p-4 rounded">
+      <h4 class="font-semibold text-green-900"><i class="fas fa-book mr-2"></i>Documentation</h4>
+      <p class="text-sm">Online help center and guides</p>
+    </div>
+  </div>
+
+  <h3>Before Contacting Support</h3>
+  <ol>
+    <li>Check this troubleshooting guide</li>
+    <li>Search knowledge base</li>
+    <li>Try basic troubleshooting steps</li>
+    <li>Gather error messages and screenshots</li>
+    <li>Note steps to reproduce the issue</li>
+  </ol>
+
+  <h3>Support Response Times</h3>
+  <ul>
+    <li><span class="text-red-600 font-semibold">Critical:</span> 2 hours</li>
+    <li><span class="text-orange-600 font-semibold">High:</span> 8 hours</li>
+    <li><span class="text-yellow-600 font-semibold">Normal:</span> 24 hours</li>
+    <li><span class="text-green-600 font-semibold">Low:</span> 48 hours</li>
+  </ul>
+
+  <div class="bg-blue-50 border-l-4 border-blue-500 p-4 my-6">
+    <p class="text-blue-800 m-0">
+      <i class="fas fa-question-circle mr-2"></i>
+      <strong>Still need help?</strong> Contact us at support@techdreamafrica.com with detailed information about your issue.
+    </p>
+  </div>
+</div>
+{% endblock %}

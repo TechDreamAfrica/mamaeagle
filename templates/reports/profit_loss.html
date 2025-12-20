@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profit & Loss Report - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-5">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-2xl font-bold text-gray-900">Profit & Loss Report</h2>
+                    <p class="mt-1 text-sm text-gray-500">{{ period_name }}</p>
+                    <p class="text-xs text-gray-400">{{ start_date|date:"F d, Y" }} to {{ end_date|date:"F d, Y" }}</p>
+                </div>
+                <div class="mt-4 flex space-x-3 md:mt-0 md:ml-4">
+                    <form method="GET" class="flex items-center space-x-2">
+                        <select name="period" onchange="this.form.submit()" class="rounded-md border-gray-300 shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500 text-sm">
+                            <option value="current-month" {% if current_period == 'current-month' %}selected{% endif %}>Current Month</option>
+                            <option value="last-month" {% if current_period == 'last-month' %}selected{% endif %}>Last Month</option>
+                            <option value="current-quarter" {% if current_period == 'current-quarter' %}selected{% endif %}>Current Quarter</option>
+                            <option value="current-year" {% if current_period == 'current-year' %}selected{% endif %}>Current Year</option>
+                        </select>
+                    </form>
+                    <button type="button" onclick="window.print()" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="fas fa-print mr-2"></i>Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-arrow-up text-green-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-xs font-medium text-gray-500 uppercase">Total Revenue</p>
+                    <p class="text-lg font-bold text-gray-900">GH{{ total_revenue|floatformat:2 }}</p>
+                    {% if revenue_change != 0 %}
+                    <p class="text-xs {% if revenue_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                        {{ revenue_change|floatformat:1 }}% vs prev period
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-arrow-down text-red-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-xs font-medium text-gray-500 uppercase">Total Expenses</p>
+                    <p class="text-lg font-bold text-gray-900">GH{{ total_expenses|floatformat:2 }}</p>
+                    {% if expense_change != 0 %}
+                    <p class="text-xs {% if expense_change < 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                        {{ expense_change|floatformat:1 }}% vs prev period
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 {% if net_income >= 0 %}bg-blue-100{% else %}bg-orange-100{% endif %} rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-line {% if net_income >= 0 %}text-blue-600{% else %}text-orange-600{% endif %}"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-xs font-medium text-gray-500 uppercase">Net Income</p>
+                    <p class="text-lg font-bold {% if net_income >= 0 %}text-green-600{% else %}text-red-600{% endif %}">GH{{ net_income|floatformat:2 }}</p>
+                    {% if income_change != 0 %}
+                    <p class="text-xs {% if income_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                        {{ income_change|floatformat:1 }}% vs prev period
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-percentage text-purple-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-xs font-medium text-gray-500 uppercase">Net Margin</p>
+                    <p class="text-lg font-bold text-gray-900">{{ net_margin|floatformat:1 }}%</p>
+                    <p class="text-xs text-gray-500">Profit margin</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Report -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-5 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Income Statement Detail</h3>
+        </div>
+
+        <div class="px-6 py-5">
+            <!-- Revenue Section -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between py-3 border-b-2 border-gray-900 mb-2">
+                    <h4 class="text-base font-bold text-gray-900">REVENUE</h4>
+                    <span class="text-base font-bold text-gray-900">GH{{ total_revenue|floatformat:2 }}</span>
+                </div>
+
+                {% if revenue_data %}
+                    {% for item in revenue_data %}
+                    <div class="flex items-center justify-between py-2 pl-4">
+                        <div>
+                            <span class="text-sm text-gray-700">{{ item.account.account_name }}</span>
+                            <span class="text-xs text-gray-400 ml-2">({{ item.account.account_number }})</span>
+                        </div>
+                        <span class="text-sm text-gray-900">GH{{ item.balance|floatformat:2 }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-sm text-gray-500 py-4 pl-4">No revenue recorded for this period</p>
+                {% endif %}
+            </div>
+
+            <!-- Expenses Section -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between py-3 border-b-2 border-gray-900 mb-2">
+                    <h4 class="text-base font-bold text-gray-900">EXPENSES</h4>
+                    <span class="text-base font-bold text-gray-900">GH{{ total_expenses|floatformat:2 }}</span>
+                </div>
+
+                {% if expense_by_category %}
+                    {% for category, amount in expense_by_category.items %}
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between py-2 bg-gray-50 px-4">
+                            <span class="text-sm font-medium text-gray-800">{{ category }}</span>
+                            <span class="text-sm font-medium text-gray-900">GH{{ amount|floatformat:2 }}</span>
+                        </div>
+                        {% for item in expense_data %}
+                            {% if item.account.account_type.subtype == category or item.account.account_type.name == category %}
+                            <div class="flex items-center justify-between py-1 pl-8">
+                                <div>
+                                    <span class="text-sm text-gray-600">{{ item.account.account_name }}</span>
+                                    <span class="text-xs text-gray-400 ml-2">({{ item.account.account_number }})</span>
+                                </div>
+                                <span class="text-sm text-gray-700">GH{{ item.balance|floatformat:2 }}</span>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-sm text-gray-500 py-4 pl-4">No expenses recorded for this period</p>
+                {% endif %}
+            </div>
+
+            <!-- Net Income -->
+            <div class="border-t-2 border-gray-900 pt-4">
+                <div class="flex items-center justify-between py-3 bg-gray-50 px-4">
+                    <h4 class="text-lg font-bold text-gray-900">NET INCOME</h4>
+                    <span class="text-lg font-bold {% if net_income >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                        GH{{ net_income|floatformat:2 }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .max-w-7xl, .max-w-7xl * {
+            visibility: visible;
+        }
+        .max-w-7xl {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        button, select {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}

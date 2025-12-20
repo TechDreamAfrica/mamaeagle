@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit Vendor{% else %}Add Vendor{% endif %} - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-6">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">
+          {% if form.instance.pk %}Edit Vendor{% else %}Add New Vendor{% endif %}
+        </h1>
+        <p class="text-gray-600 mt-1">
+          {% if form.instance.pk %}
+            Update vendor information
+          {% else %}
+            Add a new supplier or service provider
+          {% endif %}
+        </p>
+      </div>
+      <a
+        href="{% url 'expenses:vendor_list' %}"
+        class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center"
+      >
+        <i class="fas fa-arrow-left mr-2"></i>
+        Back to List
+      </a>
+    </div>
+  </div>
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Display form errors -->
+    {% if form.non_field_errors %}
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+      <div class="flex items-start">
+        <i class="fas fa-exclamation-circle text-red-600 mt-1 mr-3"></i>
+        <div class="text-sm text-red-800">
+          {{ form.non_field_errors }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Basic Information -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+        Basic Information
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Vendor Name -->
+        <div class="md:col-span-2">
+          <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            Vendor Name <span class="text-red-500">*</span>
+          </label>
+          {{ form.name }}
+          {% if form.name.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Enter the legal or trading name of the vendor</p>
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            Email
+          </label>
+          {{ form.email }}
+          {% if form.email.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Phone -->
+        <div>
+          <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            Phone
+          </label>
+          {{ form.phone }}
+          {% if form.phone.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Website -->
+        <div class="md:col-span-2">
+          <label for="{{ form.website.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            Website
+          </label>
+          {{ form.website }}
+          {% if form.website.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.website.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Include http:// or https://</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Address Information -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <i class="fas fa-map-marker-alt text-blue-600 mr-2"></i>
+        Address Information
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Address Line 1 -->
+        <div class="md:col-span-2">
+          <label for="{{ form.address_line_1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            Address Line 1
+          </label>
+          {{ form.address_line_1 }}
+          {% if form.address_line_1.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.address_line_1.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Address Line 2 -->
+        <div class="md:col-span-2">
+          <label for="{{ form.address_line_2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            Address Line 2
+          </label>
+          {{ form.address_line_2 }}
+          {% if form.address_line_2.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.address_line_2.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Apartment, suite, unit, building, floor, etc.</p>
+        </div>
+
+        <!-- City -->
+        <div>
+          <label for="{{ form.city.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            City
+          </label>
+          {{ form.city }}
+          {% if form.city.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.city.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- State/Province -->
+        <div>
+          <label for="{{ form.state.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            State/Province
+          </label>
+          {{ form.state }}
+          {% if form.state.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.state.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Postal Code -->
+        <div>
+          <label for="{{ form.postal_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            Postal Code
+          </label>
+          {{ form.postal_code }}
+          {% if form.postal_code.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.postal_code.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Country -->
+        <div>
+          <label for="{{ form.country.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            Country
+          </label>
+          {{ form.country }}
+          {% if form.country.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.country.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Business Information -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <i class="fas fa-briefcase text-blue-600 mr-2"></i>
+        Business Information
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Tax ID -->
+        <div>
+          <label for="{{ form.tax_id.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            Tax ID / VAT Number
+          </label>
+          {{ form.tax_id }}
+          {% if form.tax_id.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.tax_id.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Tax identification or VAT registration number</p>
+        </div>
+
+        <!-- Payment Terms -->
+        <div>
+          <label for="{{ form.payment_terms.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            Payment Terms
+          </label>
+          {{ form.payment_terms }}
+          {% if form.payment_terms.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.payment_terms.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">e.g., Net 30, Due on Receipt, Net 60</p>
+        </div>
+
+        <!-- Active Status (only show when editing) -->
+        {% if form.instance.pk %}
+        <div class="md:col-span-2">
+          <div class="flex items-center">
+            {{ form.is_active }}
+            <label for="{{ form.is_active.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+              Active Vendor
+            </label>
+          </div>
+          {% if form.is_active.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.is_active.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Inactive vendors won't appear in expense forms</p>
+        </div>
+        {% else %}
+        {{ form.is_active }}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <a
+          href="{% url 'expenses:vendor_list' %}"
+          class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+        >
+          Cancel
+        </a>
+        <button
+          type="submit"
+          class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center shadow-md"
+        >
+          <i class="fas fa-save mr-2"></i>
+          {% if form.instance.pk %}Update Vendor{% else %}Create Vendor{% endif %}
+        </button>
+      </div>
+    </div>
+
+  </form>
+
+  <!-- Help Section -->
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+    <div class="flex items-start">
+      <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+      <div class="text-sm text-blue-800">
+        <p class="font-semibold">Tips for Adding Vendors</p>
+        <ul class="mt-2 space-y-1 list-disc list-inside">
+          <li>Only the vendor name is required - you can add other details later</li>
+          <li>Accurate contact information helps with communication and record-keeping</li>
+          <li>Payment terms help you track when payments are due</li>
+          <li>Tax ID is useful for tax reporting and compliance</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

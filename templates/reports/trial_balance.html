@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Trial Balance - DreamBiz Accounting{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print { display: none; }
+        body { background: white; }
+        .print-section { page-break-inside: avoid; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8 no-print">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Trial Balance</h1>
+            <p class="text-gray-600 mt-1">As of {{ as_of_date|date:"F d, Y" }}</p>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="window.print()" class="px-4 py-2 bg-dreambiz-600 text-white rounded-lg hover:bg-dreambiz-700 transition">
+                <i class="fas fa-print mr-2"></i>Print
+            </button>
+            <a href="{% url 'reports:reports_main' %}" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                <i class="fas fa-arrow-left mr-2"></i>Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Date Selector -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6 no-print">
+        <form method="get" class="flex items-center space-x-4">
+            <label class="text-sm font-medium text-gray-700">As of Date:</label>
+            <input type="date" name="as_of_date" value="{{ as_of_date|date:'Y-m-d' }}" 
+                   class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent"
+                   onchange="this.form.submit()">
+        </form>
+    </div>
+
+    <!-- Balance Status Card -->
+    <div class="mb-8">
+        {% if is_balanced %}
+        <div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-lg">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-check-circle text-green-500 text-3xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-bold text-green-800">Books are balanced</h3>
+                    <p class="text-green-700 mt-1">Total debits equal total credits</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-circle text-red-500 text-3xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-bold text-red-800">Books are NOT balanced</h3>
+                    <p class="text-red-700 mt-1">Difference: GH{{ difference|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Trial Balance Table -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden print-section">
+        <div class="p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Account Balances</h2>
+
+            {% if trial_balance_data %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account #</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Debit</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Credit</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for item in trial_balance_data %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ item.account.account_number }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ item.account.account_name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                <span class="px-2 py-1 text-xs rounded-full bg-gray-100">
+                                    {{ item.account.account_type.category|title }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                                {% if item.debit > 0 %}GH{{ item.debit|floatformat:2 }}{% else %}—{% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                                {% if item.credit > 0 %}GH{{ item.credit|floatformat:2 }}{% else %}—{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-gray-50">
+                        <tr class="border-t-2 border-gray-300">
+                            <th colspan="3" class="px-6 py-4 text-left text-lg font-bold text-gray-900">Total</th>
+                            <th class="px-6 py-4 text-right text-lg font-bold text-gray-900">GH{{ total_debits|floatformat:2 }}</th>
+                            <th class="px-6 py-4 text-right text-lg font-bold text-gray-900">GH{{ total_credits|floatformat:2 }}</th>
+                        </tr>
+                        {% if not is_balanced %}
+                        <tr>
+                            <th colspan="3" class="px-6 py-4 text-left text-sm font-bold text-red-700">Difference</th>
+                            <th colspan="2" class="px-6 py-4 text-right text-sm font-bold text-red-700">GH{{ difference|floatformat:2 }}</th>
+                        </tr>
+                        {% endif %}
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-inbox text-gray-300 text-6xl mb-4"></i>
+                <p class="text-gray-500 text-lg">No account balances found</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Print Header -->
+    <div class="hidden print:block text-center mb-8">
+        <h1 class="text-2xl font-bold">{{ user.company.name|default:"DreamBiz Accounting" }}</h1>
+        <h2 class="text-xl font-semibold mt-2">Trial Balance</h2>
+        <p class="text-gray-600 mt-1">As of {{ as_of_date|date:"F d, Y" }}</p>
+        <p class="text-sm text-gray-500 mt-2">Generated on {% now "F d, Y" %}</p>
+    </div>
+</div>
+{% endblock %}

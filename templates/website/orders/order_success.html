@@ -1,0 +1,199 @@
+{% extends 'website/base.html' %}
+
+{% block title %}Order Confirmed - {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Success Header -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Order Confirmed!</h1>
+            <p class="text-gray-600 text-lg">Thank you for your order. We're preparing it for delivery.</p>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Order Details -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900 mb-2">Order Details</h2>
+                            <p class="text-gray-600">Order #{{ order.order_number }}</p>
+                            <p class="text-sm text-gray-500">Placed on {{ order.created_at|date:"F j, Y" }} at {{ order.created_at|time:"g:i A" }}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% elif order.status == 'processing' %}bg-blue-100 text-blue-800
+                                {% elif order.status == 'shipped' %}bg-purple-100 text-purple-800
+                                {% elif order.status == 'delivered' %}bg-green-100 text-green-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <h3 class="font-semibold text-gray-900 mb-4">Items Ordered</h3>
+                    <div class="space-y-4">
+                        {% for item in order.items.all %}
+                        <div class="flex items-start space-x-4 py-4 border-b border-gray-200 last:border-b-0">
+                            <div class="flex-shrink-0">
+                                {% if item.product.images.first %}
+                                    <img src="{{ item.product.images.first.image.url }}" 
+                                         alt="{{ item.product.name }}" 
+                                         class="w-16 h-16 object-cover rounded-lg">
+                                {% else %}
+                                    <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-xl text-gray-400">🔧</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-medium text-gray-900">{{ item.product.name }}</h4>
+                                <p class="text-sm text-gray-600">{{ item.product.category.name }}</p>
+                                <p class="text-sm text-gray-500 mt-1">Quantity: {{ item.quantity }}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-medium text-gray-900">GHS {{ item.unit_price }}</div>
+                                {% if item.quantity > 1 %}
+                                    <div class="text-sm text-gray-500">GHS {{ item.get_total_price }} total</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Delivery Information -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">Delivery Information</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-gray-900 mb-2">Shipping Address</h4>
+                            <div class="text-sm text-gray-600">
+                                <p>{{ order.customer_name }}</p>
+                                <p>{{ order.shipping_address }}</p>
+                                <p>{{ order.shipping_city }}, {{ order.shipping_state }}</p>
+                                <p>{{ order.shipping_postal_code }}</p>
+                                <p>{{ order.shipping_country }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-900 mb-2">Contact Information</h4>
+                            <div class="text-sm text-gray-600">
+                                <p>{{ order.customer_email }}</p>
+                                <p>{{ order.customer_phone }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-lg p-6 sticky top-4">
+                    <h3 class="font-semibold text-gray-900 mb-4">Order Summary</h3>
+                    
+                    <div class="space-y-3 text-sm mb-4">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Subtotal:</span>
+                            <span class="font-medium">GHS {{ order.subtotal }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Shipping:</span>
+                            <span class="font-medium">
+                                {% if order.shipping_cost > 0 %}
+                                    GHS {{ order.shipping_cost }}
+                                {% else %}
+                                    <span class="text-green-600">FREE</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% if order.tax_amount > 0 %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Tax:</span>
+                            <span class="font-medium">GHS {{ order.tax_amount }}</span>
+                        </div>
+                        {% endif %}
+                        <hr class="border-gray-200">
+                        <div class="flex justify-between text-lg font-semibold">
+                            <span>Total:</span>
+                            <span class="text-primary">GHS {{ order.total_amount }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="mb-6">
+                        <h4 class="font-medium text-gray-900 mb-2">Payment Method</h4>
+                        <div class="text-sm text-gray-600">
+                            {% if order.payment_method == 'cash' %}
+                                Cash on Delivery
+                            {% elif order.payment_method == 'paystack' %}
+                                Online Payment (Paid)
+                            {% else %}
+                                {{ order.payment_method|title }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Next Steps -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 class="font-medium text-blue-900 mb-2">What's Next?</h4>
+                        <div class="text-sm text-blue-800 space-y-2">
+                            {% if order.payment_method == 'cash' %}
+                                <p>• We'll contact you within 24 hours to confirm delivery details</p>
+                                <p>• Prepare exact change for cash payment</p>
+                                <p>• Our delivery team will call before arrival</p>
+                            {% else %}
+                                <p>• Your payment has been confirmed</p>
+                                <p>• We'll prepare your order for shipping</p>
+                                <p>• You'll receive tracking information via SMS</p>
+                            {% endif %}
+                            <p>• Estimated delivery: 2-3 business days</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-6 space-y-3">
+                        <a href="{% url 'website:order_detail' order.order_number %}" 
+                           class="w-full bg-primary text-white py-2 px-4 rounded-lg font-medium hover:bg-primary-dark transition duration-300 text-center block">
+                            Track Order
+                        </a>
+                        <a href="{% url 'website:product_list' %}" 
+                           class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-200 transition duration-300 text-center block">
+                            Continue Shopping
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Service -->
+        <div class="mt-8 text-center">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="font-semibold text-gray-900 mb-4">Need Help?</h3>
+                <div class="grid sm:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <div class="text-primary font-medium mb-1">📞 Call Us</div>
+                        <div class="text-gray-600">+233 XXX XXX XXX</div>
+                    </div>
+                    <div>
+                        <div class="text-primary font-medium mb-1">📧 Email Support</div>
+                        <div class="text-gray-600">support@mamaeagle.com</div>
+                    </div>
+                    <div>
+                        <div class="text-primary font-medium mb-1">💬 Live Chat</div>
+                        <div class="text-gray-600">Available 9 AM - 6 PM</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

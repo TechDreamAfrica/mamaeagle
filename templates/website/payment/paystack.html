@@ -1,0 +1,161 @@
+{% extends 'website/base.html' %}
+
+{% block title %}Payment - Order {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-2xl mx-auto px-4">
+        <!-- Payment Header -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Complete Your Payment</h1>
+                <p class="text-gray-600">Order #{{ order.order_number }}</p>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="border-t border-b border-gray-200 py-6 mb-6">
+                <h3 class="font-semibold text-gray-900 mb-4">Order Summary</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Subtotal:</span>
+                        <span class="font-medium">GHS {{ order.subtotal }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Shipping:</span>
+                        <span class="font-medium">
+                            {% if order.shipping_cost > 0 %}
+                                GHS {{ order.shipping_cost }}
+                            {% else %}
+                                <span class="text-green-600">FREE</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between text-lg font-bold border-t pt-3">
+                        <span>Total:</span>
+                        <span class="text-primary">GHS {{ order.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="mb-6">
+                <h3 class="font-semibold text-gray-900 mb-4">Payment Methods Accepted</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="text-center p-3 border border-gray-200 rounded-lg">
+                        <div class="text-sm font-medium text-gray-600">Visa/Mastercard</div>
+                    </div>
+                    <div class="text-center p-3 border border-gray-200 rounded-lg">
+                        <div class="text-sm font-medium text-gray-600">MTN Mobile Money</div>
+                    </div>
+                    <div class="text-center p-3 border border-gray-200 rounded-lg">
+                        <div class="text-sm font-medium text-gray-600">Vodafone Cash</div>
+                    </div>
+                    <div class="text-center p-3 border border-gray-200 rounded-lg">
+                        <div class="text-sm font-medium text-gray-600">AirtelTigo Money</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Button -->
+            <div class="text-center">
+                <button 
+                    onclick="payWithPaystack()"
+                    class="w-full bg-primary text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-primary-dark transition duration-300 flex items-center justify-center space-x-2"
+                    id="payButton">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    <span>Pay GHS {{ order.total_amount }} Securely</span>
+                </button>
+                
+                <div class="mt-4 text-sm text-gray-600">
+                    <div class="flex items-center justify-center space-x-1">
+                        <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Secure SSL Encrypted Payment</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back to Cart -->
+            <div class="mt-6 text-center">
+                <a href="{% url 'website:cart_view' %}" class="text-gray-600 hover:text-primary text-sm">
+                    ← Back to Cart
+                </a>
+            </div>
+        </div>
+
+        <!-- Security Information -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+            <div class="flex items-start space-x-2">
+                <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                </svg>
+                <div>
+                    <p class="font-medium mb-1">Your payment is secure</p>
+                    <p>We use Paystack's secure payment system. Your card details are never stored on our servers.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Paystack Inline JS -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+
+<script>
+function payWithPaystack() {
+    const button = document.getElementById('payButton');
+    const originalText = button.innerHTML;
+    
+    // Disable button and show loading
+    button.disabled = true;
+    button.innerHTML = '<span class="animate-spin">⏳</span> Processing...';
+    
+    var handler = PaystackPop.setup({
+        key: '{{ paystack_public_key }}', // Replace with your public key
+        email: '{{ order.customer_email }}',
+        amount: {{ amount_in_kobo }}, // Amount in kobo
+        currency: 'GHS',
+        ref: '{{ order.order_number }}', // Generate unique reference
+        metadata: {
+            custom_fields: [
+                {
+                    display_name: "Order Number",
+                    variable_name: "order_number",
+                    value: "{{ order.order_number }}"
+                },
+                {
+                    display_name: "Customer Name",
+                    variable_name: "customer_name",
+                    value: "{{ order.customer_name }}"
+                }
+            ]
+        },
+        callback: function(response) {
+            // Payment successful
+            window.location.href = '{% url "website:paystack_callback" %}?reference=' + response.reference;
+        },
+        onClose: function() {
+            // User closed payment modal
+            button.disabled = false;
+            button.innerHTML = originalText;
+            alert('Payment was not completed. You can try again.');
+        }
+    });
+    
+    handler.openIframe();
+}
+
+// Auto-focus on payment button when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('payButton').focus();
+});
+</script>
+{% endblock %}

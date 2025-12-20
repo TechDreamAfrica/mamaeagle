@@ -1,0 +1,87 @@
+{% extends 'docs/doc_layout.html' %}
+{% block doc_content %}
+<h1 class="text-3xl font-bold text-gray-900 mb-6">
+  <i class="fas fa-receipt text-dreambiz-600"></i> Expense Management
+</h1>
+<div class="prose prose-blue max-w-none">
+        <p class="text-gray-700 text-lg mb-6">
+          Track, categorize, and manage all business expenses with automated double-entry accounting and receipt management.
+        </p>
+
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+          <p class="text-blue-800">
+            <i class="fas fa-info-circle mr-2"></i>
+            <strong>Smart Feature:</strong> DreamBiz automatically creates journal entries for every expense, maintaining proper double-entry bookkeeping.
+          </p>
+        </div>
+
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Recording Expenses</h2>
+        <ol class="list-decimal ml-6 space-y-2">
+          <li>Navigate to <strong>Expenses → Add Expense</strong></li>
+          <li>Enter amount and select category</li>
+          <li>Choose payment method (Cash, Bank, Credit Card)</li>
+          <li>Add vendor/supplier information</li>
+          <li>Upload receipt or invoice</li>
+          <li>Add description and notes</li>
+          <li>Save - system automatically creates accounting entries</li>
+        </ol>
+
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Expense Categories</h2>
+        <div class="grid grid-cols-2 gap-4 my-4">
+          <div class="bg-gray-50 p-3 rounded"><i class="fas fa-building mr-2 text-dreambiz-600"></i>Office Supplies</div>
+          <div class="bg-gray-50 p-3 rounded"><i class="fas fa-car mr-2 text-dreambiz-600"></i>Travel & Transport</div>
+          <div class="bg-gray-50 p-3 rounded"><i class="fas fa-bolt mr-2 text-dreambiz-600"></i>Utilities</div>
+          <div class="bg-gray-50 p-3 rounded"><i class="fas fa-home mr-2 text-dreambiz-600"></i>Rent & Lease</div>
+          <div class="bg-gray-50 p-3 rounded"><i class="fas fa-briefcase mr-2 text-dreambiz-600"></i>Professional Services</div>
+          <div class="bg-gray-50 p-3 rounded"><i class="fas fa-bullhorn mr-2 text-dreambiz-600"></i>Marketing</div>
+        </div>
+
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Approval Workflow</h2>
+        <div class="flex items-center space-x-2 my-4 overflow-x-auto">
+          <div class="bg-blue-100 px-4 py-2 rounded">Submit</div>
+          <i class="fas fa-arrow-right text-gray-400"></i>
+          <div class="bg-yellow-100 px-4 py-2 rounded">Manager Review</div>
+          <i class="fas fa-arrow-right text-gray-400"></i>
+          <div class="bg-purple-100 px-4 py-2 rounded">Accounting</div>
+          <i class="fas fa-arrow-right text-gray-400"></i>
+          <div class="bg-green-100 px-4 py-2 rounded">Approved</div>
+        </div>
+
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Receipt Management</h2>
+        <ul class="list-disc ml-6 space-y-2">
+          <li>Upload photos from mobile device</li>
+          <li>Attach PDF invoices</li>
+          <li>Multiple attachments per expense</li>
+          <li>Secure cloud storage</li>
+          <li>Easy retrieval for audits</li>
+        </ul>
+
+        <h2 class="text-2xl font-semibold mt-8 mb-4">Reports Available</h2>
+        <ul class="list-disc ml-6 space-y-2">
+          <li>Expense by category report</li>
+          <li>Expense by employee/department</li>
+          <li>Budget vs actual comparison</li>
+          <li>Tax-deductible expenses</li>
+          <li>Vendor payment summary</li>
+        </ul>
+
+        <div class="bg-green-50 border-l-4 border-green-500 p-4 mt-8">
+          <p class="text-green-800">
+            <i class="fas fa-lightbulb mr-2"></i>
+            <strong>Best Practice:</strong> Always attach receipts for audit compliance and submit expenses within 30 days.
+          </p>
+        </div>
+
+        <div class="mt-12 pt-6 border-t flex justify-between">
+          <a href="{% url 'docs:invoicing' %}" class="text-dreambiz-600 hover:text-dreambiz-700">
+            <i class="fas fa-arrow-left mr-2"></i>Previous: Invoicing
+          </a>
+          <a href="{% url 'docs:inventory' %}" class="text-dreambiz-600 hover:text-dreambiz-700">
+            Next: Inventory<i class="fas fa-arrow-right ml-2"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

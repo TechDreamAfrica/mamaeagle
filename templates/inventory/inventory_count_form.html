@@ -1,0 +1,554 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+{% if object %}Edit Inventory Count - {{ object.count_name }}
+{% else %}Start New Inventory Count
+{% endif %} - DreamBiz Accounting
+{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            {% if object %} Edit Inventory Count - {{ object.count_name }} {%
+            else %} Start New Inventory Count {% endif %}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            {% if object %}Update inventory count settings and parameters{% else
+            %}Configure and initiate a physical inventory count{% endif %}
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'inventory:dashboard' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">
+          Inventory Count Setup
+        </h3>
+      </div>
+      <div class="p-6">
+        <form method="post" class="space-y-6">
+          {% csrf_token %}
+
+          <!-- Basic Information -->
+          <div class="space-y-4">
+            <h4
+              class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+            >
+              Count Information
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  for="{{ form.count_name.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Count Name <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <input type="text" 
+                         id="{{ form.count_name.id_for_label }}"
+                         name="{{ form.count_name.name }}"
+                         value="{% if form.count_name.value %}{{ form.count_name.value }}{% endif %}"
+                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-dreambiz-500 focus:border-dreambiz-500 text-gray-900"
+                         placeholder="e.g. Monthly Stock Count - December 2025"
+                         {% if form.count_name.field.required %}required{% endif %}>
+                  <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <i class="fas fa-clipboard-list text-gray-400"></i>
+                  </div>
+                </div>
+                {% if form.count_name.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.count_name.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">
+                  Descriptive name for this inventory count
+                </p>
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.count_date.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Count Date <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <input type="date" 
+                         id="{{ form.count_date.id_for_label }}"
+                         name="{{ form.count_date.name }}"
+                         value="{% if form.count_date.value %}{{ form.count_date.value|date:'Y-m-d' }}{% endif %}"
+                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                         {% if form.count_date.field.required %}required{% endif %}>
+                  <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <i class="fas fa-calendar-alt text-gray-400"></i>
+                  </div>
+                </div>
+                {% if form.count_date.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.count_date.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  for="{{ form.warehouse.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Warehouse <span class="text-red-500">*</span>
+                </label>
+                {{ form.warehouse }}
+                {% if form.warehouse.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.warehouse.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.status.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Status
+                </label>
+                {{ form.status }} {% if form.status.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.status.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div>
+              <label
+                for="{{ form.description.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Description
+              </label>
+              {{ form.description }}
+              {% if form.description.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.description.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Count Parameters -->
+          <div class="space-y-4">
+            <h4
+              class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+            >
+              Count Parameters
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  for="{{ form.count_type.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Count Type
+                </label>
+                {{ form.count_type }}
+                {% if form.count_type.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.count_type.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.categories.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Categories to Count
+                </label>
+                {{ form.categories }}
+                {% if form.categories.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.categories.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500">
+                  Leave empty to count all categories
+                </p>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div class="flex items-center">
+                <div class="flex items-center h-5">
+                  {{ form.include_zero_stock }}
+                </div>
+                <div class="ml-3 text-sm">
+                  <label
+                    for="{{ form.include_zero_stock.id_for_label }}"
+                    class="font-medium text-gray-700"
+                  >
+                    Include Zero Stock Items
+                  </label>
+                  <p class="text-gray-500">
+                    Include products with zero stock in the count
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center">
+                <div class="flex items-center h-5">
+                  {{ form.freeze_transactions }}
+                </div>
+                <div class="ml-3 text-sm">
+                  <label
+                    for="{{ form.freeze_transactions.id_for_label }}"
+                    class="font-medium text-gray-700"
+                  >
+                    Freeze Transactions
+                  </label>
+                  <p class="text-gray-500">
+                    Prevent inventory transactions during count
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team Assignment -->
+          <div class="space-y-4">
+            <h4
+              class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+            >
+              Team Assignment
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  for="{{ form.assigned_users.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Assigned Users
+                </label>
+                {{ form.assigned_users }} {% if form.assigned_users.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.assigned_users.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500">
+                  Select users who will perform the count
+                </p>
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.supervisor.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Supervisor
+                </label>
+                {{ form.supervisor }}
+                {% if form.supervisor.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.supervisor.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Notes -->
+          <div class="space-y-4">
+            <h4
+              class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+            >
+              Additional Information
+            </h4>
+
+            <div>
+              <label
+                for="{{ form.notes.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Count Notes
+              </label>
+              {{ form.notes }} {% if form.notes.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.notes.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex justify-between pt-6">
+            <a
+              href="{% url 'inventory:dashboard' %}"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            >
+              Cancel
+            </a>
+            <div class="flex space-x-3">
+              {% if object and object.status == 'planned' %}
+              <button
+                type="button"
+                id="start-count-btn"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+              >
+                <i class="fas fa-play mr-2"></i>
+                Start Count
+              </button>
+              {% endif %}
+              <button
+                type="submit"
+                class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+              >
+                {% if object %}
+                <i class="fas fa-save mr-2"></i>
+                Update Count Setup {% else %}
+                <i class="fas fa-plus mr-2"></i>
+                Create Count Setup {% endif %}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Count Instructions -->
+    <div class="mt-8 bg-blue-50 rounded-lg p-6">
+      <h4 class="text-lg font-semibold text-blue-900 mb-4">
+        Inventory Count Instructions
+      </h4>
+      <div class="space-y-4 text-sm text-blue-800">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h5 class="font-semibold text-blue-900 mb-2">Before Starting</h5>
+            <ul class="space-y-1 list-disc list-inside">
+              <li>Ensure all inventory transactions are processed</li>
+              <li>Organize counting areas and assign team members</li>
+              <li>Prepare counting sheets or mobile devices</li>
+              <li>Consider freezing transactions during count</li>
+            </ul>
+          </div>
+
+          <div>
+            <h5 class="font-semibold text-blue-900 mb-2">During Count</h5>
+            <ul class="space-y-1 list-disc list-inside">
+              <li>Count each item systematically by location</li>
+              <li>Record actual quantities found</li>
+              <li>Note any damaged or obsolete items</li>
+              <li>Double-check high-value items</li>
+            </ul>
+          </div>
+
+          <div>
+            <h5 class="font-semibold text-blue-900 mb-2">After Count</h5>
+            <ul class="space-y-1 list-disc list-inside">
+              <li>Review discrepancies between book and physical</li>
+              <li>Investigate significant variances</li>
+              <li>Approve and post inventory adjustments</li>
+              <li>Update reorder points if needed</li>
+            </ul>
+          </div>
+
+          <div>
+            <h5 class="font-semibold text-blue-900 mb-2">Best Practices</h5>
+            <ul class="space-y-1 list-disc list-inside">
+              <li>Schedule counts during low activity periods</li>
+              <li>Use cycle counting for frequent monitoring</li>
+              <li>Train staff on proper counting procedures</li>
+              <li>Document procedures for consistency</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Add Tailwind classes to form fields
+    const inputs = document.querySelectorAll(
+      'input[type="text"], input[type="date"], select, textarea'
+    );
+
+    inputs.forEach((input) => {
+      input.classList.add(
+        "block",
+        "w-full",
+        "px-3",
+        "py-2",
+        "border",
+        "border-gray-300",
+        "rounded-md",
+        "shadow-sm",
+        "placeholder-gray-400",
+        "focus:outline-none",
+        "focus:ring-indigo-500",
+        "focus:border-indigo-500",
+        "sm:text-sm"
+      );
+    });
+
+    // Style checkboxes
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach((checkbox) => {
+      checkbox.classList.add(
+        "h-4",
+        "w-4",
+        "text-indigo-600",
+        "focus:ring-indigo-500",
+        "border-gray-300",
+        "rounded"
+      );
+    });
+
+    // Style multi-select fields
+    const multiSelects = document.querySelectorAll("select[multiple]");
+    multiSelects.forEach((select) => {
+      select.classList.add("h-32");
+    });
+
+    // Add specific styling for textareas
+    const textareas = document.querySelectorAll("textarea");
+    textareas.forEach((textarea) => {
+      textarea.classList.add("h-24", "resize-none");
+    });
+
+    // Start count functionality
+    const startCountBtn = document.getElementById("start-count-btn");
+    if (startCountBtn) {
+      startCountBtn.addEventListener("click", function () {
+        if (
+          confirm(
+            "Are you sure you want to start this inventory count? This will begin the counting process and may freeze inventory transactions."
+          )
+        ) {
+          // Here you would make an API call to start the count
+          showNotification("Inventory count started successfully!", "success");
+          // Redirect to count detail page
+          setTimeout(() => {
+            window.location.href =
+              "{% if object %}{% url 'inventory:inventory_count_detail' object.id %}{% endif %}";
+          }, 1500);
+        }
+      });
+    }
+
+    // Form validation
+    const form = document.querySelector("form");
+    form.addEventListener("submit", function (e) {
+      let isValid = true;
+      const errorMessages = [];
+
+      // Check required fields
+      const requiredFields = [
+        { field: "count_name", label: "Count Name" },
+        { field: "count_date", label: "Count Date" },
+        { field: "warehouse", label: "Warehouse" },
+      ];
+
+      requiredFields.forEach((item) => {
+        const field = document.querySelector(`[name="${item.field}"]`);
+        if (field && !field.value.trim()) {
+          field.classList.remove("border-gray-300", "focus:border-indigo-500");
+          field.classList.add("border-red-300", "focus:border-red-500");
+          errorMessages.push(item.label);
+          isValid = false;
+        } else if (field) {
+          field.classList.remove("border-red-300", "focus:border-red-500");
+          field.classList.add("border-gray-300", "focus:border-indigo-500");
+        }
+      });
+
+      if (!isValid) {
+        e.preventDefault();
+        showNotification(
+          `Please fix the following errors: ${errorMessages.join(", ")}`,
+          "error"
+        );
+
+        // Scroll to first error field
+        const firstErrorField = document.querySelector(".border-red-300");
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          firstErrorField.focus();
+        }
+      }
+    });
+
+    // Show notification function
+    function showNotification(message, type = "info") {
+      const notification = document.createElement("div");
+      notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
+        type === "success"
+          ? "bg-green-100 border border-green-400 text-green-700"
+          : type === "error"
+          ? "bg-red-100 border border-red-400 text-red-700"
+          : "bg-blue-100 border border-blue-400 text-blue-700"
+      }`;
+
+      notification.innerHTML = `
+        <div class="flex items-center">
+          <i class="fas fa-${
+            type === "success"
+              ? "check-circle"
+              : type === "error"
+              ? "exclamation-circle"
+              : "info-circle"
+          } mr-2"></i>
+          <span class="font-medium">GH{message}</span>
+        </div>
+      `;
+
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 5000);
+    }
+  });
+</script>
+{% endblock %}

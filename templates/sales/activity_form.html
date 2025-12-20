@@ -1,0 +1,458 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% block title %} 
+{% if object %}Edit Activity - {{ object.subject }}
+{% else %}Log New Activity{% endif %} -
+DreamBiz {% endblock %} 
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            {% if object %} Edit Activity - {{ object.subject }} {% else %} Log
+            New Activity {% endif %}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Track sales activities and interactions
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'sales:activity_list' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 transition-colors duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Activities
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">
+          Activity Information
+        </h3>
+      </div>
+      <div class="p-6">
+        <form method="post" class="space-y-6">
+          {% csrf_token %}
+
+          <!-- Activity Type and Subject -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                for="{{ form.activity_type.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Activity Type <span class="text-red-500">*</span>
+              </label>
+              {{ form.activity_type }} {% if form.activity_type.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.activity_type.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <div>
+              <label
+                for="{{ form.subject.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Subject <span class="text-red-500">*</span>
+              </label>
+              {{ form.subject }} {% if form.subject.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.subject.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label
+              for="{{ form.description.id_for_label }}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Description <span class="text-red-500">*</span>
+            </label>
+            {{ form.description }} {% if form.description.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {% for error in form.description.errors %}{{ error }}{% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Related Objects -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                for="{{ form.lead.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Related Lead
+              </label>
+              {{ form.lead }} {% if form.lead.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.lead.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <div>
+              <label
+                for="{{ form.opportunity.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Related Opportunity
+              </label>
+              {{ form.opportunity }} {% if form.opportunity.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.opportunity.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Sales Rep -->
+          <div>
+            <label
+              for="{{ form.sales_rep.id_for_label }}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Sales Representative <span class="text-red-500">*</span>
+            </label>
+            {{ form.sales_rep }} {% if form.sales_rep.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {% for error in form.sales_rep.errors %}{{ error }}{% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Activity Date and Duration -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                for="{{ form.activity_date.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Activity Date & Time <span class="text-red-500">*</span>
+              </label>
+              {{ form.activity_date }} {% if form.activity_date.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.activity_date.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <div>
+              <label
+                for="{{ form.duration.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Duration (e.g., 1:30:00 for 1 hour 30 minutes)
+              </label>
+              {{ form.duration }} {% if form.duration.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.duration.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Outcome -->
+          <div>
+            <label
+              for="{{ form.outcome.id_for_label }}"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Outcome
+            </label>
+            {{ form.outcome }} {% if form.outcome.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {% for error in form.outcome.errors %}{{ error }}{% endfor %}
+            </div>
+            {% endif %}
+            <p class="mt-1 text-sm text-gray-500">
+              Describe the result or outcome of this activity
+            </p>
+          </div>
+
+          <!-- Follow-up -->
+          <div class="space-y-4">
+            <div class="flex items-center">
+              {{ form.requires_follow_up }}
+              <label
+                for="{{ form.requires_follow_up.id_for_label }}"
+                class="ml-2 text-sm font-medium text-gray-700"
+              >
+                Requires Follow-up
+              </label>
+              {% if form.requires_follow_up.errors %}
+              <div class="ml-2 text-sm text-red-600">
+                {% for error in form.requires_follow_up.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <div id="follow-up-date-container" style="display: none">
+              <label
+                for="{{ form.follow_up_date.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Follow-up Date & Time
+              </label>
+              {{ form.follow_up_date }} {% if form.follow_up_date.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.follow_up_date.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex justify-between pt-6">
+            <a
+              href="{% url 'sales:activity_list' %}"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 transition-colors duration-200"
+            >
+              Cancel
+            </a>
+            <button
+              type="submit"
+              class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 transition-colors duration-200"
+            >
+              {% if object %}
+              <i class="fas fa-save mr-2"></i>
+              Update Activity {% else %}
+              <i class="fas fa-plus mr-2"></i>
+              Log Activity {% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Activity Tips Sidebar -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+  <div class="bg-blue-50 rounded-lg p-6">
+    <h4 class="text-lg font-semibold text-blue-900 mb-4">
+      Activity Logging Tips
+    </h4>
+    <div class="space-y-3 text-sm text-blue-800">
+      <div class="flex items-start">
+        <i class="fas fa-lightbulb text-blue-600 mt-0.5 mr-2"></i>
+        <p>
+          Be specific in your activity descriptions to help track progress
+          effectively.
+        </p>
+      </div>
+      <div class="flex items-start">
+        <i class="fas fa-clock text-blue-600 mt-0.5 mr-2"></i>
+        <p>
+          Log activities as soon as possible while details are fresh in your
+          memory.
+        </p>
+      </div>
+      <div class="flex items-start">
+        <i class="fas fa-target text-blue-600 mt-0.5 mr-2"></i>
+        <p>
+          Always record outcomes to track the effectiveness of your sales
+          activities.
+        </p>
+      </div>
+      <div class="flex items-start">
+        <i class="fas fa-calendar-check text-blue-600 mt-0.5 mr-2"></i>
+        <p>
+          Set follow-up reminders to ensure no leads fall through the cracks.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Add Tailwind classes to form fields
+    const inputs = document.querySelectorAll(
+      'input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="number"], input[type="date"], input[type="datetime-local"], select, textarea'
+    );
+
+    inputs.forEach((input) => {
+      input.classList.add(
+        "block",
+        "w-full",
+        "px-3",
+        "py-2",
+        "border",
+        "border-gray-300",
+        "rounded-md",
+        "shadow-sm",
+        "placeholder-gray-400",
+        "focus:outline-none",
+        "focus:ring-dreambiz-500",
+        "focus:border-dreambiz-500",
+        "sm:text-sm"
+      );
+    });
+
+    // Add specific styling for textareas
+    const textareas = document.querySelectorAll("textarea");
+    textareas.forEach((textarea) => {
+      textarea.classList.add("h-24", "resize-none");
+    });
+
+    // Add styling for checkboxes
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach((checkbox) => {
+      checkbox.classList.add(
+        "h-4",
+        "w-4",
+        "text-dreambiz-600",
+        "focus:ring-dreambiz-500",
+        "border-gray-300",
+        "rounded"
+      );
+    });
+
+    // Show/hide follow-up date based on checkbox
+    const requiresFollowUpCheckbox = document.querySelector(
+      '[name="requires_follow_up"]'
+    );
+    const followUpDateContainer = document.getElementById(
+      "follow-up-date-container"
+    );
+
+    function toggleFollowUpDate() {
+      if (requiresFollowUpCheckbox && followUpDateContainer) {
+        if (requiresFollowUpCheckbox.checked) {
+          followUpDateContainer.style.display = "block";
+        } else {
+          followUpDateContainer.style.display = "none";
+        }
+      }
+    }
+
+    if (requiresFollowUpCheckbox) {
+      requiresFollowUpCheckbox.addEventListener("change", toggleFollowUpDate);
+      // Check initial state
+      toggleFollowUpDate();
+    }
+
+    // Pre-fill current date/time for activity_date if creating new activity
+    const activityDateField = document.querySelector('[name="activity_date"]');
+    if (activityDateField && !activityDateField.value) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+
+      activityDateField.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    // Get lead ID from URL parameters and pre-select if available
+    const urlParams = new URLSearchParams(window.location.search);
+    const leadId = urlParams.get("lead");
+    if (leadId) {
+      const leadField = document.querySelector('[name="lead"]');
+      if (leadField) {
+        leadField.value = leadId;
+      }
+    }
+
+    // Activity type specific behavior
+    const activityTypeField = document.querySelector('[name="activity_type"]');
+    const subjectField = document.querySelector('[name="subject"]');
+
+    if (activityTypeField && subjectField) {
+      activityTypeField.addEventListener("change", function () {
+        const activityType = this.value;
+        if (activityType && !subjectField.value) {
+          // Auto-suggest subject based on activity type
+          const suggestions = {
+            call: "Follow-up call",
+            email: "Email correspondence",
+            meeting: "Client meeting",
+            demo: "Product demonstration",
+            proposal: "Proposal presentation",
+            follow_up: "Follow-up contact",
+            note: "Meeting notes",
+            task: "Task completion",
+          };
+
+          if (suggestions[activityType]) {
+            subjectField.value = suggestions[activityType];
+          }
+        }
+      });
+    }
+
+    // Form validation
+    const form = document.querySelector("form");
+    form.addEventListener("submit", function (e) {
+      let isValid = true;
+      const errorMessages = [];
+
+      // Check required fields
+      const requiredFields = [
+        { field: "activity_type", label: "Activity Type" },
+        { field: "subject", label: "Subject" },
+        { field: "description", label: "Description" },
+        { field: "activity_date", label: "Activity Date" },
+        { field: "sales_rep", label: "Sales Representative" },
+      ];
+
+      requiredFields.forEach((item) => {
+        const field = document.querySelector(`[name="${item.field}"]`);
+        if (field && !field.value.trim()) {
+          field.classList.remove(
+            "border-gray-300",
+            "focus:border-dreambiz-500"
+          );
+          field.classList.add("border-red-300", "focus:border-red-500");
+          errorMessages.push(item.label);
+          isValid = false;
+        } else if (field) {
+          field.classList.remove("border-red-300", "focus:border-red-500");
+          field.classList.add("border-gray-300", "focus:border-dreambiz-500");
+        }
+      });
+
+      if (!isValid) {
+        e.preventDefault();
+        // Show error notification
+        const errorDiv = document.createElement("div");
+        errorDiv.className =
+          "fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50";
+        errorDiv.innerHTML = `
+          <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span class="font-medium">Please fix the following errors:</span>
+          </div>
+          <ul class="mt-2 text-sm list-disc list-inside">
+            ${errorMessages
+              .map((msg) => `<li>GH{msg} is required</li>`)
+              .join("")}
+          </ul>
+        `;
+
+        document.body.appendChild(errorDiv);
+        setTimeout(() => {
+          errorDiv.remove();
+        }, 5000);
+      }
+    });
+  });
+</script>
+{% endblock %}

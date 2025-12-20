@@ -1,0 +1,801 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Mileage Tracking -
+DreamBiz{% endblock %} {% block content %}
+<div x-data="mileageTracking()" class="max-w-7xl mx-auto p-6">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Mileage Tracking</h1>
+        <p class="text-gray-600 mt-1">
+          Track business mileage with GPS verification and automatic
+          calculations
+        </p>
+      </div>
+      <div class="mt-4 md:mt-0 flex space-x-3">
+        <button
+          @click="showAddMileageModal = true"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+        >
+          <svg
+            class="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          Add Trip
+        </button>
+        <button
+          @click="startGPSTracking()"
+          :class="isTracking ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'"
+          class="text-white px-4 py-2 rounded-lg transition-colors flex items-center"
+        >
+          <svg
+            class="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          <span
+            x-text="isTracking ? 'Stop Tracking' : 'Start GPS Tracking'"
+          ></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GPS Tracking Status -->
+  <div
+    x-show="isTracking"
+    class="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4"
+  >
+    <div class="flex items-center">
+      <div class="flex-shrink-0">
+        <div
+          class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"
+        >
+          <svg
+            class="w-5 h-5 text-green-600 animate-pulse"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+        </div>
+      </div>
+      <div class="ml-4">
+        <h3 class="text-sm font-medium text-green-800">GPS Tracking Active</h3>
+        <p class="text-sm text-green-700">
+          Trip started at <span x-text="currentTrip.startTime"></span> from
+          <span x-text="currentTrip.startLocation"></span>
+        </p>
+        <p class="text-xs text-green-600 mt-1">
+          Current distance: <span x-text="currentTrip.distance"></span> miles
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div
+            class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">Total Miles (MTD)</p>
+          <p class="text-2xl font-semibold text-gray-900">1,247</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div
+            class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">Reimbursement</p>
+          <p class="text-2xl font-semibold text-gray-900">GH729</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div
+            class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-yellow-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">Avg Trip</p>
+          <p class="text-2xl font-semibold text-gray-900">18.5 mi</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div
+            class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-purple-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">GPS Verified</p>
+          <p class="text-2xl font-semibold text-gray-900">94%</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Date Range</label
+        >
+        <select
+          x-model="filters.dateRange"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="this_month">This Month</option>
+          <option value="last_month">Last Month</option>
+          <option value="this_quarter">This Quarter</option>
+          <option value="this_year">This Year</option>
+          <option value="custom">Custom Range</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Purpose</label
+        >
+        <select
+          x-model="filters.purpose"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">All Purposes</option>
+          <option value="business">Business</option>
+          <option value="medical">Medical</option>
+          <option value="charity">Charity</option>
+          <option value="moving">Moving</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Vehicle</label
+        >
+        <select
+          x-model="filters.vehicle"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">All Vehicles</option>
+          <option value="personal_car">Personal Car</option>
+          <option value="company_car">Company Car</option>
+          <option value="rental">Rental</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Verification</label
+        >
+        <select
+          x-model="filters.verification"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">All Trips</option>
+          <option value="verified">GPS Verified</option>
+          <option value="manual">Manual Entry</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mileage Log Table -->
+  <div
+    class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+  >
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Mileage Log</h3>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Date
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Trip
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Purpose
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Miles
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Rate
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Amount
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Verification
+            </th>
+            <th
+              class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <template x-for="trip in filteredTrips" :key="trip.id">
+            <tr class="hover:bg-gray-50">
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                x-text="trip.date"
+              ></td>
+              <td class="px-6 py-4 text-sm text-gray-900">
+                <div>
+                  <div
+                    class="font-medium"
+                    x-text="trip.startLocation + ' → ' + trip.endLocation"
+                  ></div>
+                  <div class="text-gray-500" x-text="trip.description"></div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  :class="getPurposeColor(trip.purpose)"
+                  x-text="trip.purpose"
+                >
+                </span>
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+                x-text="trip.miles"
+              ></td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                x-text="'GH' + trip.rate"
+              ></td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600"
+                x-text="'GH' + trip.amount"
+              ></td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <template x-if="trip.gpsVerified">
+                    <span
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                    >
+                      <svg
+                        class="w-3 h-3 mr-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      GPS Verified
+                    </span>
+                  </template>
+                  <template x-if="!trip.gpsVerified">
+                    <span
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+                    >
+                      Manual Entry
+                    </span>
+                  </template>
+                </div>
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+              >
+                <div class="flex items-center justify-end space-x-2">
+                  <button
+                    @click="viewTripDetails(trip)"
+                    class="text-blue-600 hover:text-blue-900"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    @click="editTrip(trip)"
+                    class="text-indigo-600 hover:text-indigo-900"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    @click="deleteTrip(trip)"
+                    class="text-red-600 hover:text-red-900"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Mileage Modal -->
+<div
+  x-show="showAddMileageModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+  x-cloak
+>
+  <div
+    class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-screen overflow-y-auto"
+  >
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Add Mileage Entry</h3>
+    </div>
+    <div class="px-6 py-4">
+      <form @submit.prevent="addMileageEntry()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Date</label
+            >
+            <input
+              x-model="newTrip.date"
+              type="date"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Purpose</label
+            >
+            <select
+              x-model="newTrip.purpose"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            >
+              <option value="business">Business</option>
+              <option value="medical">Medical</option>
+              <option value="charity">Charity</option>
+              <option value="moving">Moving</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Start Location</label
+            >
+            <input
+              x-model="newTrip.startLocation"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >End Location</label
+            >
+            <input
+              x-model="newTrip.endLocation"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Miles</label
+            >
+            <input
+              x-model="newTrip.miles"
+              type="number"
+              step="0.1"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Rate per Mile</label
+            >
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <span class="text-gray-500 sm:text-sm">GH</span>
+              </div>
+              <input
+                x-model="newTrip.rate"
+                type="number"
+                step="0.001"
+                class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value="0.585"
+              />
+            </div>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Description</label
+            >
+            <textarea
+              x-model="newTrip.description"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Purpose of the trip"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-medium text-gray-700"
+              >Calculated Amount:</span
+            >
+            <span
+              class="text-lg font-semibold text-gray-900"
+              x-text="'GH' + calculateAmount()"
+            ></span>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-3">
+          <button
+            @click="showAddMileageModal = false"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Add Entry
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function mileageTracking() {
+    return {
+      showAddMileageModal: false,
+      isTracking: false,
+      filters: {
+        dateRange: "this_month",
+        purpose: "",
+        vehicle: "",
+        verification: "",
+      },
+      currentTrip: {
+        startTime: "",
+        startLocation: "",
+        distance: "0.0",
+      },
+      newTrip: {
+        date: new Date().toISOString().split("T")[0],
+        purpose: "business",
+        startLocation: "",
+        endLocation: "",
+        miles: "",
+        rate: "0.585",
+        description: "",
+      },
+      trips: [
+        {
+          id: 1,
+          date: "2024-01-15",
+          startLocation: "Office",
+          endLocation: "Client Meeting",
+          purpose: "business",
+          description: "Meeting with ABC Corp",
+          miles: "24.5",
+          rate: "0.585",
+          amount: "14.33",
+          gpsVerified: true,
+        },
+        {
+          id: 2,
+          date: "2024-01-14",
+          startLocation: "Home",
+          endLocation: "Medical Clinic",
+          purpose: "medical",
+          description: "Doctor appointment",
+          miles: "12.8",
+          rate: "0.585",
+          amount: "7.49",
+          gpsVerified: false,
+        },
+        {
+          id: 3,
+          date: "2024-01-13",
+          startLocation: "Office",
+          endLocation: "Airport",
+          purpose: "business",
+          description: "Business travel",
+          miles: "45.2",
+          rate: "0.585",
+          amount: "26.44",
+          gpsVerified: true,
+        },
+      ],
+
+      get filteredTrips() {
+        return this.trips.filter((trip) => {
+          const matchesPurpose =
+            !this.filters.purpose || trip.purpose === this.filters.purpose;
+          const matchesVerification =
+            !this.filters.verification ||
+            (this.filters.verification === "verified" && trip.gpsVerified) ||
+            (this.filters.verification === "manual" && !trip.gpsVerified);
+
+          return matchesPurpose && matchesVerification;
+        });
+      },
+
+      calculateAmount() {
+        const miles = parseFloat(this.newTrip.miles) || 0;
+        const rate = parseFloat(this.newTrip.rate) || 0;
+        return (miles * rate).toFixed(2);
+      },
+
+      getPurposeColor(purpose) {
+        const colors = {
+          business: "bg-blue-100 text-blue-800",
+          medical: "bg-green-100 text-green-800",
+          charity: "bg-purple-100 text-purple-800",
+          moving: "bg-orange-100 text-orange-800",
+        };
+        return colors[purpose] || "bg-gray-100 text-gray-800";
+      },
+
+      startGPSTracking() {
+        if (this.isTracking) {
+          this.stopTracking();
+        } else {
+          this.isTracking = true;
+          this.currentTrip = {
+            startTime: new Date().toLocaleTimeString(),
+            startLocation: "Current Location",
+            distance: "0.0",
+          };
+          console.log("Started GPS tracking");
+
+          // Simulate distance tracking
+          setInterval(() => {
+            if (this.isTracking) {
+              const currentDistance = parseFloat(this.currentTrip.distance);
+              this.currentTrip.distance = (
+                currentDistance +
+                Math.random() * 0.5
+              ).toFixed(1);
+            }
+          }, 5000);
+        }
+      },
+
+      stopTracking() {
+        this.isTracking = false;
+        console.log("Stopped GPS tracking");
+        // Auto-fill the add trip modal with tracked data
+        this.newTrip.miles = this.currentTrip.distance;
+        this.newTrip.startLocation = this.currentTrip.startLocation;
+        this.showAddMileageModal = true;
+      },
+
+      addMileageEntry() {
+        const newEntry = {
+          ...this.newTrip,
+          id: this.trips.length + 1,
+          amount: this.calculateAmount(),
+          gpsVerified: this.isTracking,
+        };
+
+        this.trips.unshift(newEntry);
+        this.showAddMileageModal = false;
+        this.resetNewTrip();
+        console.log("Added mileage entry:", newEntry);
+      },
+
+      resetNewTrip() {
+        this.newTrip = {
+          date: new Date().toISOString().split("T")[0],
+          purpose: "business",
+          startLocation: "",
+          endLocation: "",
+          miles: "",
+          rate: "0.585",
+          description: "",
+        };
+      },
+
+      viewTripDetails(trip) {
+        console.log("Viewing trip details:", trip);
+      },
+
+      editTrip(trip) {
+        console.log("Editing trip:", trip);
+      },
+
+      deleteTrip(trip) {
+        if (confirm("Are you sure you want to delete this trip?")) {
+          this.trips = this.trips.filter((t) => t.id !== trip.id);
+          console.log("Deleted trip:", trip);
+        }
+      },
+    };
+  }
+</script>
+{% endblock %}

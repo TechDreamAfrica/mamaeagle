@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Balance Sheet - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-5">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-2xl font-bold text-gray-900">Balance Sheet</h2>
+                    <p class="mt-1 text-sm text-gray-500">As of {{ as_of_date|date:"F d, Y" }}</p>
+                    {% if is_balanced %}
+                    <p class="text-xs text-green-600 mt-1">
+                        <i class="fas fa-check-circle"></i> Assets = Liabilities + Equity (Balanced)
+                    </p>
+                    {% else %}
+                    <p class="text-xs text-red-600 mt-1">
+                        <i class="fas fa-exclamation-triangle"></i> Warning: Assets do not equal Liabilities + Equity
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="mt-4 flex space-x-3 md:mt-0 md:ml-4">
+                    <form method="GET" class="flex items-center space-x-2">
+                        <input type="date" name="as_of_date" value="{{ as_of_date|date:'Y-m-d' }}" onchange="this.form.submit()" class="rounded-md border-gray-300 shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500 text-sm">
+                    </form>
+                    <button type="button" onclick="window.print()" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="fas fa-print mr-2"></i>Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-coins text-blue-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-xs font-medium text-gray-500 uppercase">Total Assets</p>
+                    <p class="text-lg font-bold text-gray-900">GH{{ total_assets|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-credit-card text-orange-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-xs font-medium text-gray-500 uppercase">Total Liabilities</p>
+                    <p class="text-lg font-bold text-gray-900">GH{{ total_liabilities|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-pie text-green-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-xs font-medium text-gray-500 uppercase">Total Equity</p>
+                    <p class="text-lg font-bold text-gray-900">GH{{ total_equity|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-line text-purple-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-xs font-medium text-gray-500 uppercase">Current Ratio</p>
+                    <p class="text-lg font-bold text-gray-900">{{ current_ratio|floatformat:2 }}</p>
+                    <p class="text-xs text-gray-500">Liquidity</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Ratios -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-base font-semibold text-gray-900">Key Financial Ratios</h3>
+        </div>
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Current Ratio</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ current_ratio|floatformat:2 }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Current Assets / Current Liabilities</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Debt-to-Equity Ratio</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ debt_to_equity|floatformat:2 }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Total Liabilities / Total Equity</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Equity Ratio</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ equity_ratio|floatformat:2 }}%</p>
+                    <p class="text-xs text-gray-500 mt-1">Total Equity / Total Assets</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Balance Sheet -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Assets Column -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-5 border-b border-gray-200 bg-blue-50">
+                <h3 class="text-lg font-semibold text-gray-900">ASSETS</h3>
+            </div>
+
+            <div class="px-6 py-5">
+                <!-- Current Assets -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-300 mb-2">
+                        <h4 class="text-sm font-bold text-gray-900">CURRENT ASSETS</h4>
+                        <span class="text-sm font-bold text-gray-900">GH{{ total_current_assets|floatformat:2 }}</span>
+                    </div>
+                    {% if assets_data.current_assets %}
+                        {% for item in assets_data.current_assets %}
+                        <div class="flex items-center justify-between py-1 pl-4">
+                            <div>
+                                <span class="text-sm text-gray-600">{{ item.account.account_name }}</span>
+                                <span class="text-xs text-gray-400 ml-1">({{ item.account.account_number }})</span>
+                            </div>
+                            <span class="text-sm text-gray-700">GH{{ item.balance|floatformat:2 }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-xs text-gray-500 pl-4 py-2">No current assets</p>
+                    {% endif %}
+                </div>
+
+                <!-- Fixed Assets -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-300 mb-2">
+                        <h4 class="text-sm font-bold text-gray-900">FIXED ASSETS</h4>
+                        <span class="text-sm font-bold text-gray-900">GH{{ total_fixed_assets|floatformat:2 }}</span>
+                    </div>
+                    {% if assets_data.fixed_assets %}
+                        {% for item in assets_data.fixed_assets %}
+                        <div class="flex items-center justify-between py-1 pl-4">
+                            <div>
+                                <span class="text-sm text-gray-600">{{ item.account.account_name }}</span>
+                                <span class="text-xs text-gray-400 ml-1">({{ item.account.account_number }})</span>
+                            </div>
+                            <span class="text-sm text-gray-700">GH{{ item.balance|floatformat:2 }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-xs text-gray-500 pl-4 py-2">No fixed assets</p>
+                    {% endif %}
+                </div>
+
+                <!-- Other Assets -->
+                {% if assets_data.other_assets %}
+                <div class="mb-6">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-300 mb-2">
+                        <h4 class="text-sm font-bold text-gray-900">OTHER ASSETS</h4>
+                        <span class="text-sm font-bold text-gray-900">GH{{ total_other_assets|floatformat:2 }}</span>
+                    </div>
+                    {% for item in assets_data.other_assets %}
+                    <div class="flex items-center justify-between py-1 pl-4">
+                        <div>
+                            <span class="text-sm text-gray-600">{{ item.account.account_name }}</span>
+                            <span class="text-xs text-gray-400 ml-1">({{ item.account.account_number }})</span>
+                        </div>
+                        <span class="text-sm text-gray-700">GH{{ item.balance|floatformat:2 }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Total Assets -->
+                <div class="border-t-2 border-gray-900 pt-3 mt-4">
+                    <div class="flex items-center justify-between py-2 bg-blue-50 px-4">
+                        <h4 class="text-base font-bold text-gray-900">TOTAL ASSETS</h4>
+                        <span class="text-base font-bold text-gray-900">GH{{ total_assets|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liabilities & Equity Column -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-5 border-b border-gray-200 bg-orange-50">
+                <h3 class="text-lg font-semibold text-gray-900">LIABILITIES & EQUITY</h3>
+            </div>
+
+            <div class="px-6 py-5">
+                <!-- Current Liabilities -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-300 mb-2">
+                        <h4 class="text-sm font-bold text-gray-900">CURRENT LIABILITIES</h4>
+                        <span class="text-sm font-bold text-gray-900">GH{{ total_current_liabilities|floatformat:2 }}</span>
+                    </div>
+                    {% if liabilities_data.current_liabilities %}
+                        {% for item in liabilities_data.current_liabilities %}
+                        <div class="flex items-center justify-between py-1 pl-4">
+                            <div>
+                                <span class="text-sm text-gray-600">{{ item.account.account_name }}</span>
+                                <span class="text-xs text-gray-400 ml-1">({{ item.account.account_number }})</span>
+                            </div>
+                            <span class="text-sm text-gray-700">GH{{ item.balance|floatformat:2 }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-xs text-gray-500 pl-4 py-2">No current liabilities</p>
+                    {% endif %}
+                </div>
+
+                <!-- Long-term Liabilities -->
+                {% if liabilities_data.long_term_liabilities or total_long_term_liabilities > 0 %}
+                <div class="mb-6">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-300 mb-2">
+                        <h4 class="text-sm font-bold text-gray-900">LONG-TERM LIABILITIES</h4>
+                        <span class="text-sm font-bold text-gray-900">GH{{ total_long_term_liabilities|floatformat:2 }}</span>
+                    </div>
+                    {% if liabilities_data.long_term_liabilities %}
+                        {% for item in liabilities_data.long_term_liabilities %}
+                        <div class="flex items-center justify-between py-1 pl-4">
+                            <div>
+                                <span class="text-sm text-gray-600">{{ item.account.account_name }}</span>
+                                <span class="text-xs text-gray-400 ml-1">({{ item.account.account_number }})</span>
+                            </div>
+                            <span class="text-sm text-gray-700">GH{{ item.balance|floatformat:2 }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-xs text-gray-500 pl-4 py-2">No long-term liabilities</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Total Liabilities -->
+                <div class="border-t border-gray-300 pt-3 mb-6">
+                    <div class="flex items-center justify-between py-2 bg-gray-50 px-4">
+                        <h4 class="text-sm font-bold text-gray-900">TOTAL LIABILITIES</h4>
+                        <span class="text-sm font-bold text-gray-900">GH{{ total_liabilities|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                <!-- Equity -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-300 mb-2">
+                        <h4 class="text-sm font-bold text-gray-900">EQUITY</h4>
+                    </div>
+                    {% if equity_data %}
+                        {% for item in equity_data %}
+                        <div class="flex items-center justify-between py-1 pl-4">
+                            <div>
+                                <span class="text-sm text-gray-600">{{ item.account.account_name }}</span>
+                                <span class="text-xs text-gray-400 ml-1">({{ item.account.account_number }})</span>
+                            </div>
+                            <span class="text-sm text-gray-700">GH{{ item.balance|floatformat:2 }}</span>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                    <div class="flex items-center justify-between py-1 pl-4">
+                        <span class="text-sm text-gray-600">Retained Earnings (YTD)</span>
+                        <span class="text-sm text-gray-700">GH{{ retained_earnings|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                <!-- Total Equity -->
+                <div class="border-t border-gray-300 pt-3 mb-6">
+                    <div class="flex items-center justify-between py-2 bg-gray-50 px-4">
+                        <h4 class="text-sm font-bold text-gray-900">TOTAL EQUITY</h4>
+                        <span class="text-sm font-bold text-gray-900">GH{{ total_equity|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                <!-- Total Liabilities & Equity -->
+                <div class="border-t-2 border-gray-900 pt-3">
+                    <div class="flex items-center justify-between py-2 bg-green-50 px-4">
+                        <h4 class="text-base font-bold text-gray-900">TOTAL LIABILITIES & EQUITY</h4>
+                        <span class="text-base font-bold text-gray-900">GH{{ total_liabilities_equity|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .max-w-7xl, .max-w-7xl * {
+            visibility: visible;
+        }
+        .max-w-7xl {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        button, input[type="date"] {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}

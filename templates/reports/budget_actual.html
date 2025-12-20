@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Budget vs Actual Report - DreamBiz Accounting{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print { display: none; }
+        body { background: white; }
+        .print-section { page-break-inside: avoid; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8 no-print">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Budget vs Actual Report</h1>
+            <p class="text-gray-600 mt-1">Year {{ year }}</p>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="window.print()" class="px-4 py-2 bg-dreambiz-600 text-white rounded-lg hover:bg-dreambiz-700 transition">
+                <i class="fas fa-print mr-2"></i>Print
+            </button>
+            <a href="{% url 'reports:reports_main' %}" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                <i class="fas fa-arrow-left mr-2"></i>Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Year Selector -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6 no-print">
+        <form method="get" class="flex items-center space-x-4">
+            <label class="text-sm font-medium text-gray-700">Year:</label>
+            <select name="year" onchange="this.form.submit()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent">
+                {% for y in "2023 2024 2025 2026"|make_list %}
+                <option value="{{ y }}" {% if y == year|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Actual Revenue</p>
+                    <p class="text-2xl font-bold text-green-600 mt-1">GH{{ total_actual_revenue|floatformat:2 }}</p>
+                </div>
+                <div class="p-3 bg-green-100 rounded-full">
+                    <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Budget Revenue</p>
+                    <p class="text-2xl font-bold text-blue-600 mt-1">GH{{ total_budget_revenue|floatformat:2 }}</p>
+                </div>
+                <div class="p-3 bg-blue-100 rounded-full">
+                    <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Actual Expenses</p>
+                    <p class="text-2xl font-bold text-red-600 mt-1">GH{{ total_actual_expenses|floatformat:2 }}</p>
+                </div>
+                <div class="p-3 bg-red-100 rounded-full">
+                    <i class="fas fa-receipt text-red-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Budget Expenses</p>
+                    <p class="text-2xl font-bold text-orange-600 mt-1">GH{{ total_budget_expenses|floatformat:2 }}</p>
+                </div>
+                <div class="p-3 bg-orange-100 rounded-full">
+                    <i class="fas fa-clipboard-list text-orange-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Comparison -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden print-section">
+        <div class="p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Monthly Comparison</h2>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actual Revenue</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Budget Revenue</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Variance</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actual Expenses</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Budget Expenses</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Variance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for month in months_data %}
+                        <tr>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ month.month }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">GH{{ month.actual_revenue|floatformat:2 }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 text-right">GH{{ month.budget_revenue|floatformat:2 }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-right {% if month.revenue_variance >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ month.revenue_variance|floatformat:2 }}
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">GH{{ month.actual_expenses|floatformat:2 }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 text-right">GH{{ month.budget_expenses|floatformat:2 }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-right {% if month.expense_variance >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ month.expense_variance|floatformat:2 }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-4 text-left text-sm font-bold text-gray-900">Total</th>
+                            <th class="px-4 py-4 text-right text-sm font-bold text-gray-900">GH{{ total_actual_revenue|floatformat:2 }}</th>
+                            <th class="px-4 py-4 text-right text-sm font-bold text-gray-900">GH{{ total_budget_revenue|floatformat:2 }}</th>
+                            <th class="px-4 py-4 text-right text-sm font-bold {% if total_revenue_variance >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ total_revenue_variance|floatformat:2 }}
+                            </th>
+                            <th class="px-4 py-4 text-right text-sm font-bold text-gray-900">GH{{ total_actual_expenses|floatformat:2 }}</th>
+                            <th class="px-4 py-4 text-right text-sm font-bold text-gray-900">GH{{ total_budget_expenses|floatformat:2 }}</th>
+                            <th class="px-4 py-4 text-right text-sm font-bold {% if total_expense_variance >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ total_expense_variance|floatformat:2 }}
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Header -->
+    <div class="hidden print:block text-center mb-8">
+        <h1 class="text-2xl font-bold">{{ user.company.name|default:"DreamBiz Accounting" }}</h1>
+        <h2 class="text-xl font-semibold mt-2">Budget vs Actual Report</h2>
+        <p class="text-gray-600 mt-1">Year {{ year }}</p>
+        <p class="text-sm text-gray-500 mt-2">Generated on {% now "F d, Y" %}</p>
+    </div>
+</div>
+{% endblock %}

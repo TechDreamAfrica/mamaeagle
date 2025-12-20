@@ -1,0 +1,391 @@
+{% extends 'base.html' %} 
+{% block title %}All Reports - DreamBiz Accounting{% endblock %} {% block content %}
+<div class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="py-6">
+        <div class="md:flex md:items-center md:justify-between">
+          <div class="flex-1 min-w-0">
+            <h2
+              class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate"
+            >
+              All Reports
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+              Access all your financial reports and analytics in one place
+            </p>
+          </div>
+          <div class="mt-4 flex md:mt-0 md:ml-4">
+            <button
+              type="button"
+              class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              <i class="fas fa-calendar-alt mr-2"></i>
+              Schedule Report
+            </button>
+            <button
+              type="button"
+              class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              <i class="fas fa-plus mr-2"></i>
+              Custom Report
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+    x-data="reportsList()"
+  >
+    <!-- Search and Filter -->
+    <div class="bg-white shadow rounded-lg p-6 mb-8">
+      <div class="flex flex-col sm:flex-row gap-4">
+        <div class="flex-1">
+          <label for="search" class="sr-only">Search reports</label>
+          <div class="relative">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <i class="fas fa-search text-gray-400"></i>
+            </div>
+            <input
+              x-model="searchQuery"
+              type="text"
+              class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+              placeholder="Search reports..."
+            />
+          </div>
+        </div>
+        <div class="sm:w-48">
+          <select
+            x-model="selectedCategory"
+            class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+          >
+            <option value="">All Categories</option>
+            <option value="financial">Financial</option>
+            <option value="operational">Operational</option>
+            <option value="tax">Tax</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <template x-for="report in filteredReports" :key="report.id">
+        <div
+          class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-200"
+        >
+          <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div
+                  class="w-10 h-10 rounded-lg flex items-center justify-center"
+                  :class="report.iconBg"
+                >
+                  <i :class="report.icon + ' text-white'"></i>
+                </div>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt
+                    class="text-sm font-medium text-gray-500 truncate"
+                    x-text="report.category"
+                  ></dt>
+                  <dd
+                    class="text-lg font-medium text-gray-900"
+                    x-text="report.name"
+                  ></dd>
+                </dl>
+              </div>
+            </div>
+            <div class="mt-4">
+              <p class="text-sm text-gray-600" x-text="report.description"></p>
+              <div class="mt-4 flex items-center justify-between">
+                <span class="text-xs text-gray-500">
+                  Last updated: <span x-text="report.lastUpdated"></span>
+                </span>
+                <div class="flex space-x-2">
+                  <button
+                    type="button"
+                    class="text-dreambiz-600 hover:text-dreambiz-900 text-sm font-medium"
+                    @click="viewReport(report)"
+                  >
+                    View
+                  </button>
+                  <button
+                    type="button"
+                    class="text-gray-400 hover:text-gray-600"
+                    @click="downloadReport(report)"
+                  >
+                    <i class="fas fa-download"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="text-gray-400 hover:text-gray-600"
+                    @click="shareReport(report)"
+                  >
+                    <i class="fas fa-share"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- Recent Reports -->
+    <div class="mt-12">
+      <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Recently Generated Reports
+          </h3>
+          <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            Your most recently generated reports and their status.
+          </p>
+        </div>
+        <ul class="divide-y divide-gray-200">
+          <template x-for="report in recentReports" :key="report.id">
+            <li class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div
+                      class="w-8 h-8 rounded-lg flex items-center justify-center"
+                      :class="report.iconBg"
+                    >
+                      <i :class="report.icon + ' text-white text-sm'"></i>
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <p
+                      class="text-sm font-medium text-gray-900"
+                      x-text="report.name"
+                    ></p>
+                    <p class="text-sm text-gray-500">
+                      Generated on <span x-text="report.generatedDate"></span> •
+                      <span x-text="report.period"></span>
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    :class="report.status === 'completed' ? 'bg-green-100 text-green-800' : report.status === 'processing' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'"
+                  >
+                    <span x-text="report.status"></span>
+                  </span>
+                  <div class="flex space-x-2">
+                    <button
+                      type="button"
+                      class="text-dreambiz-600 hover:text-dreambiz-900 text-sm font-medium"
+                      @click="viewReport(report)"
+                    >
+                      View
+                    </button>
+                    <button
+                      type="button"
+                      class="text-gray-400 hover:text-gray-600"
+                      @click="downloadReport(report)"
+                    >
+                      <i class="fas fa-download"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </template>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function reportsList() {
+    return {
+      searchQuery: "",
+      selectedCategory: "",
+
+      reports: [
+        {
+          id: 1,
+          name: "Profit & Loss Statement",
+          description:
+            "Comprehensive income statement showing revenue, expenses, and net income",
+          category: "Financial",
+          icon: "fas fa-chart-line",
+          iconBg: "bg-green-500",
+          url: "/reports/profit-loss/",
+          lastUpdated: "2 hours ago",
+        },
+        {
+          id: 2,
+          name: "Balance Sheet",
+          description:
+            "Statement of financial position showing assets, liabilities, and equity",
+          category: "Financial",
+          icon: "fas fa-balance-scale",
+          iconBg: "bg-blue-500",
+          url: "/reports/balance-sheet/",
+          lastUpdated: "3 hours ago",
+        },
+        {
+          id: 3,
+          name: "Cash Flow Statement",
+          description:
+            "Cash flows from operating, investing, and financing activities",
+          category: "Financial",
+          icon: "fas fa-hand-holding-usd",
+          iconBg: "bg-purple-500",
+          url: "/reports/cash-flow/",
+          lastUpdated: "1 hour ago",
+        },
+        {
+          id: 4,
+          name: "Accounts Receivable Aging",
+          description: "Analysis of outstanding customer invoices by age",
+          category: "Operational",
+          icon: "fas fa-clock",
+          iconBg: "bg-orange-500",
+          url: "/reports/ar-aging/",
+          lastUpdated: "4 hours ago",
+        },
+        {
+          id: 5,
+          name: "Expense Report by Category",
+          description:
+            "Detailed breakdown of expenses by category and subcategory",
+          category: "Operational",
+          icon: "fas fa-receipt",
+          iconBg: "bg-red-500",
+          url: "/reports/expense-category/",
+          lastUpdated: "2 hours ago",
+        },
+        {
+          id: 6,
+          name: "Sales Tax Report",
+          description: "Sales tax collected and payable by jurisdiction",
+          category: "Tax",
+          icon: "fas fa-percentage",
+          iconBg: "bg-indigo-500",
+          url: "/reports/sales-tax/",
+          lastUpdated: "1 day ago",
+        },
+        {
+          id: 7,
+          name: "Budget vs Actual",
+          description: "Comparison of budgeted amounts vs actual performance",
+          category: "Financial",
+          icon: "fas fa-chart-bar",
+          iconBg: "bg-teal-500",
+          url: "/reports/budget-actual/",
+          lastUpdated: "6 hours ago",
+        },
+        {
+          id: 8,
+          name: "Trial Balance",
+          description:
+            "List of all accounts with their debit and credit balances",
+          category: "Financial",
+          icon: "fas fa-list-alt",
+          iconBg: "bg-gray-500",
+          url: "/reports/trial-balance/",
+          lastUpdated: "3 hours ago",
+        },
+        {
+          id: 9,
+          name: "Customer Sales Summary",
+          description: "Sales performance analysis by customer",
+          category: "Operational",
+          icon: "fas fa-users",
+          iconBg: "bg-pink-500",
+          url: "/reports/customer-sales/",
+          lastUpdated: "5 hours ago",
+        },
+      ],
+
+      recentReports: [
+        {
+          id: 1,
+          name: "Monthly Profit & Loss - November 2024",
+          generatedDate: "Dec 01, 2024",
+          period: "November 2024",
+          status: "completed",
+          icon: "fas fa-chart-line",
+          iconBg: "bg-green-500",
+          url: "/reports/profit-loss/",
+        },
+        {
+          id: 2,
+          name: "Q4 2024 Cash Flow Statement",
+          generatedDate: "Nov 30, 2024",
+          period: "Q4 2024",
+          status: "processing",
+          icon: "fas fa-hand-holding-usd",
+          iconBg: "bg-purple-500",
+          url: "/reports/cash-flow/",
+        },
+        {
+          id: 3,
+          name: "Balance Sheet - November 30, 2024",
+          generatedDate: "Nov 30, 2024",
+          period: "As of Nov 30, 2024",
+          status: "completed",
+          icon: "fas fa-balance-scale",
+          iconBg: "bg-blue-500",
+          url: "/reports/balance-sheet/",
+        },
+      ],
+
+      get filteredReports() {
+        let filtered = this.reports;
+
+        if (this.searchQuery) {
+          filtered = filtered.filter(
+            (report) =>
+              report.name
+                .toLowerCase()
+                .includes(this.searchQuery.toLowerCase()) ||
+              report.description
+                .toLowerCase()
+                .includes(this.searchQuery.toLowerCase())
+          );
+        }
+
+        if (this.selectedCategory) {
+          filtered = filtered.filter(
+            (report) =>
+              report.category.toLowerCase() ===
+              this.selectedCategory.toLowerCase()
+          );
+        }
+
+        return filtered;
+      },
+
+      viewReport(report) {
+        // Navigate to the report
+        window.location.href = report.url;
+      },
+
+      downloadReport(report) {
+        // Trigger download
+        alert("Downloading " + report.name + " as PDF...");
+      },
+
+      shareReport(report) {
+        // Open share dialog
+        alert("Sharing " + report.name + "...");
+      },
+    };
+  }
+</script>
+{% endblock %}

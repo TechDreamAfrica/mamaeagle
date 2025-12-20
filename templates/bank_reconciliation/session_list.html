@@ -1,0 +1,270 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Reconciliation
+Sessions - DreamBiz Accounting{% endblock %} {% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            Reconciliation Sessions
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Start new reconciliation sessions and manage existing ones
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'bank_reconciliation:dashboard' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Start New Reconciliation Section -->
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">
+          Start New Reconciliation
+        </h3>
+      </div>
+      <div class="p-6">
+        {% if accounts %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {% for account in accounts %}
+          <div
+            class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+          >
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-sm font-medium text-gray-900">
+                {{ account.name }}
+              </h4>
+              {% if account.is_active %}
+              <span
+                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
+                >Active</span
+              >
+              {% else %}
+              <span
+                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800"
+                >Inactive</span
+              >
+              {% endif %}
+            </div>
+            <p class="text-sm text-gray-600 mb-2">{{ account.bank_name }}</p>
+            <p
+              class="text-sm font-medium mb-4 {% if account.current_balance < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+            >
+              Balance: GH{{ account.current_balance|floatformat:2 }}
+            </p>
+            {% if account.is_active %}
+            <a
+              href="{% url 'bank_reconciliation:start_reconciliation' account.pk %}"
+              class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            >
+              <i class="fas fa-balance-scale mr-2"></i>
+              Start Reconciliation
+            </a>
+            {% else %}
+            <button
+              disabled
+              class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed"
+            >
+              Account Inactive
+            </button>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+          <i class="fas fa-university text-4xl text-gray-300 mb-4"></i>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">
+            No bank accounts available
+          </h3>
+          <p class="text-gray-500 mb-6">
+            Add a bank account first before starting reconciliation.
+          </p>
+          <a
+            href="{% url 'bank_reconciliation:account_create' %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <i class="fas fa-plus mr-2"></i>
+            Add Bank Account
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Existing Sessions -->
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Recent Sessions</h3>
+      </div>
+      <div class="p-6">
+        {% if reconciliation_sessions %}
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Account
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Date
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Balance
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Difference
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for session in reconciliation_sessions %}
+              <tr class="hover:bg-gray-50 transition-colors duration-200">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">
+                    {{ session.bank_account.account_name }}
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    {{ session.bank_account.bank_name }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {{ session.session_date|date:"M d, Y" }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  {% if session.status == 'completed' %}
+                  <span
+                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
+                    >{{ session.get_status_display }}</span
+                  >
+                  {% elif session.status == 'in_progress' %}
+                  <span
+                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800"
+                    >{{ session.get_status_display }}</span
+                  >
+                  {% else %}
+                  <span
+                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800"
+                    >{{ session.get_status_display }}</span
+                  >
+                  {% endif %}
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+                >
+                  GH{{ session.closing_balance|floatformat:2 }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  {% if session.difference != 0 %}
+                  <span class="text-yellow-600"
+                    >GH{{ session.difference|floatformat:2 }}</span
+                  >
+                  {% else %}
+                  <span class="text-green-600">GH0.00</span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <div class="flex space-x-2">
+                    <a
+                      href="{% url 'bank_reconciliation:session_detail' session.pk %}"
+                      class="text-indigo-600 hover:text-indigo-900 p-2 rounded-md hover:bg-indigo-50 transition-colors duration-200"
+                      title="View Details"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </a>
+                    {% if session.status == 'in_progress' %}
+                    <a
+                      href="{% url 'bank_reconciliation:reconcile_transactions' session.pk %}"
+                      class="text-green-600 hover:text-green-900 p-2 rounded-md hover:bg-green-50 transition-colors duration-200"
+                      title="Continue Reconciliation"
+                    >
+                      <i class="fas fa-play"></i>
+                    </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div
+          class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-6"
+        >
+          <div class="flex flex-1 justify-between sm:hidden">
+            {% if page_obj.has_previous %}
+            <a
+              href="?page={{ page_obj.previous_page_number }}"
+              class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >Previous</a
+            >
+            {% endif %} {% if page_obj.has_next %}
+            <a
+              href="?page={{ page_obj.next_page_number }}"
+              class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >Next</a
+            >
+            {% endif %}
+          </div>
+          <div
+            class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between"
+          >
+            <div>
+              <p class="text-sm text-gray-700">
+                Showing
+                <span class="font-medium">{{ page_obj.start_index }}</span> to
+                <span class="font-medium">{{ page_obj.end_index }}</span> of
+                <span class="font-medium">{{ paginator.count }}</span> results
+              </p>
+            </div>
+          </div>
+        </div>
+        {% endif %} {% else %}
+        <div class="text-center py-8">
+          <i class="fas fa-history text-4xl text-gray-300 mb-4"></i>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">
+            No reconciliation sessions yet
+          </h3>
+          <p class="text-gray-500">
+            Start your first reconciliation session to see them here.
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

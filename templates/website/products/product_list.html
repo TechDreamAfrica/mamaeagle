@@ -1,0 +1,553 @@
+{% extends 'website/base.html' %}
+
+{% block title %}
+{% if category %}{{ category.name }} - {% endif %}
+{% if search_query %}Search Results for "{{ search_query }}" - {% endif %}
+Plumbing Materials - Mama Eagle Enterprise
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav class="bg-gray-50 py-4" aria-label="Breadcrumb">
+    <div class="max-w-7xl mx-auto px-4">
+        <ol class="flex space-x-2 text-sm">
+            <li><a href="{% url 'website:home' %}" class="text-primary hover:underline">Home</a></li>
+            <li class="text-gray-500">/</li>
+            <li><a href="{% url 'website:product_list' %}" class="text-primary hover:underline">Products</a></li>
+            {% if category %}
+            <li class="text-gray-500">/</li>
+            <li class="text-gray-700 font-medium">{{ category.name }}</li>
+            {% endif %}
+        </ol>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        {% if category %}
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ category.name }}</h1>
+            {% if category.description %}
+                <p class="text-gray-600">{{ category.description }}</p>
+            {% endif %}
+        {% elif search_query %}
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Search Results</h1>
+            <p class="text-gray-600">{{ products.paginator.count }} results found for "{{ search_query }}"</p>
+        {% else %}
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">All Products</h1>
+            <p class="text-gray-600">Professional plumbing materials and equipment for every project</p>
+        {% endif %}
+    </div>
+
+    <div class="grid lg:grid-cols-4 gap-8">
+        <!-- Sidebar Filters -->
+        <div class="lg:col-span-1">
+            <div class="bg-white border border-gray-200 rounded-lg p-6 sticky top-4">
+                <h3 class="text-lg font-semibold mb-4">Filter Products</h3>
+                
+                <form method="GET" action="{% url 'website:product_list' %}" id="filterForm">
+                    <!-- Preserve search query -->
+                    {% if search_query %}
+                        <input type="hidden" name="search" value="{{ search_query }}">
+                    {% endif %}
+                    
+                    <!-- Category Filter -->
+                    <div class="mb-6">
+                        <h4 class="font-medium mb-3">Categories</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="category" value="" 
+                                       {% if not selected_category %}checked{% endif %}
+                                       class="text-primary focus:ring-primary" onchange="this.form.submit()">
+                                <span class="ml-2 text-sm">All Categories</span>
+                            </label>
+                            {% for cat in categories %}
+                            <label class="flex items-center">
+                                <input type="radio" name="category" value="{{ cat.slug }}" 
+                                       {% if selected_category == cat.slug %}checked{% endif %}
+                                       class="text-primary focus:ring-primary" onchange="this.form.submit()">
+                                <span class="ml-2 text-sm">{{ cat.name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Price Range Filter -->
+                    <div class="mb-6">
+                        <h4 class="font-medium mb-3">Price Range</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="price_range" value="" 
+                                       {% if not selected_price_range %}checked{% endif %}
+                                       class="text-primary focus:ring-primary" onchange="this.form.submit()">
+                                <span class="ml-2 text-sm">Any Price</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="price_range" value="0-50" 
+                                       {% if selected_price_range == '0-50' %}checked{% endif %}
+                                       class="text-primary focus:ring-primary" onchange="this.form.submit()">
+                                <span class="ml-2 text-sm">Under GHS 50</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="price_range" value="50-200" 
+                                       {% if selected_price_range == '50-200' %}checked{% endif %}
+                                       class="text-primary focus:ring-primary" onchange="this.form.submit()">
+                                <span class="ml-2 text-sm">GHS 50 - 200</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="price_range" value="200-500" 
+                                       {% if selected_price_range == '200-500' %}checked{% endif %}
+                                       class="text-primary focus:ring-primary" onchange="this.form.submit()">
+                                <span class="ml-2 text-sm">GHS 200 - 500</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="price_range" value="500-1000" 
+                                       {% if selected_price_range == '500-1000' %}checked{% endif %}
+                                       class="text-primary focus:ring-primary" onchange="this.form.submit()">
+                                <span class="ml-2 text-sm">GHS 500 - 1000</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="price_range" value="1000+" 
+                                       {% if selected_price_range == '1000+' %}checked{% endif %}
+                                       class="text-primary focus:ring-primary" onchange="this.form.submit()">
+                                <span class="ml-2 text-sm">Above GHS 1000</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Availability Filter -->
+                    <div class="mb-6">
+                        <h4 class="font-medium mb-3">Availability</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="in_stock" value="true" 
+                                       {% if show_in_stock_only %}checked{% endif %}
+                                       class="text-primary focus:ring-primary" onchange="this.form.submit()">
+                                <span class="ml-2 text-sm">In Stock Only</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="on_sale" value="true" 
+                                       {% if show_on_sale_only %}checked{% endif %}
+                                       class="text-primary focus:ring-primary" onchange="this.form.submit()">
+                                <span class="ml-2 text-sm">On Sale</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Clear Filters -->
+                    <div class="pt-4 border-t border-gray-200">
+                        <a href="{% url 'website:product_list' %}" class="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-center block hover:bg-gray-200 transition duration-300">
+                            Clear All Filters
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="lg:col-span-3">
+            <!-- Search and Sort Bar -->
+            <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+                    <!-- Search Form -->
+                    <form method="GET" action="{% url 'website:product_list' %}" class="flex flex-1 max-w-md">
+                        {% if selected_category %}
+                            <input type="hidden" name="category" value="{{ selected_category }}">
+                        {% endif %}
+                        <div class="relative flex-1">
+                            <input type="search" name="search" value="{{ search_query|default:'' }}" 
+                                   placeholder="Search products..." 
+                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <button type="submit" class="bg-primary text-white px-6 py-2 rounded-r-lg hover:bg-primary-dark transition duration-300">
+                            Search
+                        </button>
+                    </form>
+                    
+                    <!-- Sort and View Options -->
+                    <div class="flex items-center space-x-4">
+                        <form method="GET" id="sortForm">
+                            {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+                            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+                            
+                            <select name="sort" onchange="this.form.submit()" 
+                                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary">
+                                <option value="">Default Sort</option>
+                                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name A-Z</option>
+                                <option value="-name" {% if sort_by == '-name' %}selected{% endif %}>Name Z-A</option>
+                                <option value="price" {% if sort_by == 'price' %}selected{% endif %}>Price Low-High</option>
+                                <option value="-price" {% if sort_by == '-price' %}selected{% endif %}>Price High-Low</option>
+                                <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Newest First</option>
+                            </select>
+                        </form>
+                        
+                        <!-- View Toggle -->
+                        <div class="flex border border-gray-300 rounded-lg">
+                            <button onclick="setGridView()" id="gridViewBtn" 
+                                    class="px-3 py-2 text-sm grid-view-active rounded-l-lg">
+                                Grid
+                            </button>
+                            <button onclick="setListView()" id="listViewBtn" 
+                                    class="px-3 py-2 text-sm border-l border-gray-300 rounded-r-lg">
+                                List
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Products Grid/List -->
+            {% if products %}
+                <div id="productsContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for product in products %}
+                    <div class="product-card bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition duration-300 overflow-hidden group">
+                        <div class="relative">
+                            <a href="{{ product.get_absolute_url }}">
+                                {% if product.images.first %}
+                                    <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" 
+                                         class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
+                                {% else %}
+                                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                                        <span class="text-4xl text-gray-400">🔧</span>
+                                    </div>
+                                {% endif %}
+                            </a>
+                            
+                            <!-- Product Badges -->
+                            <div class="absolute top-2 left-2 space-y-1">
+                                {% if product.is_on_sale %}
+                                    <div class="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                                        {{ product.sale_percentage }}% OFF
+                                    </div>
+                                {% endif %}
+                                {% if not product.in_stock %}
+                                    <div class="bg-gray-500 text-white px-2 py-1 rounded text-xs font-bold">
+                                        Out of Stock
+                                    </div>
+                                {% elif product.stock_quantity < 10 %}
+                                    <div class="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
+                                        Low Stock
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Quick View Button -->
+                            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition duration-300">
+                                <button onclick="quickView('{{ product.id }}')" 
+                                        class="bg-white bg-opacity-90 text-gray-700 p-2 rounded-full hover:bg-opacity-100 transition duration-300"
+                                        title="Quick View">
+                                    👁️
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4">
+                            <div class="mb-2">
+                                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">{{ product.category.name }}</span>
+                            </div>
+                            
+                            <h3 class="font-semibold text-lg mb-2 group-hover:text-primary transition duration-300">
+                                <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                            </h3>
+                            
+                            <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ product.short_description }}</p>
+                            
+                            <!-- Price and Stock -->
+                            <div class="flex justify-between items-center mb-4">
+                                <div>
+                                    {% if product.is_on_sale %}
+                                        <span class="text-lg font-bold text-red-600">GHS {{ product.price }}</span>
+                                        <span class="text-sm text-gray-500 line-through ml-2">GHS {{ product.compare_at_price }}</span>
+                                    {% else %}
+                                        <span class="text-lg font-bold text-primary">GHS {{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    {% if product.in_stock %}
+                                        Stock: {{ product.stock_quantity }}
+                                    {% else %}
+                                        Out of Stock
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="flex space-x-2">
+                                <a href="{{ product.get_absolute_url }}" 
+                                   class="flex-1 bg-gray-100 text-gray-700 text-center py-2 px-3 rounded-lg hover:bg-gray-200 transition duration-300 text-sm font-medium">
+                                    View Details
+                                </a>
+                                {% if user.is_authenticated and product.in_stock %}
+                                    <form method="post" action="{% url 'website:add_to_cart' product.id %}" class="inline add-to-cart-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="bg-secondary text-white px-4 py-2 rounded-lg hover:bg-orange-400 transition duration-300 text-sm font-medium">
+                                            Add to Cart
+                                        </button>
+                                    </form>
+                                {% elif not product.in_stock %}
+                                    <button class="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg cursor-not-allowed text-sm font-medium" disabled>
+                                        Out of Stock
+                                    </button>
+                                {% else %}
+                                    <a href="{% url 'accounts:login' %}?next={{ request.path }}" 
+                                       class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition duration-300 text-sm font-medium">
+                                        Login to Buy
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if products.has_other_pages %}
+                <div class="mt-8 flex justify-center">
+                    <nav class="flex items-center space-x-1">
+                        {% if products.has_previous %}
+                            <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ products.previous_page_number }}" 
+                               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-50">
+                                Previous
+                            </a>
+                        {% endif %}
+                        
+                        {% for num in products.paginator.page_range %}
+                            {% if products.number == num %}
+                                <span class="px-3 py-2 text-sm font-medium text-white bg-primary border border-primary">{{ num }}</span>
+                            {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                                <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ num }}" 
+                                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if products.has_next %}
+                            <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ products.next_page_number }}" 
+                               class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-50">
+                                Next
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+                {% endif %}
+                
+            {% else %}
+                <!-- No Products Found -->
+                <div class="text-center py-16">
+                    <div class="text-6xl text-gray-300 mb-4">🔍</div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
+                    {% if search_query %}
+                        <p class="text-gray-600 mb-4">No products match your search for "{{ search_query }}"</p>
+                        <a href="{% url 'website:product_list' %}" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition duration-300">
+                            View All Products
+                        </a>
+                    {% else %}
+                        <p class="text-gray-600 mb-4">Try adjusting your filters or search terms</p>
+                        <a href="{% url 'website:product_list' %}" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition duration-300">
+                            Clear Filters
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick View Modal -->
+<div id="quickViewModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-screen overflow-y-auto">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h3 class="text-lg font-semibold">Quick View</h3>
+                <button onclick="closeQuickView()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="quickViewContent" class="p-6">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.grid-view-active {
+    background-color: #1f4788;
+    color: white;
+}
+
+.list-view-active {
+    background-color: #1f4788;
+    color: white;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-card-list {
+    display: flex;
+    flex-direction: row;
+}
+
+.product-card-list .product-image {
+    width: 200px;
+    flex-shrink: 0;
+}
+
+.product-card-list .product-content {
+    flex: 1;
+    padding: 1rem;
+}
+</style>
+
+<script>
+function setGridView() {
+    const container = document.getElementById('productsContainer');
+    const gridBtn = document.getElementById('gridViewBtn');
+    const listBtn = document.getElementById('listViewBtn');
+    
+    container.className = 'grid md:grid-cols-2 lg:grid-cols-3 gap-6';
+    gridBtn.classList.add('grid-view-active');
+    listBtn.classList.remove('list-view-active');
+    
+    // Reset product cards to normal layout
+    document.querySelectorAll('.product-card').forEach(card => {
+        card.classList.remove('product-card-list');
+    });
+    
+    localStorage.setItem('productView', 'grid');
+}
+
+function setListView() {
+    const container = document.getElementById('productsContainer');
+    const gridBtn = document.getElementById('gridViewBtn');
+    const listBtn = document.getElementById('listViewBtn');
+    
+    container.className = 'space-y-4';
+    listBtn.classList.add('list-view-active');
+    gridBtn.classList.remove('grid-view-active');
+    
+    // Set product cards to list layout
+    document.querySelectorAll('.product-card').forEach(card => {
+        card.classList.add('product-card-list');
+    });
+    
+    localStorage.setItem('productView', 'list');
+}
+
+function quickView(productId) {
+    const modal = document.getElementById('quickViewModal');
+    const content = document.getElementById('quickViewContent');
+    
+    modal.classList.remove('hidden');
+    content.innerHTML = 'Loading...';
+    
+    // Fetch product details (you'll need to implement this endpoint)
+    fetch(`/products/${productId}/quick-view/`)
+        .then(response => response.text())
+        .then(html => {
+            content.innerHTML = html;
+        })
+        .catch(error => {
+            content.innerHTML = 'Error loading product details.';
+        });
+}
+
+function closeQuickView() {
+    document.getElementById('quickViewModal').classList.add('hidden');
+}
+
+// Load saved view preference
+document.addEventListener('DOMContentLoaded', function() {
+    const savedView = localStorage.getItem('productView') || 'grid';
+    if (savedView === 'list') {
+        setListView();
+    } else {
+        setGridView();
+    }
+});
+
+// Close modal when clicking outside
+document.getElementById('quickViewModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeQuickView();
+    }
+});
+
+// Handle add to cart forms with AJAX
+document.querySelectorAll('.add-to-cart-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const button = form.querySelector('button[type="submit"]');
+        const originalText = button.textContent;
+        button.textContent = 'Adding...';
+        button.disabled = true;
+        
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                button.textContent = 'Added!';
+                button.classList.remove('bg-secondary', 'hover:bg-orange-400');
+                button.classList.add('bg-green-500');
+                
+                // Update cart count if it exists
+                const cartCountElement = document.querySelector('.cart-count');
+                if (cartCountElement) {
+                    cartCountElement.textContent = data.cart_items;
+                    // Add visual feedback
+                    cartCountElement.style.transform = 'scale(1.3)';
+                    setTimeout(() => {
+                        cartCountElement.style.transform = 'scale(1)';
+                    }, 200);
+                }
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    button.classList.remove('bg-green-500');
+                    button.classList.add('bg-secondary', 'hover:bg-orange-400');
+                }, 2000);
+                
+                // Optional: Show toast notification
+                if (typeof showToast === 'function') {
+                    showToast(data.message || 'Item added to cart!');
+                }
+            } else {
+                alert(data.message || 'Error adding item to cart');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error adding item to cart. Please try again.');
+            button.textContent = originalText;
+            button.disabled = false;
+        });
+    });
+});
+</script>
+{% endblock %}

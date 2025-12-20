@@ -1,0 +1,622 @@
+{% extends 'base.html' %} {% load static %} {% block title %} Reconciliation
+Session - {{ session.account.name }} ({{ session.created_at|date:"M d, Y" }}) -
+DreamBiz Accounting {% endblock %} {% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+            <a
+              href="{% url 'bank_reconciliation:dashboard' %}"
+              class="hover:text-gray-700"
+              >Bank Reconciliation</a
+            >
+            <i class="fas fa-chevron-right text-xs"></i>
+            <a
+              href="{% url 'bank_reconciliation:session_list' %}"
+              class="hover:text-gray-700"
+              >Sessions</a
+            >
+            <i class="fas fa-chevron-right text-xs"></i>
+            <span class="text-gray-900">{{ session.account.name }}</span>
+          </nav>
+          <h1 class="text-3xl font-bold text-gray-900">
+            Reconciliation Session
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            {{ session.account.name }} - Statement {{
+            session.statement_date|date:"M d, Y" }}
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <button
+            id="auto-match-btn"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+          >
+            <i class="fas fa-magic mr-2"></i>
+            Auto Match
+          </button>
+          <button
+            id="complete-session-btn"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+            {%
+            if
+            session.status
+            !="in_progress"
+            %}disabled{%
+            endif
+            %}
+          >
+            <i class="fas fa-check-circle mr-2"></i>
+            Complete Session
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session Status and Progress -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-900">Session Progress</h3>
+          <span
+            class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {% if session.status == 'completed' %}bg-green-100 text-green-800 {% elif session.status == 'in_progress' %}bg-yellow-100 text-yellow-800 {% else %}bg-gray-100 text-gray-800{% endif %}"
+          >
+            {{ session.get_status_display }}
+          </span>
+        </div>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div class="text-center">
+            <div class="text-3xl font-bold text-indigo-600">
+              {{ total_transactions }}
+            </div>
+            <div class="text-sm text-gray-600">Total Transactions</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-green-600">
+              {{ matched_transactions }}
+            </div>
+            <div class="text-sm text-gray-600">Matched</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-red-600">
+              {{ unmatched_transactions }}
+            </div>
+            <div class="text-sm text-gray-600">Unmatched</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-gray-600">
+              {% widthratio matched_transactions total_transactions 100 %}%
+            </div>
+            <div class="text-sm text-gray-600">Progress</div>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="mt-6">
+          <div class="bg-gray-200 rounded-full h-2">
+            <div
+              class="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+              style="width: {% widthratio matched_transactions total_transactions 100 %}%"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statement Balance vs Book Balance -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">
+          Balance Reconciliation
+        </h3>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="text-center p-4 bg-blue-50 rounded-lg">
+            <div class="text-2xl font-bold text-blue-600">
+              GH{{ session.statement_ending_balance|floatformat:2 }}
+            </div>
+            <div class="text-sm text-blue-800">Statement Balance</div>
+          </div>
+          <div class="text-center p-4 bg-green-50 rounded-lg">
+            <div class="text-2xl font-bold text-green-600">
+              GH{{ session.book_balance|floatformat:2 }}
+            </div>
+            <div class="text-sm text-green-800">Book Balance</div>
+          </div>
+          <div
+            class="text-center p-4 {% if difference == 0 %}bg-green-50{% else %}bg-red-50{% endif %} rounded-lg"
+          >
+            <div
+              class="text-2xl font-bold {% if difference == 0 %}text-green-600{% else %}text-red-600{% endif %}"
+            >
+              GH{{ difference|floatformat:2 }}
+            </div>
+            <div
+              class="text-sm {% if difference == 0 %}text-green-800{% else %}text-red-800{% endif %}"
+            >
+              Difference
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-900">Transactions</h3>
+          <div class="flex space-x-2">
+            <select
+              id="filter-status"
+              class="px-3 py-1 border border-gray-300 rounded-md text-sm"
+            >
+              <option value="">All Transactions</option>
+              <option value="matched">Matched</option>
+              <option value="unmatched">Unmatched</option>
+              <option value="suggested">Suggested Match</option>
+            </select>
+            <input
+              type="text"
+              id="search-transactions"
+              placeholder="Search transactions..."
+              class="px-3 py-1 border border-gray-300 rounded-md text-sm w-48"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Date
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Description
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Amount
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Matched With
+              </th>
+              <th
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            class="bg-white divide-y divide-gray-200"
+            id="transactions-table"
+          >
+            {% for transaction in transactions %}
+            <tr
+              class="hover:bg-gray-50 transaction-row"
+              data-status="{{ transaction.reconciliation_status }}"
+            >
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ transaction.date|date:"M d, Y" }}
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-900">
+                <div class="max-w-xs truncate">
+                  {{ transaction.description }}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <span
+                  class="{% if transaction.amount < 0 %}text-red-600{% else %}text-green-600{% endif %} font-medium"
+                >
+                  GH{{ transaction.amount|floatformat:2 }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if transaction.reconciliation_status == 'matched' %}bg-green-100 text-green-800 {% elif transaction.reconciliation_status == 'suggested' %}bg-yellow-100 text-yellow-800 {% else %}bg-red-100 text-red-800{% endif %}"
+                >
+                  {% if transaction.reconciliation_status == 'matched' %}
+                  <i class="fas fa-check-circle mr-1"></i>Matched {% elif
+                  transaction.reconciliation_status == 'suggested' %}
+                  <i class="fas fa-question-circle mr-1"></i>Suggested {% else
+                  %} <i class="fas fa-times-circle mr-1"></i>Unmatched {% endif
+                  %}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-500">
+                {% if transaction.matched_transaction %}
+                <div class="max-w-xs truncate">
+                  {{ transaction.matched_transaction.description }}
+                </div>
+                {% else %}
+                <span class="text-gray-400">No match</span>
+                {% endif %}
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+              >
+                <div class="flex justify-end space-x-2">
+                  {% if transaction.reconciliation_status == 'unmatched' %}
+                  <button
+                    class="text-indigo-600 hover:text-indigo-900 match-transaction-btn"
+                    data-transaction-id="{{ transaction.id }}"
+                  >
+                    <i class="fas fa-link"></i>
+                  </button>
+                  {% elif transaction.reconciliation_status == 'suggested' %}
+                  <button
+                    class="text-green-600 hover:text-green-900 accept-match-btn"
+                    data-transaction-id="{{ transaction.id }}"
+                  >
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button
+                    class="text-red-600 hover:text-red-900 reject-match-btn"
+                    data-transaction-id="{{ transaction.id }}"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                  {% endif %} {% if transaction.reconciliation_status ==
+                  'matched' %}
+                  <button
+                    class="text-red-600 hover:text-red-900 unmatch-transaction-btn"
+                    data-transaction-id="{{ transaction.id }}"
+                  >
+                    <i class="fas fa-unlink"></i>
+                  </button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                <i class="fas fa-inbox text-4xl mb-4"></i>
+                <div>No transactions found for this session</div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+      <div class="px-6 py-3 border-t border-gray-200 bg-gray-50">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-700">
+            Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{
+            page_obj.paginator.count }} transactions
+          </div>
+          <div class="flex space-x-1">
+            {% if page_obj.has_previous %}
+            <a
+              href="?page={{ page_obj.previous_page_number }}"
+              class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100"
+            >
+              Previous
+            </a>
+            {% endif %} {% for num in page_obj.paginator.page_range %} {% if
+            page_obj.number == num %}
+            <span class="px-3 py-1 text-sm bg-indigo-600 text-white rounded-md"
+              >{{ num }}</span
+            >
+            {% else %}
+            <a
+              href="?page={{ num }}"
+              class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100"
+              >{{ num }}</a
+            >
+            {% endif %} {% endfor %} {% if page_obj.has_next %}
+            <a
+              href="?page={{ page_obj.next_page_number }}"
+              class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100"
+            >
+              Next
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Match Transaction Modal -->
+<div
+  id="match-modal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50"
+>
+  <div
+    class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white"
+  >
+    <div class="mt-3">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">Match Transaction</h3>
+        <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+        <h4 class="font-medium text-gray-900 mb-2">Bank Transaction</h4>
+        <div id="bank-transaction-details" class="text-sm text-gray-600">
+          <!-- Bank transaction details will be populated here -->
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Search for matching transactions:
+        </label>
+        <input
+          type="text"
+          id="match-search"
+          placeholder="Search by description, amount, or reference..."
+          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        />
+      </div>
+
+      <div id="potential-matches" class="max-h-64 overflow-y-auto">
+        <!-- Potential matches will be populated here -->
+      </div>
+
+      <div class="flex justify-end space-x-3 mt-6">
+        <button
+          id="cancel-match"
+          class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          id="create-match"
+          class="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+          disabled
+        >
+          Create Match
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    let selectedMatchId = null;
+    let currentTransactionId = null;
+
+    // Search and filter functionality
+    const searchInput = document.getElementById("search-transactions");
+    const statusFilter = document.getElementById("filter-status");
+    const transactionRows = document.querySelectorAll(".transaction-row");
+
+    function filterTransactions() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const statusFilter = document.getElementById("filter-status").value;
+
+      transactionRows.forEach((row) => {
+        const description = row
+          .querySelector("td:nth-child(2)")
+          .textContent.toLowerCase();
+        const amount = row
+          .querySelector("td:nth-child(3)")
+          .textContent.toLowerCase();
+        const status = row.dataset.status;
+
+        const matchesSearch =
+          description.includes(searchTerm) || amount.includes(searchTerm);
+        const matchesStatus = !statusFilter || status === statusFilter;
+
+        if (matchesSearch && matchesStatus) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    }
+
+    searchInput.addEventListener("input", filterTransactions);
+    statusFilter.addEventListener("change", filterTransactions);
+
+    // Match transaction functionality
+    const matchButtons = document.querySelectorAll(".match-transaction-btn");
+    const modal = document.getElementById("match-modal");
+    const closeModal = document.getElementById("close-modal");
+    const cancelMatch = document.getElementById("cancel-match");
+
+    matchButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        currentTransactionId = this.dataset.transactionId;
+        showMatchModal(currentTransactionId);
+      });
+    });
+
+    function showMatchModal(transactionId) {
+      // Fetch transaction details and show modal
+      fetch(`/bank-reconciliation/api/transaction/${transactionId}/`)
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById("bank-transaction-details").innerHTML = `
+            <div class="grid grid-cols-2 gap-4">
+              <div><strong>Date:</strong> ${data.date}</div>
+              <div><strong>Amount:</strong> GH₵${data.amount}</div>
+              <div class="col-span-2"><strong>Description:</strong> ${data.description}</div>
+            </div>
+          `;
+          modal.classList.remove("hidden");
+        });
+    }
+
+    closeModal.addEventListener("click", () => modal.classList.add("hidden"));
+    cancelMatch.addEventListener("click", () => modal.classList.add("hidden"));
+
+    // Accept/Reject suggested matches
+    const acceptButtons = document.querySelectorAll(".accept-match-btn");
+    const rejectButtons = document.querySelectorAll(".reject-match-btn");
+    const unmatchButtons = document.querySelectorAll(
+      ".unmatch-transaction-btn"
+    );
+
+    acceptButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const transactionId = this.dataset.transactionId;
+        updateTransactionStatus(transactionId, "accept");
+      });
+    });
+
+    rejectButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const transactionId = this.dataset.transactionId;
+        updateTransactionStatus(transactionId, "reject");
+      });
+    });
+
+    unmatchButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const transactionId = this.dataset.transactionId;
+        if (confirm("Are you sure you want to unmatch this transaction?")) {
+          updateTransactionStatus(transactionId, "unmatch");
+        }
+      });
+    });
+
+    function updateTransactionStatus(transactionId, action) {
+      fetch(
+        `/bank-reconciliation/api/transaction/${transactionId}/${action}/`,
+        {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+              .value,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            showNotification(`Transaction ${action}ed successfully`, "success");
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            showNotification("Failed to update transaction", "error");
+          }
+        });
+    }
+
+    // Auto match functionality
+    const autoMatchBtn = document.getElementById("auto-match-btn");
+    autoMatchBtn.addEventListener("click", function () {
+      this.disabled = true;
+      this.innerHTML =
+        '<i class="fas fa-spinner fa-spin mr-2"></i>Auto Matching...';
+
+      fetch(`/bank-reconciliation/session/{{ session.id }}/auto-match/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+            .value,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          showNotification(
+            `Auto matched ${data.matched_count} transactions`,
+            "success"
+          );
+          setTimeout(() => window.location.reload(), 1500);
+        })
+        .catch(() => {
+          showNotification("Auto match failed", "error");
+          this.disabled = false;
+          this.innerHTML = '<i class="fas fa-magic mr-2"></i>Auto Match';
+        });
+    });
+
+    // Complete session functionality
+    const completeBtn = document.getElementById("complete-session-btn");
+    completeBtn.addEventListener("click", function () {
+      if (
+        confirm(
+          "Are you sure you want to complete this reconciliation session?"
+        )
+      ) {
+        fetch(`/bank-reconciliation/session/{{ session.id }}/complete/`, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+              .value,
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              showNotification("Session completed successfully", "success");
+              setTimeout(
+                () =>
+                  (window.location.href =
+                    "{% url 'bank_reconciliation:session_list' %}"),
+                1500
+              );
+            } else {
+              showNotification("Failed to complete session", "error");
+            }
+          });
+      }
+    });
+
+    // Notification function
+    function showNotification(message, type = "info") {
+      const notification = document.createElement("div");
+      notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
+        type === "success"
+          ? "bg-green-100 border border-green-400 text-green-700"
+          : type === "error"
+          ? "bg-red-100 border border-red-400 text-red-700"
+          : "bg-blue-100 border border-blue-400 text-blue-700"
+      }`;
+
+      notification.innerHTML = `
+        <div class="flex items-center">
+          <i class="fas fa-${
+            type === "success"
+              ? "check-circle"
+              : type === "error"
+              ? "exclamation-circle"
+              : "info-circle"
+          } mr-2"></i>
+          <span class="font-medium">GH{message}</span>
+        </div>
+      `;
+
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 5000);
+    }
+  });
+</script>
+{% endblock %}

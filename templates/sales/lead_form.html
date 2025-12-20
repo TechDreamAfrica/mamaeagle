@@ -1,0 +1,560 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% block title %} 
+{% if object %}Edit Lead - {{ object.first_name }} 
+{{ object.last_name }} {% else %}Add New
+Lead{% endif %} - DreamBiz Accounting {% endblock %} 
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            {% if object %} Edit Lead - {{ object.first_name }} 
+            {{ object.last_name }} {% else %} Add New Lead {% endif %}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Manage lead information and tracking details
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'sales:lead_list' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Leads
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Lead Form -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">
+              Lead Information
+            </h3>
+          </div>
+          <div class="p-6">
+            <form method="post" class="space-y-8">
+              {% csrf_token %}
+
+              <!-- Contact Information -->
+              <div class="space-y-4">
+                <h4
+                  class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+                >
+                  Contact Information
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      for="{{ form.first_name.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      First Name <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.first_name }} {% if form.first_name.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <label
+                      for="{{ form.last_name.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Last Name <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.last_name }} {% if form.last_name.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      for="{{ form.email.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Email <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.email }} {% if form.email.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.email.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <label
+                      for="{{ form.phone.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Phone
+                    </label>
+                    {{ form.phone }} {% if form.phone.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.phone.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Company Information -->
+              <div class="space-y-4">
+                <h4
+                  class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+                >
+                  Company Information
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="md:col-span-2">
+                    <label
+                      for="{{ form.company.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Company <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.company }} {% if form.company.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.company.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <label
+                      for="{{ form.title.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Job Title
+                    </label>
+                    {{ form.title }} {% if form.title.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.title.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lead Details -->
+              <div class="space-y-4">
+                <h4
+                  class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+                >
+                  Lead Details
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label
+                      for="{{ form.source.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Source
+                    </label>
+                    {{ form.source }} {% if form.source.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.source.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <label
+                      for="{{ form.status.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Status
+                    </label>
+                    {{ form.status }} {% if form.status.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.status.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <label
+                      for="{{ form.lead_score.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Lead Score
+                    </label>
+                    {{ form.lead_score }} {% if form.lead_score.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.lead_score.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      for="{{ form.priority.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Priority
+                    </label>
+                    {{ form.priority }} {% if form.priority.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.priority.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <label
+                      for="{{ form.estimated_value.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Estimated Value
+                    </label>
+                    {{ form.estimated_value }} {% if form.estimated_value.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.estimated_value.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Assignment -->
+              <div class="space-y-4">
+                <h4
+                  class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+                >
+                  Assignment
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      for="{{ form.territory.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Territory
+                    </label>
+                    {{ form.territory }} {% if form.territory.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.territory.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <label
+                      for="{{ form.assigned_to.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Assigned To
+                    </label>
+                    {{ form.assigned_to }} {% if form.assigned_to.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.assigned_to.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notes -->
+              <div class="space-y-4">
+                <h4
+                  class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+                >
+                  Notes
+                </h4>
+                <div>
+                  <label
+                    for="{{ form.notes.id_for_label }}"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Additional Notes
+                  </label>
+                  {{ form.notes }} {% if form.notes.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.notes.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Form Actions -->
+              <div class="flex justify-between pt-6">
+                <a
+                  href="{% url 'sales:lead_list' %}"
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                >
+                  Cancel
+                </a>
+                <button
+                  type="submit"
+                  class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                >
+                  {% if object %}
+                  <i class="fas fa-save mr-2"></i>
+                  Update Lead {% else %}
+                  <i class="fas fa-plus mr-2"></i>
+                  Save Lead {% endif %}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar with tips -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">
+              Lead Management Tips
+            </h3>
+          </div>
+          <div class="p-6 space-y-6">
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0">
+                <div
+                  class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center"
+                >
+                  <i class="fas fa-lightbulb text-yellow-600"></i>
+                </div>
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-gray-900">
+                  Lead Scoring
+                </h4>
+                <p class="text-sm text-gray-600 mt-1">
+                  Lead scores help prioritize your efforts. Higher scores (80+)
+                  indicate hot leads.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0">
+                <div
+                  class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
+                >
+                  <i class="fas fa-map-marker-alt text-blue-600"></i>
+                </div>
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-gray-900">
+                  Territory Assignment
+                </h4>
+                <p class="text-sm text-gray-600 mt-1">
+                  Assign leads to appropriate territories for better management
+                  and follow-up.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0">
+                <div
+                  class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
+                >
+                  <i class="fas fa-user-tie text-green-600"></i>
+                </div>
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-gray-900">
+                  Sales Rep Assignment
+                </h4>
+                <p class="text-sm text-gray-600 mt-1">
+                  Assign leads to sales reps based on territory, expertise, or
+                  workload.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0">
+                <div
+                  class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
+                >
+                  <i class="fas fa-chart-line text-purple-600"></i>
+                </div>
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-gray-900">
+                  Lead Sources
+                </h4>
+                <p class="text-sm text-gray-600 mt-1">
+                  Track lead sources to identify your most effective marketing
+                  channels.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0">
+                <div
+                  class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center"
+                >
+                  <i class="fas fa-exclamation-triangle text-red-600"></i>
+                </div>
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-gray-900">
+                  Priority Levels
+                </h4>
+                <p class="text-sm text-gray-600 mt-1">
+                  Set priority levels to focus on the most promising
+                  opportunities first.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Add Tailwind classes to form fields
+    const inputs = document.querySelectorAll(
+      'input[type="text"], input[type="email"], input[type="number"], input[type="date"], select, textarea'
+    );
+
+    inputs.forEach((input) => {
+      input.classList.add(
+        "block",
+        "w-full",
+        "px-3",
+        "py-2",
+        "border",
+        "border-gray-300",
+        "rounded-md",
+        "shadow-sm",
+        "placeholder-gray-400",
+        "focus:outline-none",
+        "focus:ring-indigo-500",
+        "focus:border-indigo-500",
+        "sm:text-sm"
+      );
+    });
+
+    // Add specific styling for textareas
+    const textareas = document.querySelectorAll("textarea");
+    textareas.forEach((textarea) => {
+      textarea.classList.add("h-24", "resize-none");
+    });
+
+    // Handle form validation with modern styling
+    const form = document.querySelector("form");
+    form.addEventListener("submit", function (e) {
+      let isValid = true;
+      const errorMessages = [];
+
+      // Check required fields
+      const requiredFields = [
+        { field: "first_name", label: "First Name" },
+        { field: "last_name", label: "Last Name" },
+        { field: "email", label: "Email" },
+        { field: "company", label: "Company" },
+      ];
+
+      requiredFields.forEach((item) => {
+        const field = document.querySelector(`[name="${item.field}"]`);
+        if (field && !field.value.trim()) {
+          field.classList.remove("border-gray-300", "focus:border-indigo-500");
+          field.classList.add("border-red-300", "focus:border-red-500");
+          errorMessages.push(item.label);
+          isValid = false;
+        } else if (field) {
+          field.classList.remove("border-red-300", "focus:border-red-500");
+          field.classList.add("border-gray-300", "focus:border-indigo-500");
+        }
+      });
+
+      // Email validation
+      const emailField = document.querySelector('[name="email"]');
+      if (emailField && emailField.value.trim()) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailField.value.trim())) {
+          emailField.classList.remove(
+            "border-gray-300",
+            "focus:border-indigo-500"
+          );
+          emailField.classList.add("border-red-300", "focus:border-red-500");
+          if (!errorMessages.includes("Email")) {
+            errorMessages.push("Valid Email");
+          }
+          isValid = false;
+        }
+      }
+
+      if (!isValid) {
+        e.preventDefault();
+
+        // Show error notification
+        const errorDiv = document.createElement("div");
+        errorDiv.className =
+          "fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50";
+        errorDiv.innerHTML = `
+          <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span class="font-medium">Please fix the following errors:</span>
+          </div>
+          <ul class="mt-2 text-sm list-disc list-inside">
+            ${errorMessages
+              .map((msg) => `<li>GH{msg} is required</li>`)
+              .join("")}
+          </ul>
+        `;
+
+        document.body.appendChild(errorDiv);
+
+        // Remove notification after 5 seconds
+        setTimeout(() => {
+          errorDiv.remove();
+        }, 5000);
+
+        // Scroll to first error field
+        const firstErrorField = document.querySelector(".border-red-300");
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          firstErrorField.focus();
+        }
+      }
+    });
+
+    // Real-time validation feedback
+    const requiredInputs = document.querySelectorAll(
+      '[name="first_name"], [name="last_name"], [name="email"], [name="company"]'
+    );
+    requiredInputs.forEach((input) => {
+      input.addEventListener("blur", function () {
+        if (this.value.trim()) {
+          this.classList.remove("border-red-300", "focus:border-red-500");
+          this.classList.add("border-green-300", "focus:border-green-500");
+        } else {
+          this.classList.remove("border-green-300", "focus:border-green-500");
+          this.classList.add("border-red-300", "focus:border-red-500");
+        }
+      });
+
+      input.addEventListener("focus", function () {
+        this.classList.remove("border-red-300", "border-green-300");
+        this.classList.add("border-indigo-500");
+      });
+    });
+  });
+</script>
+{% endblock %}

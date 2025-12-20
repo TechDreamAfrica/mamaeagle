@@ -1,0 +1,513 @@
+{% extends 'website/base.html' %}
+
+{% block title %}Checkout - Mama Eagle Enterprise{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-r from-primary to-primary-dark text-white overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute inset-0 bg-repeat opacity-20" style="background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><rect width="60" height="60" fill="%23ffffff" fill-opacity="0.1"/><path d="M30 0L60 30L30 60L0 30z" fill="%23ffffff" fill-opacity="0.05"/></svg>');"></div>
+    </div>
+    <div class="relative max-w-7xl mx-auto px-4 py-16">
+        <div class="text-center">
+            <h1 class="text-5xl md:text-6xl font-bold mb-6">Secure Checkout</h1>
+            <p class="text-xl text-blue-100 max-w-3xl mx-auto">
+                Complete your order with confidence. Your information is secure and protected.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Breadcrumb -->
+<nav class="bg-gray-50 py-4" aria-label="Breadcrumb">
+    <div class="max-w-7xl mx-auto px-4">
+        <ol class="flex space-x-2 text-sm">
+            <li><a href="{% url 'website:home' %}" class="text-primary hover:underline">Home</a></li>
+            <li class="text-gray-500">/</li>
+            <li><a href="{% url 'website:cart_view' %}" class="text-primary hover:underline">Cart</a></li>
+            <li class="text-gray-500">/</li>
+            <li class="text-gray-700 font-medium">Checkout</li>
+        </ol>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto px-4 py-8">
+    
+    <!-- Messages -->
+    {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} bg-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-100 border border-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-400 text-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-700 px-4 py-3 rounded mb-4">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Checkout Form -->
+        <div class="lg:col-span-2">
+            <form method="post" id="checkoutForm">
+                {% csrf_token %}
+                
+                <!-- Customer Information -->
+                <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Customer Information</h2>
+                    
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="id_first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div>
+                            <label for="id_last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="id_email" class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                            {{ form.email }}
+                        </div>
+                        <div>
+                            <label for="id_phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                            {{ form.phone }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Shipping Address -->
+                <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Shipping Address</h2>
+                    
+                    <div class="mb-4">
+                        <label for="id_address_line_1" class="block text-sm font-medium text-gray-700 mb-1">Address Line 1 *</label>
+                        {{ form.address_line_1 }}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="id_address_line_2" class="block text-sm font-medium text-gray-700 mb-1">Address Line 2 (Optional)</label>
+                        {{ form.address_line_2 }}
+                    </div>
+                    
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="id_city" class="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                            {{ form.city }}
+                        </div>
+                        <div>
+                            <label for="id_region" class="block text-sm font-medium text-gray-700 mb-1">Region *</label>
+                            {{ form.region }}
+                        </div>
+                        <div>
+                            <label for="id_postal_code" class="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                            {{ form.postal_code }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Delivery Options -->
+                <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Delivery Options</h2>
+                    
+                    <div class="space-y-3">
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-primary cursor-pointer">
+                            <input type="radio" name="delivery_method" value="standard" class="text-primary focus:ring-primary" checked>
+                            <div class="ml-3 flex-1">
+                                <div class="font-medium">Standard Delivery (2-3 Business Days)</div>
+                                <div class="text-sm text-gray-600">
+                                    {% if cart.get_total_price >= 500 %}
+                                        <span class="text-green-600 font-semibold">FREE</span>
+                                    {% else %}
+                                        GHS 25.00
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-primary cursor-pointer">
+                            <input type="radio" name="delivery_method" value="express" class="text-primary focus:ring-primary">
+                            <div class="ml-3 flex-1">
+                                <div class="font-medium">Express Delivery (Next Day)</div>
+                                <div class="text-sm text-gray-600">GHS 50.00</div>
+                            </div>
+                        </label>
+                        
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-primary cursor-pointer">
+                            <input type="radio" name="delivery_method" value="pickup" class="text-primary focus:ring-primary">
+                            <div class="ml-3 flex-1">
+                                <div class="font-medium">Store Pickup</div>
+                                <div class="text-sm text-gray-600">FREE - Pick up from our nearest branch</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Payment Method -->
+                <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Payment Method</h2>
+                    
+                    <div class="space-y-4">
+                        {% for field in form.payment_method %}
+                            {{ field.tag }}
+                            {% if field.choice_label == 'Cash on Delivery' %}
+                            <label for="{{ field.id_for_label }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-primary cursor-pointer ml-6">
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900 flex items-center">
+                                        <span class="text-2xl mr-3">💵</span>
+                                        Cash on Delivery
+                                    </div>
+                                    <div class="text-sm text-gray-600 mt-1">
+                                        Pay with cash when your order is delivered. No online payment required.
+                                    </div>
+                                    <div class="mt-2 flex items-center text-sm">
+                                        <span class="text-green-600 font-medium">✓ No upfront payment</span>
+                                        <span class="mx-2">•</span>
+                                        <span class="text-green-600 font-medium">✓ Pay only on delivery</span>
+                                    </div>
+                                </div>
+                            </label>
+                            {% elif field.choice_label == 'Online Payment (Cards, Mobile Money)' %}
+                            <label for="{{ field.id_for_label }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-primary cursor-pointer ml-6">
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900 flex items-center">
+                                        <span class="text-2xl mr-3">💳</span>
+                                        Online Payment
+                                        <span class="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Secure</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 mt-1">
+                                        Pay securely with your credit/debit card or mobile money
+                                    </div>
+                                    <div class="mt-3 flex items-center space-x-3">
+                                        <div class="flex space-x-2">
+                                            <div class="w-10 h-6 bg-blue-600 rounded text-xs flex items-center justify-center font-bold text-white">VISA</div>
+                                            <div class="w-10 h-6 bg-red-600 rounded text-xs flex items-center justify-center font-bold text-white">MC</div>
+                                        </div>
+                                        <span class="text-gray-400">•</span>
+                                        <div class="flex space-x-2">
+                                            <div class="w-10 h-6 bg-yellow-400 rounded text-xs flex items-center justify-center font-bold text-black">MTN</div>
+                                            <div class="w-10 h-6 bg-red-600 rounded text-xs flex items-center justify-center font-bold text-white">VOD</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 flex items-center text-sm text-green-600">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span class="font-medium">SSL Encrypted & PCI Compliant</span>
+                                    </div>
+                                </div>
+                            </label>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <div id="paymentInfo" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg hidden">
+                        <div class="flex items-start space-x-2">
+                            <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div class="text-sm text-blue-800">
+                                <p class="font-medium mb-1">Online Payment Information</p>
+                                <p>You'll be redirected to our secure payment page powered by Paystack to complete your payment with your preferred method.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Billing Address -->
+                <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Billing Address</h2>
+                    
+                    <div class="mb-4">
+                        <label for="id_billing_address" class="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
+                        {{ form.billing_address }}
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="id_billing_city" class="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                            {{ form.billing_city }}
+                        </div>
+                        <div>
+                            <label for="id_billing_state" class="block text-sm font-medium text-gray-700 mb-1">State/Region *</label>
+                            {{ form.billing_state }}
+                        </div>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="id_billing_postal_code" class="block text-sm font-medium text-gray-700 mb-1">Postal Code *</label>
+                            {{ form.billing_postal_code }}
+                        </div>
+                        <div>
+                            <label for="id_billing_country" class="block text-sm font-medium text-gray-700 mb-1">Country *</label>
+                            {{ form.billing_country }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Notes -->
+                <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Order Notes (Optional)</h2>
+                    {{ form.notes }}
+                </div>
+                
+                <!-- Terms and Conditions -->
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                    <label class="flex items-start">
+                        <input type="checkbox" name="accept_terms" required class="text-primary focus:ring-primary mt-1">
+                        <div class="ml-3">
+                            <div class="font-medium">I agree to the Terms and Conditions *</div>
+                            <div class="text-sm text-gray-600 mt-1">
+                                By placing this order, you agree to our 
+                                <a href="#" class="text-primary hover:underline">Terms of Service</a> and 
+                                <a href="#" class="text-primary hover:underline">Privacy Policy</a>.
+                                You also acknowledge that professional installation may be required for certain plumbing products.
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="lg:col-span-1">
+            <div class="bg-white border border-gray-200 rounded-lg p-6 sticky top-4">
+                <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
+                
+                <!-- Cart Items -->
+                <div class="space-y-3 mb-6 max-h-60 overflow-y-auto">
+                    {% for item in cart_items %}
+                    <div class="flex items-center space-x-3 py-2 border-b border-gray-100 last:border-b-0">
+                        <div class="flex-shrink-0">
+                            {% if item.product.images.first %}
+                                <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}" class="w-12 h-12 object-cover rounded">
+                            {% else %}
+                                <div class="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
+                                    <span class="text-gray-400 text-xs">🔧</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-medium text-sm truncate">{{ item.product.name }}</div>
+                            <div class="text-xs text-gray-600">Qty: {{ item.quantity }}</div>
+                        </div>
+                        <div class="text-sm font-medium">GHS {{ item.get_total_price }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pricing Breakdown -->
+                <div class="space-y-3 text-sm border-t border-gray-200 pt-4">
+                    <div class="flex justify-between">
+                        <span>Subtotal ({{ cart_items|length }} items):</span>
+                        <span class="font-medium">GHS {{ subtotal|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span>Delivery:</span>
+                        <span class="font-medium" id="deliveryFee">
+                            {% if shipping_cost == 0 %}
+                                <span class="text-green-600">FREE</span>
+                            {% else %}
+                                GHS {{ shipping_cost|floatformat:2 }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if shipping_cost > 0 %}
+                    <div class="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                        💡 Add more for FREE delivery on orders over GHS {{ free_shipping_threshold }}!
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex justify-between">
+                        <span>Payment Fee:</span>
+                        <span class="font-medium" id="paymentFee">GHS 0.00</span>
+                    </div>
+                    
+                    <hr class="border-gray-200">
+                    
+                    <div class="flex justify-between text-lg font-bold">
+                        <span>Total:</span>
+                        <span class="text-primary" id="orderTotal">
+                            GHS {{ total_amount|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Security Info -->
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <div class="flex items-center justify-center space-x-2 text-xs text-gray-600 mb-4">
+                        <span>🔒</span>
+                        <span>256-bit SSL Secure Checkout</span>
+                    </div>
+                    
+                    <!-- Place Order Button -->
+                    <button type="submit" form="checkoutForm" 
+                            class="w-full bg-secondary text-white py-4 px-6 rounded-lg font-bold text-lg hover:bg-orange-400 transition duration-300">
+                        🛡️ Place Order Securely
+                    </button>
+                    
+                    <div class="text-center mt-3">
+                        <div class="text-xs text-gray-600">
+                            Your payment information is encrypted and secure
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Customer Support -->
+                <div class="mt-6 pt-4 border-t border-gray-200 text-center">
+                    <div class="text-sm font-medium mb-2">Need Help?</div>
+                    <div class="space-y-1 text-xs text-gray-600">
+                        <div>📞 Call: +233 XXX XXX XXX</div>
+                        <div>💬 WhatsApp: +233 XXX XXX XXX</div>
+                        <div>✉️ Email: orders@mamaeagle.com</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #1f4788;
+    box-shadow: 0 0 0 3px rgba(31, 71, 136, 0.1);
+}
+
+input[type="radio"]:checked {
+    background-color: #1f4788;
+    border-color: #1f4788;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #1f4788;
+    border-color: #1f4788;
+}
+</style>
+
+<script>
+// Toggle payment information display
+function togglePaymentInfo() {
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
+    const paymentInfo = document.getElementById('paymentInfo');
+    
+    if (paymentMethod && paymentMethod.value === 'paystack') {
+        paymentInfo.classList.remove('hidden');
+    } else {
+        paymentInfo.classList.add('hidden');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const deliveryOptions = document.querySelectorAll('input[name="delivery_method"]');
+    const paymentOptions = document.querySelectorAll('input[name="payment_method"]');
+    const subtotal = {{ subtotal|floatformat:2 }};
+    const initialShipping = {{ shipping_cost|floatformat:2 }};
+    const freeShippingThreshold = {{ free_shipping_threshold }};
+    
+    // Initialize payment info display
+    togglePaymentInfo();
+    
+    // Update pricing when delivery method changes
+    deliveryOptions.forEach(option => {
+        option.addEventListener('change', updateTotals);
+    });
+    
+    // Update pricing when payment method changes
+    paymentOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            updateTotals();
+            togglePaymentInfo();
+        });
+    });
+    
+    function updateTotals() {
+        const deliveryMethod = document.querySelector('input[name="delivery_method"]:checked')?.value || 'standard';
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'cash_on_delivery';
+        
+        let deliveryFee = initialShipping;
+        let paymentFee = 0;
+        
+        // Calculate delivery fee
+        if (deliveryMethod === 'standard') {
+            deliveryFee = subtotal >= freeShippingThreshold ? 0 : 25;
+        } else if (deliveryMethod === 'express') {
+            deliveryFee = 50;
+        } else if (deliveryMethod === 'pickup') {
+            deliveryFee = 0;
+        }
+        
+        // Calculate payment fee
+        switch(paymentMethod) {
+            case 'card':
+                paymentFee = subtotal * 0.025; // 2.5% card processing fee
+                break;
+            case 'mobile_money':
+                paymentFee = subtotal * 0.01; // 1% mobile money fee
+                break;
+            case 'pay_on_delivery':
+                paymentFee = 10;
+                break;
+            default:
+                paymentFee = 0;
+                break;
+        }
+        
+        // Update display
+        document.getElementById('deliveryFee').innerHTML = deliveryFee === 0 ? 
+            '<span class="text-green-600">FREE</span>' : 
+            `GHS ${deliveryFee.toFixed(2)}`;
+            
+        document.getElementById('paymentFee').textContent = `GHS ${paymentFee.toFixed(2)}`;
+        
+        const total = subtotal + deliveryFee + paymentFee;
+        document.getElementById('orderTotal').textContent = `GHS ${total.toFixed(2)}`;
+    }
+    
+    // Form validation
+    const form = document.getElementById('checkoutForm');
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                field.classList.remove('border-red-500');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+            return;
+        }
+        
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '⏳ Processing Order...';
+        submitBtn.disabled = true;
+    });
+    
+    // Auto-fill form from user profile if available
+    {% if user.is_authenticated %}
+    // You can add JavaScript here to auto-fill known user information
+    {% endif %}
+});
+</script>
+{% endblock %}

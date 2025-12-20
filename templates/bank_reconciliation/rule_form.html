@@ -1,0 +1,507 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+{% if object %}Edit Reconciliation Rule - {{ object.name }}{% else %}Create New Reconciliation Rule{% endif %} - DreamBiz
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            {% if object %}Edit Reconciliation Rule - {{ object.name }}{% else %}Create New Reconciliation Rule{% endif %}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Configure automated rules to streamline transaction matching
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'bank_reconciliation:rule_list' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Rules
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Rule Configuration</h3>
+      </div>
+      <div class="p-6">
+        <form method="post" class="space-y-6">
+          {% csrf_token %}
+
+          <!-- Basic Information -->
+          <div class="space-y-4">
+            <h4
+              class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+            >
+              Basic Information
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  for="{{ form.name.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Rule Name <span class="text-red-500">*</span>
+                </label>
+                {{ form.name }} {% if form.name.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.name.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.rule_type.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Rule Type <span class="text-red-500">*</span>
+                </label>
+                {{ form.rule_type }} {% if form.rule_type.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.rule_type.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500">
+                  Choose the type of matching to perform
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label
+                for="{{ form.description_pattern.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Description Pattern
+              </label>
+              {{ form.description_pattern }}
+              {% if form.description_pattern.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.description_pattern.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+              <p class="mt-1 text-xs text-gray-500">
+                Text pattern to match in transaction descriptions
+              </p>
+            </div>
+          </div>
+
+          <!-- Matching Criteria -->
+          <div class="space-y-4">
+            <h4
+              class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+            >
+              Matching Criteria
+            </h4>
+
+            <!-- Check Number Pattern -->
+            <div>
+              <label
+                for="{{ form.check_number_pattern.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Check Number Pattern
+              </label>
+              {{ form.check_number_pattern }}
+              {% if form.check_number_pattern.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.check_number_pattern.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+              <p class="mt-1 text-xs text-gray-500">
+                Pattern to match check numbers (e.g., 1001, 1002-1010)
+              </p>
+            </div>
+
+            <!-- Reference Pattern -->
+            <div>
+              <label
+                for="{{ form.reference_pattern.id_for_label }}"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Reference Pattern
+              </label>
+              {{ form.reference_pattern }}
+              {% if form.reference_pattern.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {% for error in form.reference_pattern.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+              <p class="mt-1 text-xs text-gray-500">
+                Pattern to match reference numbers
+              </p>
+            </div>
+
+            <!-- Amount Range (Optional) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  for="{{ form.amount_min.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Minimum Amount
+                </label>
+                {{ form.amount_min }}
+                {% if form.amount_min.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.amount_min.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.amount_max.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Maximum Amount
+                </label>
+                {{ form.amount_max }}
+                {% if form.amount_max.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.amount_max.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Rule Configuration -->
+          <div class="space-y-4">
+            <h4
+              class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+            >
+              Rule Configuration
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  for="{{ form.auto_match.id_for_label }}"
+                  class="flex items-center space-x-3"
+                >
+                  <div class="flex items-center h-5">{{ form.auto_match }}</div>
+                  <div class="text-sm">
+                    <span class="font-medium text-gray-700">Auto Match</span>
+                    <p class="text-gray-500">
+                      Automatically match transactions meeting this rule
+                    </p>
+                  </div>
+                </label>
+                {% if form.auto_match.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.auto_match.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <label
+                  for="{{ form.confidence_threshold.id_for_label }}"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Confidence Threshold <span class="text-red-500">*</span>
+                </label>
+                {{ form.confidence_threshold }}
+                {% if form.confidence_threshold.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.confidence_threshold.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500">
+                  Minimum confidence level (1-100) for auto-matching
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center">
+              <div class="flex items-center h-5">{{ form.is_active }}</div>
+              <div class="ml-3 text-sm">
+                <label
+                  for="{{ form.is_active.id_for_label }}"
+                  class="font-medium text-gray-700"
+                >
+                  Active Rule
+                </label>
+                <p class="text-gray-500">
+                  Enable this rule for automatic processing
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex justify-between pt-6">
+            <a
+              href="{% url 'bank_reconciliation:rule_list' %}"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            >
+              Cancel
+            </a>
+            <div class="flex space-x-3">
+              {% if object %}
+              <button
+                type="button"
+                id="test-rule"
+                class="inline-flex items-center px-4 py-2 border border-indigo-300 text-sm font-medium rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+              >
+                <i class="fas fa-flask mr-2"></i>
+                Test Rule
+              </button>
+              {% endif %}
+              <button
+                type="submit"
+                class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+              >
+                {% if object %}
+                <i class="fas fa-save mr-2"></i>
+                Update Rule {% else %}
+                <i class="fas fa-plus mr-2"></i>
+                Create Rule {% endif %}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Rule Examples -->
+    <div class="mt-8 bg-blue-50 rounded-lg p-6">
+      <h4 class="text-lg font-semibold text-blue-900 mb-4">Rule Examples</h4>
+      <div class="space-y-4 text-sm">
+        <div class="bg-white rounded-lg p-4 border border-blue-200">
+          <h5 class="font-semibold text-blue-800 mb-2">Payroll Deposits</h5>
+          <p class="text-blue-700 mb-2">
+            Automatically match recurring payroll deposits
+          </p>
+          <div class="text-xs text-blue-600">
+            <strong>Field:</strong> Description |
+            <strong>Type:</strong> Contains | <strong>Value:</strong> "PAYROLL
+            DEPOSIT" | <strong>Action:</strong> Auto Match
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 border border-blue-200">
+          <h5 class="font-semibold text-blue-800 mb-2">Utility Bills</h5>
+          <p class="text-blue-700 mb-2">Flag utility payments for review</p>
+          <div class="text-xs text-blue-600">
+            <strong>Field:</strong> Description |
+            <strong>Type:</strong> Contains | <strong>Value:</strong> "ELECTRIC
+            CO" | <strong>Action:</strong> Flag for Review
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg p-4 border border-blue-200">
+          <h5 class="font-semibold text-blue-800 mb-2">Large Transactions</h5>
+          <p class="text-blue-700 mb-2">
+            Suggest matches for transactions over GH₵1000
+          </p>
+          <div class="text-xs text-blue-600">
+            <strong>Min Amount:</strong> GH₵1000 |
+            <strong>Action:</strong> Suggest Match
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Add Tailwind classes to form fields
+    const inputs = document.querySelectorAll(
+      'input[type="text"], input[type="number"], select, textarea'
+    );
+
+    inputs.forEach((input) => {
+      input.classList.add(
+        "block",
+        "w-full",
+        "px-3",
+        "py-2",
+        "border",
+        "border-gray-300",
+        "rounded-md",
+        "shadow-sm",
+        "placeholder-gray-400",
+        "focus:outline-none",
+        "focus:ring-indigo-500",
+        "focus:border-indigo-500",
+        "sm:text-sm"
+      );
+    });
+
+    // Style checkboxes
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach((checkbox) => {
+      checkbox.classList.add(
+        "h-4",
+        "w-4",
+        "text-indigo-600",
+        "focus:ring-indigo-500",
+        "border-gray-300",
+        "rounded"
+      );
+    });
+
+    // Add specific styling for textareas
+    const textareas = document.querySelectorAll("textarea");
+    textareas.forEach((textarea) => {
+      textarea.classList.add("h-20", "resize-none");
+    });
+
+    // Dynamic help text based on match type
+    const matchTypeField = document.querySelector('[name="match_type"]');
+    const matchHelpText = document.getElementById("match-help");
+
+    function updateMatchHelp() {
+      const matchType = matchTypeField.value;
+      const helpTexts = {
+        contains:
+          'Enter text that should be found anywhere in the field (e.g., "PAYROLL")',
+        exact:
+          "Enter the exact text that must match completely (case-sensitive)",
+        starts_with:
+          'Enter text that the field should start with (e.g., "ACH")',
+        ends_with:
+          'Enter text that the field should end with (e.g., "DEPOSIT")',
+        regex: "Enter a regular expression pattern (advanced users only)",
+      };
+
+      if (matchHelpText && helpTexts[matchType]) {
+        matchHelpText.textContent = helpTexts[matchType];
+      }
+    }
+
+    if (matchTypeField) {
+      matchTypeField.addEventListener("change", updateMatchHelp);
+      updateMatchHelp(); // Set initial help text
+    }
+
+    // Test rule functionality (if editing existing rule)
+    const testButton = document.getElementById("test-rule");
+    if (testButton) {
+      testButton.addEventListener("click", function () {
+        // Here you would make an API call to test the rule
+        showNotification("Testing rule against recent transactions...", "info");
+
+        // Simulate test results after a delay
+        setTimeout(() => {
+          showNotification(
+            "Test completed: 15 transactions would match this rule",
+            "success"
+          );
+        }, 2000);
+      });
+    }
+
+    // Form validation
+    const form = document.querySelector("form");
+    form.addEventListener("submit", function (e) {
+      let isValid = true;
+      const errorMessages = [];
+
+      // Check required fields
+      const requiredFields = [
+        { field: "name", label: "Rule Name" },
+        { field: "match_field", label: "Match Field" },
+        { field: "match_type", label: "Match Type" },
+        { field: "match_value", label: "Match Value" },
+        { field: "action", label: "Action" },
+      ];
+
+      requiredFields.forEach((item) => {
+        const field = document.querySelector(`[name="${item.field}"]`);
+        if (field && !field.value.trim()) {
+          field.classList.remove("border-gray-300", "focus:border-indigo-500");
+          field.classList.add("border-red-300", "focus:border-red-500");
+          errorMessages.push(item.label);
+          isValid = false;
+        } else if (field) {
+          field.classList.remove("border-red-300", "focus:border-red-500");
+          field.classList.add("border-gray-300", "focus:border-indigo-500");
+        }
+      });
+
+      // Validate amount range
+      const minAmount = document.querySelector('[name="min_amount"]');
+      const maxAmount = document.querySelector('[name="max_amount"]');
+
+      if (minAmount && maxAmount && minAmount.value && maxAmount.value) {
+        if (parseFloat(minAmount.value) > parseFloat(maxAmount.value)) {
+          maxAmount.classList.add("border-red-300", "focus:border-red-500");
+          errorMessages.push(
+            "Maximum amount must be greater than minimum amount"
+          );
+          isValid = false;
+        }
+      }
+
+      if (!isValid) {
+        e.preventDefault();
+        showNotification(
+          `Please fix the following errors: ${errorMessages.join(", ")}`,
+          "error"
+        );
+
+        // Scroll to first error field
+        const firstErrorField = document.querySelector(".border-red-300");
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          firstErrorField.focus();
+        }
+      }
+    });
+
+    // Show notification function
+    function showNotification(message, type = "info") {
+      const notification = document.createElement("div");
+      notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
+        type === "success"
+          ? "bg-green-100 border border-green-400 text-green-700"
+          : type === "error"
+          ? "bg-red-100 border border-red-400 text-red-700"
+          : "bg-blue-100 border border-blue-400 text-blue-700"
+      }`;
+
+      notification.innerHTML = `
+        <div class="flex items-center">
+          <i class="fas fa-${
+            type === "success"
+              ? "check-circle"
+              : type === "error"
+              ? "exclamation-circle"
+              : "info-circle"
+          } mr-2"></i>
+          <span class="font-medium">GH{message}</span>
+        </div>
+      `;
+
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 5000);
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Convert Lead to Opportunity - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto p-6">
+  <div class="mb-6">
+    <a href="{% url 'sales:lead_detail' lead.id %}" class="text-blue-600 hover:text-blue-800 flex items-center">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Back to Lead
+    </a>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-8">
+    <div class="flex items-center justify-center mb-6">
+      <div class="bg-blue-100 rounded-full p-3">
+        <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+        </svg>
+      </div>
+    </div>
+
+    <h1 class="text-2xl font-bold text-gray-900 text-center mb-2">Convert Lead to Opportunity</h1>
+    <p class="text-gray-600 text-center mb-6">Convert this qualified lead into a sales opportunity to track through your pipeline</p>
+
+    <div class="bg-gray-50 rounded-lg p-6 mb-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Lead Information</h3>
+      <dl class="space-y-3">
+        <div class="flex justify-between">
+          <dt class="text-sm font-medium text-gray-500">Name:</dt>
+          <dd class="text-sm text-gray-900 font-medium">{{ lead.full_name }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-sm font-medium text-gray-500">Company:</dt>
+          <dd class="text-sm text-gray-900 font-medium">{{ lead.company|default:"N/A" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-sm font-medium text-gray-500">Email:</dt>
+          <dd class="text-sm text-gray-900">{{ lead.email }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-sm font-medium text-gray-500">Phone:</dt>
+          <dd class="text-sm text-gray-900">{{ lead.phone|default:"N/A" }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-sm font-medium text-gray-500">Status:</dt>
+          <dd>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              {{ lead.get_status_display }}
+            </span>
+          </dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-sm font-medium text-gray-500">Estimated Value:</dt>
+          <dd class="text-sm text-gray-900 font-semibold">GH{{ lead.estimated_value|default:0 }}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-sm font-medium text-gray-500">Probability:</dt>
+          <dd class="text-sm text-gray-900">{{ lead.probability }}%</dd>
+        </div>
+        {% if lead.assigned_to %}
+        <div class="flex justify-between">
+          <dt class="text-sm font-medium text-gray-500">Assigned To:</dt>
+          <dd class="text-sm text-gray-900">{{ lead.assigned_to.full_name }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div class="flex">
+        <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <h4 class="text-sm font-medium text-blue-800 mb-1">What will happen?</h4>
+          <ul class="text-sm text-blue-700 space-y-1">
+            <li>• A new opportunity will be created with this lead's information</li>
+            <li>• The opportunity will start in the "Qualification" stage</li>
+            <li>• The lead status will be updated to "Won" (converted)</li>
+            <li>• Sales activity will be logged for tracking</li>
+            <li>• You'll be redirected to the new opportunity</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div class="flex space-x-3">
+        <a href="{% url 'sales:lead_detail' lead.id %}" 
+           class="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-200 transition-colors text-center font-medium">
+          Cancel
+        </a>
+        <button type="submit" 
+                class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+          </svg>
+          Convert to Opportunity
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

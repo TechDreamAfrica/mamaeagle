@@ -1,0 +1,983 @@
+{% extends 'base.html' %} 
+{% block title %}Create Invoice - DreamBiz Accounting{% endblock %} 
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="py-6">
+        <div class="flex items-center">
+          <a
+            href="{% url 'invoicing:invoice_list' %}"
+            class="mr-4 text-gray-400 hover:text-gray-600"
+          >
+            <i class="fas fa-arrow-left text-xl"></i>
+          </a>
+          <div>
+            <h2 class="text-2xl font-bold leading-7 text-gray-900">
+              <i class="fas fa-plus-circle text-dreambiz-600 mr-3"></i>Create
+              New Invoice
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+              Create professional invoices with AI assistance
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="invoiceForm()">
+    <form method="post" id="invoiceForm" @submit="validateInvoiceForm">
+      {% csrf_token %}
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Invoice Form -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Customer Section -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-medium text-gray-900">
+                <i class="fas fa-user text-dreambiz-600 mr-2"></i>Customer
+                Information
+              </h3>
+              <button
+                type="button"
+                @click="openCustomerModal()"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+              >
+                <i class="fas fa-user-plus mr-2"></i>
+                Add New Customer
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1"
+                  >Select Customer <span class="text-red-500">*</span></label
+                >
+                <select
+                  name="customer"
+                  x-model="customer"
+                  @change="updateCustomerInfo()"
+                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                  required
+                >
+                  <option value="">-- Select a customer --</option>
+                  {% for customer in customers %}
+                  <option value="{{ customer.id }}">
+                    {{ customer.name }}{% if customer.company %} - {{ customer.company }}{% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+                <p class="mt-1 text-sm text-gray-500">
+                  Choose an existing customer or click "Add New Customer" to create one
+                </p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1"
+                  >Due Date</label
+                >
+                <input
+                  type="date"
+                  name="date_due"
+                  x-model="dueDate"
+                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1"
+                  >Payment Terms</label
+                >
+                <select
+                  name="terms"
+                  x-model="paymentTerms"
+                  @change="updateDueDateFromTerms()"
+                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                >
+                  <option value="">Select payment terms</option>
+                  <option value="Net 15">Net 15</option>
+                  <option value="Net 30">Net 30</option>
+                  <option value="Net 60">Net 60</option>
+                  <option value="Due on Receipt">Due on Receipt</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Line Items Section -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-medium text-gray-900">
+                <i class="fas fa-list text-dreambiz-600 mr-2"></i>Line Items
+              </h3>
+              <button
+                type="button"
+                @click="addLineItem()"
+                class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-dreambiz-700 bg-dreambiz-100 hover:bg-dreambiz-200"
+              >
+                <i class="fas fa-plus mr-2"></i>Add Item
+              </button>
+            </div>
+
+            <!-- Line Items Table -->
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Description
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Qty
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Unit Price
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Tax Rate (%)
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Total
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <template x-for="(item, index) in lineItems" :key="index">
+                    <tr>
+                      <td class="px-4 py-4">
+                        <div class="flex">
+                          <input
+                            type="text"
+                            x-model="item.description"
+                            @input="calculateItemTotal(index)"
+                            class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 text-sm"
+                            placeholder="Description"
+                          />
+                          <button
+                            type="button"
+                            @click="showProductSelector(index)"
+                            class="ml-2 p-2 text-gray-400 hover:text-gray-600"
+                          >
+                            <i class="fas fa-search"></i>
+                          </button>
+                        </div>
+                      </td>
+                      <td class="px-4 py-4">
+                        <input
+                          type="number"
+                          x-model="item.quantity"
+                          @input="calculateItemTotal(index)"
+                          class="w-20 border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 text-sm"
+                          min="0"
+                          step="0.01"
+                        />
+                      </td>
+                      <td class="px-4 py-4">
+                        <input
+                          type="number"
+                          x-model="item.rate"
+                          @input="calculateItemTotal(index)"
+                          class="w-24 border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 text-sm"
+                          min="0"
+                          step="0.01"
+                        />
+                      </td>
+                      <td class="px-4 py-4">
+                        <input
+                          type="number"
+                          x-model="item.tax_rate"
+                          @input="calculateItemTotal(index)"
+                          class="w-20 border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 text-sm"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          placeholder="0.00"
+                        />
+                      </td>
+                      <td class="px-4 py-4">
+                        <span
+                          class="text-sm font-medium text-gray-900"
+                          x-text="formatCurrency(item.total)"
+                        ></span>
+                      </td>
+                      <td class="px-4 py-4">
+                        <button
+                          type="button"
+                          @click="removeLineItem(index)"
+                          class="text-red-600 hover:text-red-900"
+                        >
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+
+              <div
+                x-show="lineItems.length === 0"
+                class="text-center py-8 text-gray-500"
+              >
+                <i class="fas fa-inbox text-4xl mb-4"></i>
+                <p>No items added yet</p>
+                <button
+                  type="button"
+                  @click="addLineItem()"
+                  class="mt-2 text-dreambiz-600 hover:text-dreambiz-700"
+                >
+                  Add your first item
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes Section -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              <i class="fas fa-sticky-note text-dreambiz-600 mr-2"></i
+              >Additional Information
+            </h3>
+
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1"
+                  >Notes</label
+                >
+                <textarea
+                  name="notes"
+                  rows="3"
+                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                  placeholder="Add any additional notes..."
+                ></textarea>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1"
+                  >Terms & Conditions</label
+                >
+                <textarea
+                  name="terms"
+                  rows="3"
+                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                  placeholder="Payment terms and conditions..."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoice Preview & Totals -->
+        <div class="space-y-6">
+          <!-- Totals Card -->
+          <div class="bg-white shadow rounded-lg p-6 sticky top-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              <i class="fas fa-calculator text-dreambiz-600 mr-2"></i>Invoice
+              Totals
+            </h3>
+
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Subtotal:</span>
+                <span
+                  class="text-sm font-medium"
+                  x-text="formatCurrency(subtotal)"
+                ></span>
+              </div>
+
+              <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Tax Amount:</span>
+                <span
+                  class="text-sm font-medium"
+                  x-text="formatCurrency(taxAmount)"
+                ></span>
+              </div>
+
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Discount:</span>
+                <input
+                  type="number"
+                  x-model="discount"
+                  @input="calculateTotals()"
+                  class="w-20 border-gray-300 rounded text-sm text-right"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+
+              <hr class="border-gray-200" />
+
+              <div class="flex justify-between">
+                <span class="text-lg font-bold text-gray-900">Total:</span>
+                <span
+                  class="text-lg font-bold text-gray-900"
+                  x-text="formatCurrency(total)"
+                ></span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-6 space-y-3">
+              <button
+                type="submit"
+                name="action"
+                value="save_draft"
+                class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                <i class="fas fa-save mr-2"></i>Save as Draft
+              </button>
+
+              <button
+                type="submit"
+                name="action"
+                value="save_and_send"
+                class="w-full bg-dreambiz-600 text-white px-4 py-2 rounded-md hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+              >
+                <i class="fas fa-paper-plane mr-2"></i>Save & Send
+              </button>
+
+              <button
+                type="button"
+                onclick="previewInvoice()"
+                class="w-full border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50"
+              >
+                <i class="fas fa-eye mr-2"></i>Preview
+              </button>
+            </div>
+          </div>
+
+          <!-- AI Assistant -->
+          <div
+            class="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6"
+          >
+            <h3 class="text-lg font-medium text-purple-900 mb-4">
+              <i class="fas fa-brain text-purple-600 mr-2"></i>AI Assistant
+            </h3>
+
+            <div class="space-y-3 text-sm">
+              <div class="bg-white/50 rounded-lg p-3">
+                <p class="text-purple-800 font-medium">Smart Suggestions:</p>
+                <ul class="mt-2 space-y-1 text-purple-700">
+                  <li>• Consider adding late payment fees</li>
+                  <li>• Recommended due date: 30 days</li>
+                  <li>• Similar invoices average GH₵2,450</li>
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                class="w-full bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 text-sm"
+              >
+                <i class="fas fa-magic mr-2"></i>Get AI Recommendations
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden fields for line items -->
+      <input
+        type="hidden"
+        name="line_items"
+        :value="JSON.stringify(lineItems)"
+      />
+    </form>
+
+    <!-- Customer Creation Modal -->
+<div
+  x-show="showCustomerModal"
+  x-cloak
+  x-transition:enter="transition ease-out duration-300"
+  x-transition:enter-start="opacity-0"
+  x-transition:enter-end="opacity-100"
+  x-transition:leave="transition ease-in duration-200"
+  x-transition:leave-start="opacity-100"
+  x-transition:leave-end="opacity-0"
+  class="fixed inset-0 z-50 overflow-y-auto"
+>
+  <div
+    class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+  >
+    <div
+      class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+      @click="showCustomerModal = false"
+    ></div>
+
+    <div
+      class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+    >
+      <form @submit.prevent="createCustomer()">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="flex items-center mb-4">
+            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-dreambiz-100 sm:mx-0 sm:h-10 sm:w-10">
+              <i class="fas fa-user-plus text-dreambiz-600"></i>
+            </div>
+            <div class="ml-4">
+              <h3 class="text-lg font-medium text-gray-900">Create New Customer</h3>
+              <p class="text-sm text-gray-500">Add a new customer to your database</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Name -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Full Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                x-model="newCustomer.name"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                placeholder="John Doe"
+                required
+              />
+            </div>
+
+            <!-- Company -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Company
+              </label>
+              <input
+                type="text"
+                x-model="newCustomer.company"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                placeholder="ABC Corp"
+              />
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Email <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                x-model="newCustomer.email"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                placeholder="john@example.com"
+                required
+              />
+            </div>
+
+            <!-- Phone -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Phone
+              </label>
+              <input
+                type="tel"
+                x-model="newCustomer.phone"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                placeholder="(555) 123-4567"
+              />
+            </div>
+
+            <!-- Address -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Address
+              </label>
+              <input
+                type="text"
+                x-model="newCustomer.address"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                placeholder="123 Main Street"
+              />
+            </div>
+
+            <!-- City -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                City
+              </label>
+              <input
+                type="text"
+                x-model="newCustomer.city"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                placeholder="New York"
+              />
+            </div>
+
+            <!-- State -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                State/Province
+              </label>
+              <input
+                type="text"
+                x-model="newCustomer.state"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                placeholder="NY"
+              />
+            </div>
+
+            <!-- ZIP Code -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                ZIP/Postal Code
+              </label>
+              <input
+                type="text"
+                x-model="newCustomer.zip_code"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                placeholder="10001"
+              />
+            </div>
+
+            <!-- Country -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Country
+              </label>
+              <select
+                x-model="newCustomer.country"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+              >
+                <option value="">Select Country</option>
+                <option value="US">United States</option>
+                <option value="CA">Canada</option>
+                <option value="GB">United Kingdom</option>
+                <option value="AU">Australia</option>
+                <option value="DE">Germany</option>
+                <option value="FR">France</option>
+                <!-- Add more countries as needed -->
+              </select>
+            </div>
+
+            <!-- Tax ID -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Tax ID / VAT Number
+              </label>
+              <input
+                type="text"
+                x-model="newCustomer.tax_id"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                placeholder="12-3456789"
+              />
+            </div>
+
+            <!-- Notes -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Notes
+              </label>
+              <textarea
+                x-model="newCustomer.notes"
+                rows="3"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                placeholder="Additional customer information..."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div x-show="customerCreating" class="mt-4 text-center">
+            <div class="inline-flex items-center px-4 py-2 bg-gray-100 rounded-lg">
+              <i class="fas fa-spinner fa-spin mr-2 text-dreambiz-600"></i>
+              <span class="text-gray-600">Creating customer...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button
+            type="submit"
+            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-dreambiz-600 text-base font-medium text-white hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 sm:ml-3 sm:w-auto sm:text-sm"
+            :disabled="customerCreating"
+          >
+            <i class="fas fa-plus mr-2"></i>Create Customer
+          </button>
+          <button
+            type="button"
+            @click="closeCustomerModal()"
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:w-auto sm:text-sm"
+            :disabled="customerCreating"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Product Selector Modal -->
+<div
+  x-show="showProductModal"
+  x-cloak
+  x-transition:enter="transition ease-out duration-300"
+  x-transition:enter-start="opacity-0"
+  x-transition:enter-end="opacity-100"
+  x-transition:leave="transition ease-in duration-200"
+  x-transition:leave-start="opacity-100"
+  x-transition:leave-end="opacity-0"
+  class="fixed inset-0 z-50 overflow-y-auto"
+>
+  <div
+    class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+  >
+    <div
+      class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+    ></div>
+
+    <div
+      class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+    >
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">
+          Select Product/Service
+        </h3>
+
+        <div class="space-y-2">
+          {% for product in products %}
+          <div
+            class="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 cursor-pointer"
+            @click="selectProduct({{ product.id }}, '{{ product.name }}', '{{ product.description }}', {{ product.unit_price }})"
+          >
+            <div class="flex justify-between">
+              <div>
+                <p class="font-medium text-gray-900">{{ product.name }}</p>
+                <p class="text-sm text-gray-500">{{ product.description }}</p>
+              </div>
+              <div class="text-right">
+                <p class="font-medium text-gray-900">
+                  GH{{ product.unit_price }}
+                </p>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+        <button
+          type="button"
+          @click="showProductModal = false"
+          class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>
+</div>
+{% endblock %} 
+
+{% block extra_js %}
+<script>
+  function invoiceForm() {
+    return {
+      customer: "",
+      dueDate: "",
+      paymentTerms: "",
+      lineItems: [
+        {
+          description: "",
+          quantity: 1,
+          rate: 0,
+          tax_rate: 0,
+          total: 0,
+        },
+      ],
+      subtotal: 0,
+      taxRate: 0,
+      taxAmount: 0,
+      discount: 0,
+      total: 0,
+      showProductModal: false,
+      showCustomerModal: false,
+      currentItemIndex: 0,
+      customerCreating: false,
+      newCustomer: {
+        name: '',
+        company: '',
+        email: '',
+        phone: '',
+        address: '',
+        city: '',
+        state: '',
+        zip_code: '',
+        country: '',
+        tax_id: '',
+        notes: ''
+      },
+
+      init() {
+        // Set default due date to 30 days from now
+        const today = new Date();
+        today.setDate(today.getDate() + 30);
+        this.dueDate = today.toISOString().split("T")[0];
+        this.calculateTotals();
+      },
+
+      addLineItem() {
+        this.lineItems.push({
+          description: "",
+          quantity: 1,
+          rate: 0,
+          tax_rate: 0,
+          total: 0,
+        });
+      },
+
+      removeLineItem(index) {
+        this.lineItems.splice(index, 1);
+        this.calculateTotals();
+      },
+
+      calculateItemTotal(index) {
+        const item = this.lineItems[index];
+        const subtotal = item.quantity * item.rate;
+        const taxAmount = subtotal * ((item.tax_rate || 0) / 100);
+        item.total = subtotal + taxAmount;
+        this.calculateTotals();
+      },
+
+      calculateTotals() {
+        // Calculate subtotal (before tax)
+        this.subtotal = this.lineItems.reduce((sum, item) => {
+          const itemSubtotal = item.quantity * item.rate;
+          return sum + itemSubtotal;
+        }, 0);
+        
+        // Calculate total tax from all line items
+        this.taxAmount = this.lineItems.reduce((sum, item) => {
+          const itemSubtotal = item.quantity * item.rate;
+          const itemTax = itemSubtotal * ((item.tax_rate || 0) / 100);
+          return sum + itemTax;
+        }, 0);
+        
+        // Calculate final total
+        this.total = this.subtotal + this.taxAmount - this.discount;
+      },
+
+      formatCurrency(amount) {
+        return new Intl.NumberFormat('en-GH', {
+          style: "currency",
+          currency: "GHS",
+        }).format(amount);
+      },
+
+      showProductSelector(index) {
+        this.currentItemIndex = index;
+        this.showProductModal = true;
+      },
+
+      selectProduct(id, name, description, price) {
+        const item = this.lineItems[this.currentItemIndex];
+        item.description = name + (description ? " - " + description : "");
+        item.rate = parseFloat(price);
+        this.calculateItemTotal(this.currentItemIndex);
+        this.showProductModal = false;
+      },
+
+      updateCustomerInfo() {
+        // Fetch customer details and update form
+        if (this.customer) {
+          // Implementation for fetching customer details
+          console.log("Selected customer:", this.customer);
+        }
+      },
+
+      openCustomerModal() {
+        this.resetCustomerForm();
+        this.showCustomerModal = true;
+      },
+
+      closeCustomerModal() {
+        this.showCustomerModal = false;
+        this.resetCustomerForm();
+      },
+
+      resetCustomerForm() {
+        this.newCustomer = {
+          name: '',
+          company: '',
+          email: '',
+          phone: '',
+          address: '',
+          city: '',
+          state: '',
+          zip_code: '',
+          country: '',
+          tax_id: '',
+          notes: ''
+        };
+        this.customerCreating = false;
+      },
+
+      async createCustomer() {
+        // Validate required fields
+        if (!this.newCustomer.name || !this.newCustomer.email) {
+          showToast('Please fill in all required fields', 'error');
+          return;
+        }
+
+        this.customerCreating = true;
+
+        try {
+          // Get CSRF token
+          const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+          
+          // Make API call to create customer
+          const response = await fetch('{% url "invoicing:api_customer_create" %}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify(this.newCustomer)
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Failed to create customer');
+          }
+
+          // Add new customer to the dropdown
+          const customerSelect = document.querySelector('[name="customer"]');
+          const option = new Option(
+            `${result.name} - ${result.company || 'No Company'}`, 
+            result.id
+          );
+          customerSelect.add(option);
+          
+          // Select the newly created customer
+          this.customer = result.id.toString();
+          
+          // Close modal and show success message
+          this.closeCustomerModal();
+          showToast(result.message || `Customer "${result.name}" created successfully!`, 'success');
+
+        } catch (error) {
+          console.error('Error creating customer:', error);
+          showToast(error.message || 'Failed to create customer', 'error');
+        } finally {
+          this.customerCreating = false;
+        }
+      },
+
+      updateDueDateFromTerms() {
+        if (!this.paymentTerms) return;
+        
+        const today = new Date();
+        let daysToAdd = 0;
+        
+        switch(this.paymentTerms) {
+          case 'Net 15':
+            daysToAdd = 15;
+            break;
+          case 'Net 30':
+            daysToAdd = 30;
+            break;
+          case 'Net 60':
+            daysToAdd = 60;
+            break;
+          case 'Due on Receipt':
+            daysToAdd = 0;
+            break;
+          default:
+            daysToAdd = 30;
+        }
+        
+        today.setDate(today.getDate() + daysToAdd);
+        this.dueDate = today.toISOString().split('T')[0];
+      },
+
+      validateInvoiceForm(event) {
+        // Validate customer is selected
+        if (!this.customer) {
+          event.preventDefault();
+          showToast('Please select a customer for this invoice', 'error');
+          // Scroll to customer field
+          document.querySelector('[name="customer"]').focus();
+          return false;
+        }
+        
+        // Validate at least one line item with data
+        const validItems = this.lineItems.filter(item => 
+          item.description && item.quantity > 0 && item.rate > 0
+        );
+        
+        if (validItems.length === 0) {
+          event.preventDefault();
+          showToast('Please add at least one line item to the invoice', 'error');
+          return false;
+        }
+        
+        return true;
+      }
+    };
+  }
+
+  function previewInvoice() {
+    // Implementation for invoice preview
+    showToast("Invoice preview will open in a new window", "info");
+  }
+
+  // Toast notification function
+  function showToast(message, type = 'info') {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg transition-all duration-300 ${
+      type === 'success' ? 'bg-green-500 text-white' :
+      type === 'error' ? 'bg-red-500 text-white' :
+      type === 'warning' ? 'bg-yellow-500 text-black' :
+      'bg-blue-500 text-white'
+    }`;
+    
+    toast.innerHTML = `
+      <div class="flex items-center">
+        <i class="fas ${
+          type === 'success' ? 'fa-check-circle' :
+          type === 'error' ? 'fa-exclamation-circle' :
+          type === 'warning' ? 'fa-exclamation-triangle' :
+          'fa-info-circle'
+        } mr-2"></i>
+        <span>${message}</span>
+      </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+      toast.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+      toast.style.transform = 'translateX(100%)';
+      setTimeout(() => {
+        document.body.removeChild(toast);
+      }, 300);
+    }, 5000);
+  }
+</script>
+{% endblock %}

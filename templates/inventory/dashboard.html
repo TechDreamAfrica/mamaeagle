@@ -1,0 +1,686 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Inventory Dashboard
+- DreamBiz Accounting{% endblock %} {% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Inventory Management</h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Monitor stock levels, track movements, and manage inventory
+            operations
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'inventory:product_list' %}"
+            class="inline-flex items-center px-4 py-2 border border-indigo-300 text-sm font-medium rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-list mr-2"></i>
+            View All Products
+          </a>
+          <a
+            href="{% url 'inventory:product_create' %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-plus mr-2"></i>
+            Add Product
+          </a>
+          <a
+            href="{% url 'inventory:purchase_order_create' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-shopping-cart mr-2"></i>
+            Create PO
+          </a>
+          <a
+            href="{% url 'inventory:inventory_count_create' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-clipboard-check mr-2"></i>
+            Start Count
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Metrics Cards -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Total Products -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p
+                class="text-sm font-medium text-gray-600 uppercase tracking-wide"
+              >
+                Total Products
+              </p>
+              <p class="text-3xl font-bold text-gray-900">
+                {{ total_products }}
+              </p>
+            </div>
+            <div class="p-3 bg-indigo-100 rounded-full">
+              <i class="fas fa-boxes text-2xl text-indigo-600"></i>
+            </div>
+          </div>
+        </div>
+        <div class="bg-indigo-50 px-6 py-3">
+          <p class="text-sm text-indigo-600">
+            <i class="fas fa-arrow-up mr-1"></i>
+            Active inventory items
+          </p>
+        </div>
+      </div>
+
+      <!-- Total Inventory Value -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p
+                class="text-sm font-medium text-gray-600 uppercase tracking-wide"
+              >
+                Inventory Value
+              </p>
+              <p class="text-3xl font-bold text-gray-900">
+                GH{{ total_inventory_value|floatformat:2 }}
+              </p>
+            </div>
+            <div class="p-3 bg-green-100 rounded-full">
+              <i class="fas fa-dollar-sign text-2xl text-green-600"></i>
+            </div>
+          </div>
+        </div>
+        <div class="bg-green-50 px-6 py-3">
+          <p class="text-sm text-green-600">
+            <i class="fas fa-chart-line mr-1"></i>
+            Total asset value
+            {% if total_inventory_value == 0 %}
+            <span class="text-xs text-gray-500 ml-2">
+              (Add stock movements and set cost prices)
+            </span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
+      <!-- Low Stock Items -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p
+                class="text-sm font-medium text-gray-600 uppercase tracking-wide"
+              >
+                Low Stock Items
+              </p>
+              <p class="text-3xl font-bold text-gray-900">
+                {{ low_stock_items }}
+              </p>
+            </div>
+            <div class="p-3 bg-yellow-100 rounded-full">
+              <i
+                class="fas fa-exclamation-triangle text-2xl text-yellow-600"
+              ></i>
+            </div>
+          </div>
+        </div>
+        <div class="bg-yellow-50 px-6 py-3">
+          <p class="text-sm text-yellow-600">
+            <i class="fas fa-warning mr-1"></i>
+            Requires attention
+          </p>
+        </div>
+      </div>
+
+      <!-- Pending Orders -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p
+                class="text-sm font-medium text-gray-600 uppercase tracking-wide"
+              >
+                Pending Orders
+              </p>
+              <p class="text-3xl font-bold text-gray-900">
+                {{ pending_orders }}
+              </p>
+            </div>
+            <div class="p-3 bg-blue-100 rounded-full">
+              <i class="fas fa-shopping-cart text-2xl text-blue-600"></i>
+            </div>
+          </div>
+        </div>
+        <div class="bg-blue-50 px-6 py-3">
+          <p class="text-sm text-blue-600">
+            <i class="fas fa-clock mr-1"></i>
+            Awaiting processing
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <!-- Inventory by Category Chart -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Inventory by Category
+          </h3>
+        </div>
+        <div class="p-6">
+          <div class="relative h-64">
+            <canvas id="categoryChart" class="w-full h-full"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stock Movement Trends -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Stock Movement Trends
+          </h3>
+        </div>
+        <div class="p-6">
+          <div class="relative h-64">
+            <canvas id="movementChart" class="w-full h-full"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <!-- Low Stock Alert -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">Low Stock Alert</h3>
+        </div>
+        <div class="p-6">
+          {% if low_stock_products %}
+          <div class="space-y-4">
+            {% for product in low_stock_products %}
+            <div class="border-l-4 border-red-500 bg-red-50 p-4 rounded-r-lg">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-sm font-semibold text-red-800">
+                  {{ product.name }}
+                </h4>
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+                >
+                  Reorder Required
+                </span>
+              </div>
+              <p class="text-sm text-red-700 mb-2">
+                SKU: {{ product.sku }} | Current Stock: {{ product.current_stock
+                }}
+              </p>
+              <p class="text-xs text-red-600">
+                Reorder Point: {{ product.reorder_point }} | Suggested Qty: {{
+                product.reorder_quantity }}
+              </p>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="mt-6 text-center">
+            <a
+              href="{% url 'inventory:product_list' %}?low_stock=true"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+            >
+              <i class="fas fa-exclamation-triangle mr-2"></i>
+              View All Low Stock
+            </a>
+          </div>
+          {% else %}
+          <div class="text-center py-8">
+            <i class="fas fa-check-circle text-4xl text-green-500 mb-4"></i>
+            <p class="text-gray-600">All products are adequately stocked.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Recent Stock Movements -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Recent Stock Movements
+          </h3>
+        </div>
+        <div class="p-6">
+          {% if recent_movements %}
+          <div class="space-y-4">
+            {% for movement in recent_movements %}
+            <div
+              class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200"
+            >
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-sm font-semibold text-gray-900">
+                  {{ movement.product.name }}
+                </h4>
+                <span class="text-xs text-gray-500"
+                  >{{ movement.movement_date|timesince }} ago</span
+                >
+              </div>
+              <div class="flex items-center space-x-2 mb-2">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if movement.movement_type == 'in' %}bg-green-100 text-green-800 {% elif movement.movement_type == 'out' %}bg-red-100 text-red-800 {% else %}bg-blue-100 text-blue-800{% endif %}"
+                >
+                  {{ movement.get_movement_type_display }}
+                </span>
+                <span class="text-sm font-medium text-gray-900"
+                  >Qty: {{ movement.quantity_change }}</span
+                >
+              </div>
+              <p class="text-xs text-gray-600">
+                {{ movement.warehouse.name }} - {{
+                movement.created_by.get_full_name }}
+              </p>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="mt-6 text-center">
+            <a
+              href="{% url 'inventory:stock_movement_list' %}"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            >
+              <i class="fas fa-exchange-alt mr-2"></i>
+              View All Movements
+            </a>
+          </div>
+          {% else %}
+          <div class="text-center py-8">
+            <i class="fas fa-inbox text-4xl text-gray-400 mb-4"></i>
+            <p class="text-gray-600">No recent stock movements.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Purchase Orders and Suppliers -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <!-- Recent Purchase Orders -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Recent Purchase Orders
+          </h3>
+        </div>
+        <div class="p-6">
+          {% if recent_purchase_orders %}
+          <div class="space-y-4">
+            {% for po in recent_purchase_orders %}
+            <div
+              class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200"
+            >
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-sm font-semibold text-gray-900">
+                  {{ po.po_number }}
+                </h4>
+                <span class="text-xs text-gray-500"
+                  >{{ po.order_date|date:"M d, Y" }}</span
+                >
+              </div>
+              <p class="text-sm text-gray-700 mb-2">
+                {{ po.supplier.name }} - GH{{ po.total_amount|floatformat:2 }}
+              </p>
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if po.status == 'draft' %}bg-gray-100 text-gray-800 {% elif po.status == 'sent' %}bg-blue-100 text-blue-800 {% elif po.status == 'confirmed' %}bg-yellow-100 text-yellow-800 {% elif po.status == 'partially_received' %}bg-indigo-100 text-indigo-800 {% elif po.status == 'received' %}bg-green-100 text-green-800 {% else %}bg-red-100 text-red-800{% endif %}"
+              >
+                {{ po.get_status_display }}
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="mt-6 text-center">
+            <a
+              href="{% url 'inventory:purchase_order_list' %}"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            >
+              <i class="fas fa-shopping-cart mr-2"></i>
+              View All Orders
+            </a>
+          </div>
+          {% else %}
+          <div class="text-center py-8">
+            <i class="fas fa-shopping-cart text-4xl text-gray-400 mb-4"></i>
+            <p class="text-gray-600">No recent purchase orders.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Top Suppliers -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">Top Suppliers</h3>
+        </div>
+        <div class="p-6">
+          {% if top_suppliers %}
+          <div class="space-y-4">
+            {% for supplier in top_suppliers %}
+            <div
+              class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200"
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="text-sm font-semibold text-gray-900">
+                    {{ supplier.name }}
+                  </h4>
+                  <p class="text-xs text-gray-600">
+                    {{ supplier.contact_person }}
+                  </p>
+                </div>
+                <div class="text-right">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
+                  >
+                    {{ supplier.product_count }} products
+                  </span>
+                  <p class="text-xs text-gray-600 mt-1">
+                    Rating: {{ supplier.rating }}/5
+                  </p>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="mt-6 text-center">
+            <a
+              href="{% url 'inventory:supplier_list' %}"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            >
+              <i class="fas fa-truck mr-2"></i>
+              View All Suppliers
+            </a>
+          </div>
+          {% else %}
+          <div class="text-center py-8">
+            <i class="fas fa-truck text-4xl text-gray-400 mb-4"></i>
+            <p class="text-gray-600">No suppliers available.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <a
+            href="{% url 'inventory:product_create' %}"
+            class="group relative flex flex-col items-center justify-center p-6 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border-2 border-transparent hover:border-indigo-200 hover:shadow-lg transition-all duration-200"
+          >
+            <div
+              class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200"
+            >
+              <i class="fas fa-plus-circle text-white text-xl"></i>
+            </div>
+            <span class="text-sm font-semibold text-indigo-900 text-center"
+              >Add Product</span
+            >
+            <span class="text-xs text-indigo-600 text-center mt-1"
+              >Create new inventory item</span
+            >
+          </a>
+
+          <a
+            href="{% url 'inventory:purchase_order_create' %}"
+            class="group relative flex flex-col items-center justify-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border-2 border-transparent hover:border-green-200 hover:shadow-lg transition-all duration-200"
+          >
+            <div
+              class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200"
+            >
+              <i class="fas fa-shopping-cart text-white text-xl"></i>
+            </div>
+            <span class="text-sm font-semibold text-green-900 text-center"
+              >Create Purchase Order</span
+            >
+            <span class="text-xs text-green-600 text-center mt-1"
+              >Order from suppliers</span
+            >
+          </a>
+
+          <a
+            href="{% url 'inventory:inventory_count_create' %}"
+            class="group relative flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-2 border-transparent hover:border-blue-200 hover:shadow-lg transition-all duration-200"
+          >
+            <div
+              class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200"
+            >
+              <i class="fas fa-clipboard-check text-white text-xl"></i>
+            </div>
+            <span class="text-sm font-semibold text-blue-900 text-center"
+              >Start Stock Count</span
+            >
+            <span class="text-xs text-blue-600 text-center mt-1"
+              >Physical inventory audit</span
+            >
+          </a>
+
+          <a
+            href="{% url 'inventory:stock_movement_create' %}"
+            class="group relative flex flex-col items-center justify-center p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg border-2 border-transparent hover:border-yellow-200 hover:shadow-lg transition-all duration-200"
+          >
+            <div
+              class="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200"
+            >
+              <i class="fas fa-exchange-alt text-white text-xl"></i>
+            </div>
+            <span class="text-sm font-semibold text-yellow-900 text-center"
+              >Record Movement</span
+            >
+            <span class="text-xs text-yellow-600 text-center mt-1"
+              >Track stock changes</span
+            >
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Inventory by Category Chart
+    fetch('{% url "inventory:category_data" %}')
+      .then((response) => response.json())
+      .then((data) => {
+        const ctx = document.getElementById("categoryChart").getContext("2d");
+        const labels = Object.keys(data);
+        const values = Object.values(data);
+
+        new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                data: values,
+                backgroundColor: [
+                  "#4f46e5", // indigo-600
+                  "#10b981", // emerald-500
+                  "#06b6d4", // cyan-500
+                  "#f59e0b", // amber-500
+                  "#ef4444", // red-500
+                  "#8b5cf6", // violet-500
+                  "#ec4899", // pink-500
+                  "#84cc16", // lime-500
+                ],
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  padding: 20,
+                  usePointStyle: true,
+                  font: {
+                    size: 12,
+                  },
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    const label = context.label || "";
+                    const value = context.parsed;
+                    const total = context.dataset.data.reduce(
+                      (a, b) => a + b,
+                      0
+                    );
+                    const percentage = Math.round((value / total) * 100);
+                    return `${label}: GH₵${value.toLocaleString()} (${percentage}%)`;
+                  },
+                },
+              },
+            },
+          },
+        });
+      })
+      .catch((error) => {
+        console.error("Error loading category data:", error);
+        document.getElementById("categoryChart").parentElement.innerHTML =
+          '<div class="flex items-center justify-center h-64 text-gray-500"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load chart data</div>';
+      });
+
+    // Stock Movement Trends Chart
+    fetch('{% url "inventory:movement_trends" %}')
+      .then((response) => response.json())
+      .then((data) => {
+        const ctx = document.getElementById("movementChart").getContext("2d");
+        const labels = data.daily_movements.map((item) => {
+          const date = new Date(item.date);
+          return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+        });
+        const inbound = data.daily_movements.map((item) => item.inbound);
+        const outbound = data.daily_movements.map((item) => item.outbound);
+
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Inbound",
+                data: inbound,
+                borderColor: "#10b981", // emerald-500
+                backgroundColor: "rgba(16, 185, 129, 0.1)",
+                tension: 0.4,
+                fill: true,
+                borderWidth: 3,
+                pointBackgroundColor: "#10b981",
+                pointBorderColor: "#ffffff",
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+              },
+              {
+                label: "Outbound",
+                data: outbound,
+                borderColor: "#ef4444", // red-500
+                backgroundColor: "rgba(239, 68, 68, 0.1)",
+                tension: 0.4,
+                fill: true,
+                borderWidth: 3,
+                pointBackgroundColor: "#ef4444",
+                pointBorderColor: "#ffffff",
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              intersect: false,
+              mode: "index",
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: "rgba(156, 163, 175, 0.1)",
+                },
+                ticks: {
+                  color: "#6b7280",
+                  font: {
+                    size: 11,
+                  },
+                },
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
+                ticks: {
+                  color: "#6b7280",
+                  font: {
+                    size: 11,
+                  },
+                  maxTicksLimit: 7,
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                position: "top",
+                labels: {
+                  usePointStyle: true,
+                  padding: 20,
+                  font: {
+                    size: 12,
+                  },
+                },
+              },
+              tooltip: {
+                backgroundColor: "rgba(0, 0, 0, 0.8)",
+                titleColor: "#ffffff",
+                bodyColor: "#ffffff",
+                borderColor: "rgba(156, 163, 175, 0.2)",
+                borderWidth: 1,
+                cornerRadius: 8,
+                callbacks: {
+                  title: function (context) {
+                    return `Date: ${context[0].label}`;
+                  },
+                  label: function (context) {
+                    return `${context.dataset.label}: ${context.parsed.y} items`;
+                  },
+                },
+              },
+            },
+          },
+        });
+      })
+      .catch((error) => {
+        console.error("Error loading movement trends data:", error);
+        document.getElementById("movementChart").parentElement.innerHTML =
+          '<div class="flex items-center justify-center h-64 text-gray-500"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to load chart data</div>';
+      });
+  });
+</script>
+{% endblock %}

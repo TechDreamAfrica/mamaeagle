@@ -1,0 +1,472 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit Employee{% else %}Add Employee{% endif %} - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+
+
+<style>
+  /* Add Tailwind classes to form fields */
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  select,
+  textarea {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+
+  /* Checkbox styling */
+  input[type="checkbox"] {
+    @apply w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500;
+  }
+</style>
+
+<div class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="py-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <a
+              href="{% url 'hr:employee_list' %}"
+              class="mr-4 text-gray-400 hover:text-gray-600"
+            >
+              <i class="fas fa-arrow-left text-xl"></i>
+            </a>
+            <div>
+              <h2 class="text-2xl font-bold leading-7 text-gray-900">
+                <i class="fas fa-user-plus text-dreambiz-600 mr-3"></i>
+                {% if form.instance.pk %}Edit Employee{% else %}Add New Employee{% endif %}
+              </h2>
+              <p class="mt-1 text-sm text-gray-500">
+                {% if form.instance.pk %}
+                  Update employee information and employment details
+                {% else %}
+                  Create a comprehensive employee record with all necessary information
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+
+      <!-- Display form errors -->
+      {% if form.non_field_errors %}
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div class="flex items-start">
+          <i class="fas fa-exclamation-circle text-red-600 mt-1 mr-3"></i>
+          <div class="text-sm text-red-800">
+            {{ form.non_field_errors }}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Form Content -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- Basic Information -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <i class="fas fa-user text-dreambiz-600 mr-2"></i>
+              Basic Information
+            </h3>
+            
+            <div class="space-y-6">
+              <!-- User Account -->
+              <div>
+                <label for="{{ form.user.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  User Account <span class="text-red-500">*</span>
+                </label>
+                <select name="{{ form.user.name }}" id="{{ form.user.id_for_label }}" 
+                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500" required>
+                  <option value="">-- Select a user account --</option>
+                  {% for choice in form.user.field.choices %}
+                    {% if choice.0 %}
+                    <option value="{{ choice.0 }}" {% if form.user.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+                {% if form.user.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.user.errors.0 }}</p>
+                {% endif %}
+                {% if form.user.help_text %}
+                <p class="mt-1 text-xs text-gray-500">{{ form.user.help_text }}</p>
+                {% endif %}
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Employee ID -->
+                <div>
+                  <label for="{{ form.employee_id.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Employee ID <span class="text-red-500">*</span>
+                  </label>
+                  <input type="text" name="{{ form.employee_id.name }}" id="{{ form.employee_id.id_for_label }}"
+                    value="{{ form.employee_id.value|default:'' }}"
+                    class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                    placeholder="e.g., EMP001" required>
+                  {% if form.employee_id.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.employee_id.errors.0 }}</p>
+                  {% endif %}
+                  <p class="mt-1 text-xs text-gray-500">Unique identifier for this employee</p>
+                </div>
+
+                <!-- Status -->
+                <div>
+                  <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Employment Status <span class="text-red-500">*</span>
+                  </label>
+                  {{ form.status }}
+                  {% if form.status.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Employment Details -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <i class="fas fa-briefcase text-dreambiz-600 mr-2"></i>
+              Employment Details
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Job Title -->
+              <div>
+                <label for="{{ form.job_title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Job Title <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="{{ form.job_title.name }}" id="{{ form.job_title.id_for_label }}"
+                  value="{{ form.job_title.value|default:'' }}"
+                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                  placeholder="e.g., Software Engineer" required>
+                {% if form.job_title.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.job_title.errors.0 }}</p>
+                {% endif %}
+              </div>
+
+              <!-- Department -->
+              <div>
+                <label for="{{ form.department.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Department <span class="text-red-500">*</span>
+                </label>
+                {{ form.department }}
+                {% if form.department.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.department.errors.0 }}</p>
+                {% endif %}
+              </div>
+
+              <!-- Employment Type -->
+              <div>
+                <label for="{{ form.employment_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Employment Type <span class="text-red-500">*</span>
+                </label>
+                {{ form.employment_type }}
+                {% if form.employment_type.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.employment_type.errors.0 }}</p>
+                {% endif %}
+              </div>
+
+              <!-- Manager -->
+              <div>
+                <label for="{{ form.manager.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Reports To (Manager)
+                </label>
+                {{ form.manager }}
+                {% if form.manager.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.manager.errors.0 }}</p>
+                {% endif %}
+              </div>
+
+              <!-- Hire Date -->
+              <div>
+                <label for="{{ form.hire_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Hire Date <span class="text-red-500">*</span>
+                </label>
+                {{ form.hire_date }}
+                {% if form.hire_date.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.hire_date.errors.0 }}</p>
+                {% endif %}
+              </div>
+
+              <!-- Termination Date (only show on edit) -->
+              {% if form.instance.pk and form.termination_date %}
+              <div>
+                <label for="{{ form.termination_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Termination Date
+                </label>
+                {{ form.termination_date }}
+                {% if form.termination_date.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.termination_date.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500">Leave blank if employee is active</p>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Compensation -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <i class="fas fa-money-bill-wave text-dreambiz-600 mr-2"></i>
+              Compensation
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Base Salary -->
+              <div>
+                <label for="{{ form.base_salary.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Base Salary <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span class="text-gray-500 sm:text-sm">GHS</span>
+                  </div>
+                  <input type="number" name="{{ form.base_salary.name }}" id="{{ form.base_salary.id_for_label }}"
+                    value="{{ form.base_salary.value|default:'0' }}"
+                    class="pl-14 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                    placeholder="0.00" step="0.01" required>
+                </div>
+                {% if form.base_salary.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.base_salary.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500">Annual salary for salaried employees</p>
+              </div>
+
+              <!-- Hourly Rate -->
+              <div>
+                <label for="{{ form.hourly_rate.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Hourly Rate
+                </label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span class="text-gray-500 sm:text-sm">GHS</span>
+                  </div>
+                  <input type="number" name="{{ form.hourly_rate.name }}" id="{{ form.hourly_rate.id_for_label }}"
+                    value="{{ form.hourly_rate.value|default:'' }}"
+                    class="pl-14 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                    placeholder="0.00" step="0.01">
+                </div>
+                {% if form.hourly_rate.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.hourly_rate.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500">For hourly employees (optional)</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tax Information -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <i class="fas fa-file-invoice-dollar text-dreambiz-600 mr-2"></i>
+              Tax Information
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Tax ID -->
+              <div>
+                <label for="{{ form.tax_id.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Tax ID / TIN
+                </label>
+                <input type="text" name="{{ form.tax_id.name }}" id="{{ form.tax_id.id_for_label }}"
+                  value="{{ form.tax_id.value|default:'' }}"
+                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                  placeholder="XXX-XX-XXXX">
+                {% if form.tax_id.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.tax_id.errors.0 }}</p>
+                {% endif %}
+              </div>
+
+              <!-- Tax Exemptions -->
+              <div>
+                <label for="{{ form.tax_exemptions.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Tax Exemptions
+                </label>
+                <input type="number" name="{{ form.tax_exemptions.name }}" id="{{ form.tax_exemptions.id_for_label }}"
+                  value="{{ form.tax_exemptions.value|default:'0' }}"
+                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                  min="0" max="99">
+                {% if form.tax_exemptions.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.tax_exemptions.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500">Number of tax exemptions claimed</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Emergency Contact -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <i class="fas fa-phone text-dreambiz-600 mr-2"></i>
+              Emergency Contact
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Contact Name -->
+              <div>
+                <label for="{{ form.emergency_contact_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Contact Name
+                </label>
+                <input type="text" name="{{ form.emergency_contact_name.name }}" id="{{ form.emergency_contact_name.id_for_label }}"
+                  value="{{ form.emergency_contact_name.value|default:'' }}"
+                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                  placeholder="Full Name">
+                {% if form.emergency_contact_name.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.emergency_contact_name.errors.0 }}</p>
+                {% endif %}
+              </div>
+
+              <!-- Contact Phone -->
+              <div>
+                <label for="{{ form.emergency_contact_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Contact Phone
+                </label>
+                <input type="text" name="{{ form.emergency_contact_phone.name }}" id="{{ form.emergency_contact_phone.id_for_label }}"
+                  value="{{ form.emergency_contact_phone.value|default:'' }}"
+                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                  placeholder="(XXX) XXX-XXXX">
+                {% if form.emergency_contact_phone.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.emergency_contact_phone.errors.0 }}</p>
+                {% endif %}
+              </div>
+
+              <!-- Relationship -->
+              <div>
+                <label for="{{ form.emergency_contact_relationship.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                  Relationship
+                </label>
+                <input type="text" name="{{ form.emergency_contact_relationship.name }}" id="{{ form.emergency_contact_relationship.id_for_label }}"
+                  value="{{ form.emergency_contact_relationship.value|default:'' }}"
+                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                  placeholder="e.g., Spouse, Parent">
+                {% if form.emergency_contact_relationship.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.emergency_contact_relationship.errors.0 }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1 space-y-6">
+          
+          <!-- Benefits -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <i class="fas fa-heart text-dreambiz-600 mr-2"></i>
+              Benefits
+            </h3>
+            
+            <div class="space-y-4">
+              <!-- Health Insurance -->
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <input type="checkbox" name="{{ form.health_insurance.name }}" id="{{ form.health_insurance.id_for_label }}"
+                    {% if form.health_insurance.value %}checked{% endif %}
+                    class="w-4 h-4 text-dreambiz-600 border-gray-300 rounded focus:ring-dreambiz-500">
+                </div>
+                <label for="{{ form.health_insurance.id_for_label }}" class="ml-3">
+                  <span class="text-sm font-medium text-gray-700">Health Insurance</span>
+                  <p class="text-xs text-gray-500">Medical coverage</p>
+                </label>
+              </div>
+
+              <!-- Dental Insurance -->
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <input type="checkbox" name="{{ form.dental_insurance.name }}" id="{{ form.dental_insurance.id_for_label }}"
+                    {% if form.dental_insurance.value %}checked{% endif %}
+                    class="w-4 h-4 text-dreambiz-600 border-gray-300 rounded focus:ring-dreambiz-500">
+                </div>
+                <label for="{{ form.dental_insurance.id_for_label }}" class="ml-3">
+                  <span class="text-sm font-medium text-gray-700">Dental Insurance</span>
+                  <p class="text-xs text-gray-500">Dental coverage</p>
+                </label>
+              </div>
+
+              <!-- Vision Insurance -->
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <input type="checkbox" name="{{ form.vision_insurance.name }}" id="{{ form.vision_insurance.id_for_label }}"
+                    {% if form.vision_insurance.value %}checked{% endif %}
+                    class="w-4 h-4 text-dreambiz-600 border-gray-300 rounded focus:ring-dreambiz-500">
+                </div>
+                <label for="{{ form.vision_insurance.id_for_label }}" class="ml-3">
+                  <span class="text-sm font-medium text-gray-700">Vision Insurance</span>
+                  <p class="text-xs text-gray-500">Vision coverage</p>
+                </label>
+              </div>
+
+              <!-- Retirement Plan -->
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <input type="checkbox" name="{{ form.retirement_plan.name }}" id="{{ form.retirement_plan.id_for_label }}"
+                    {% if form.retirement_plan.value %}checked{% endif %}
+                    class="w-4 h-4 text-dreambiz-600 border-gray-300 rounded focus:ring-dreambiz-500">
+                </div>
+                <label for="{{ form.retirement_plan.id_for_label }}" class="ml-3">
+                  <span class="text-sm font-medium text-gray-700">Retirement Plan</span>
+                  <p class="text-xs text-gray-500">401(k) or pension</p>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Tips -->
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-start">
+              <i class="fas fa-lightbulb text-blue-600 mt-1 mr-3"></i>
+              <div class="text-sm text-blue-800">
+                <p class="font-semibold mb-2">Quick Tips</p>
+                <ul class="space-y-1 text-xs">
+                  <li>• User account must exist first</li>
+                  <li>• Employee ID must be unique</li>
+                  <li>• Base salary for salaried staff</li>
+                  <li>• Hourly rate for hourly workers</li>
+                  <li>• Emergency contact is required</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="bg-white shadow rounded-lg p-6">
+            <div class="space-y-3">
+              <button
+                type="submit"
+                class="w-full bg-dreambiz-600 text-white px-4 py-3 rounded-md shadow-sm hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 flex items-center justify-center font-medium"
+              >
+                <i class="fas fa-save mr-2"></i>
+                {% if form.instance.pk %}Update Employee{% else %}Create Employee{% endif %}
+              </button>
+              
+              <a
+                href="{% url 'hr:employee_list' %}"
+                class="w-full bg-gray-100 text-gray-700 px-4 py-3 rounded-md hover:bg-gray-200 transition-colors flex items-center justify-center font-medium"
+              >
+                <i class="fas fa-times mr-2"></i>
+                Cancel
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,547 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Sales Dashboard -
+DreamBiz Accounting{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css"
+/>
+{% endblock %} {% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Sales Dashboard</h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Monitor your sales performance and pipeline
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'sales:lead_create' %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-plus mr-2"></i>
+            Add Lead
+          </a>
+          <a
+            href="{% url 'sales:opportunity_create' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-bullseye mr-2"></i>
+            Add Opportunity
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Key Metrics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Total Leads Card -->
+      <div
+        class="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300"
+      >
+        <div class="p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-users text-blue-600 text-xl"></i>
+              </div>
+            </div>
+            <div class="ml-4 flex-1">
+              <p
+                class="text-sm font-medium text-gray-600 uppercase tracking-wide"
+              >
+                Total Leads
+              </p>
+              <p class="text-2xl font-bold text-gray-900">{{ total_leads }}</p>
+              <p class="text-xs text-gray-500 mt-1">This month</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-blue-50 px-6 py-3">
+          <div class="text-sm text-blue-600">
+            <i class="fas fa-arrow-up mr-1"></i>
+            View all leads
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Revenue Card -->
+      <div
+        class="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300"
+      >
+        <div class="p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+              </div>
+            </div>
+            <div class="ml-4 flex-1">
+              <p
+                class="text-sm font-medium text-gray-600 uppercase tracking-wide"
+              >
+                Monthly Revenue
+              </p>
+              <p class="text-2xl font-bold text-gray-900">
+                GH{{ monthly_revenue|floatformat:2 }}
+              </p>
+              <p class="text-xs text-gray-500 mt-1">Closed deals</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-green-50 px-6 py-3">
+          <div class="text-sm text-green-600">
+            <i class="fas fa-chart-line mr-1"></i>
+            Revenue trend
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline Value Card -->
+      <div
+        class="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300"
+      >
+        <div class="p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-funnel-dollar text-purple-600 text-xl"></i>
+              </div>
+            </div>
+            <div class="ml-4 flex-1">
+              <p
+                class="text-sm font-medium text-gray-600 uppercase tracking-wide"
+              >
+                Pipeline Value
+              </p>
+              <p class="text-2xl font-bold text-gray-900">
+                GH{{ pipeline_value|floatformat:2 }}
+              </p>
+              <p class="text-xs text-gray-500 mt-1">Active opportunities</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-purple-50 px-6 py-3">
+          <div class="text-sm text-purple-600">
+            <i class="fas fa-eye mr-1"></i>
+            View pipeline
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversion Rate Card -->
+      <div
+        class="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300"
+      >
+        <div class="p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-percentage text-yellow-600 text-xl"></i>
+              </div>
+            </div>
+            <div class="ml-4 flex-1">
+              <p
+                class="text-sm font-medium text-gray-600 uppercase tracking-wide"
+              >
+                Conversion Rate
+              </p>
+              <p class="text-2xl font-bold text-gray-900">
+                {{ conversion_rate }}%
+              </p>
+              <p class="text-xs text-gray-500 mt-1">Lead to opportunity</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-yellow-50 px-6 py-3">
+          <div class="text-sm text-yellow-600">
+            <i class="fas fa-chart-bar mr-1"></i>
+            View analytics
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <!-- Sales Pipeline Chart -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">Sales Pipeline</h3>
+          <p class="text-sm text-gray-600">
+            Distribution of opportunities by stage
+          </p>
+        </div>
+        <div class="p-6">
+          <div class="relative h-64">
+            <canvas id="pipelineChart" class="w-full h-full"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Sales Chart -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Monthly Sales Performance
+          </h3>
+          <p class="text-sm text-gray-600">Revenue trends over time</p>
+        </div>
+        <div class="p-6">
+          <div class="relative h-64">
+            <canvas id="salesChart" class="w-full h-full"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Recent Activities -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">Recent Activities</h3>
+          <p class="text-sm text-gray-600">Latest sales team activities</p>
+        </div>
+        <div class="p-6">
+          {% if recent_activities %}
+          <div class="space-y-4">
+            {% for activity in recent_activities %}
+            <div
+              class="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+            >
+              <div class="flex-shrink-0">
+                <div
+                  class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center"
+                >
+                  {% if activity.activity_type == 'call' %}
+                  <i class="fas fa-phone text-indigo-600"></i>
+                  {% elif activity.activity_type == 'email' %}
+                  <i class="fas fa-envelope text-indigo-600"></i>
+                  {% elif activity.activity_type == 'meeting' %}
+                  <i class="fas fa-calendar text-indigo-600"></i>
+                  {% else %}
+                  <i class="fas fa-clipboard text-indigo-600"></i>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-sm font-medium text-gray-900 truncate">
+                    {{ activity.subject }}
+                  </h4>
+                  <span class="text-xs text-gray-500"
+                    >{{ activity.created_at|timesince }} ago</span
+                  >
+                </div>
+                <p class="text-sm text-gray-600 mt-1">
+                  {{ activity.description|truncatewords:15 }}
+                </p>
+                <p class="text-xs text-gray-500 mt-2">
+                  {{ activity.sales_rep.user.get_full_name }} • {{
+                  activity.get_activity_type_display }}
+                </p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="mt-6 text-center">
+            <a
+              href="{% url 'sales:activity_list' %}"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            >
+              <i class="fas fa-list mr-2"></i>
+              View All Activities
+            </a>
+          </div>
+          {% else %}
+          <div class="text-center py-8">
+            <i class="fas fa-clipboard-list text-4xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500">No recent activities found.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Top Performers -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">Top Performers</h3>
+          <p class="text-sm text-gray-600">
+            Best performing sales reps this month
+          </p>
+        </div>
+        <div class="p-6">
+          {% if top_sales_reps %}
+          <div class="space-y-4">
+            {% for rep in top_sales_reps %}
+            <div
+              class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+            >
+              <div class="flex items-center space-x-4">
+                <div class="flex-shrink-0">
+                  <div
+                    class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center"
+                  >
+                    <span class="text-white font-semibold text-sm">
+                      {{ rep.user.first_name|first|upper }}{{
+                      rep.user.last_name|first|upper }}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <h4 class="text-sm font-medium text-gray-900">
+                    {{ rep.user.get_full_name }}
+                  </h4>
+                  <p class="text-xs text-gray-500">
+                    {{ rep.territory.name|default:"No Territory" }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                >
+                  GH{{ rep.monthly_sales|default:0|floatformat:0 }}
+                </span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="mt-6 text-center">
+            <a
+              href="{% url 'sales:sales_rep_list' %}"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            >
+              <i class="fas fa-users mr-2"></i>
+              View All Sales Reps
+            </a>
+          </div>
+          {% else %}
+          <div class="text-center py-8">
+            <i class="fas fa-chart-bar text-4xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500">No sales data available yet.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Configure Chart.js defaults
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = "#6B7280";
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.padding = 20;
+
+    // Sales Pipeline Chart
+    fetch('{% url "sales:pipeline_data" %}')
+      .then((response) => response.json())
+      .then((data) => {
+        const ctx = document.getElementById("pipelineChart").getContext("2d");
+        const labels = Object.keys(data);
+        const values = Object.values(data).map((item) => item.value);
+
+        new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                data: values,
+                backgroundColor: [
+                  "#6366F1", // Indigo
+                  "#10B981", // Emerald
+                  "#F59E0B", // Amber
+                  "#EF4444", // Red
+                  "#8B5CF6", // Violet
+                  "#6B7280", // Gray
+                ],
+                borderWidth: 2,
+                borderColor: "#FFFFFF",
+                hoverBorderWidth: 3,
+                hoverOffset: 8,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  boxWidth: 12,
+                  boxHeight: 12,
+                  padding: 15,
+                  font: {
+                    size: 12,
+                    weight: "500",
+                  },
+                },
+              },
+              tooltip: {
+                backgroundColor: "#1F2937",
+                titleColor: "#F9FAFB",
+                bodyColor: "#F9FAFB",
+                borderColor: "#374151",
+                borderWidth: 1,
+                cornerRadius: 8,
+                displayColors: true,
+                callbacks: {
+                  label: function (context) {
+                    const label = context.label || "";
+                    const value = context.parsed;
+                    const total = context.dataset.data.reduce(
+                      (a, b) => a + b,
+                      0
+                    );
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    return `${label}: GH₵${value.toLocaleString()} (${percentage}%)`;
+                  },
+                },
+              },
+            },
+            cutout: "60%",
+            animation: {
+              animateRotate: true,
+              duration: 1500,
+            },
+          },
+        });
+      })
+      .catch((error) => {
+        console.error("Error loading pipeline data:", error);
+        document.getElementById("pipelineChart").parentElement.innerHTML =
+          '<div class="flex items-center justify-center h-64 text-gray-500"><i class="fas fa-exclamation-triangle mr-2"></i>Unable to load chart data</div>';
+      });
+
+    // Monthly Sales Performance Chart
+    fetch('{% url "sales:performance_data" %}')
+      .then((response) => response.json())
+      .then((data) => {
+        const ctx = document.getElementById("salesChart").getContext("2d");
+        const labels = data.monthly_sales.map((item) => {
+          const date = new Date(item.month + "-01");
+          return date.toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          });
+        });
+        const values = data.monthly_sales.map((item) => item.sales);
+
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Monthly Sales",
+                data: values,
+                borderColor: "#6366F1",
+                backgroundColor: "rgba(99, 102, 241, 0.1)",
+                tension: 0.4,
+                borderWidth: 3,
+                pointBackgroundColor: "#6366F1",
+                pointBorderColor: "#FFFFFF",
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointHoverBackgroundColor: "#4F46E5",
+                pointHoverBorderColor: "#FFFFFF",
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              intersect: false,
+              mode: "index",
+            },
+            plugins: {
+              legend: {
+                display: false,
+              },
+              tooltip: {
+                backgroundColor: "#1F2937",
+                titleColor: "#F9FAFB",
+                bodyColor: "#F9FAFB",
+                borderColor: "#374151",
+                borderWidth: 1,
+                cornerRadius: 8,
+                callbacks: {
+                  label: function (context) {
+                    return `Sales: GH₵${context.parsed.y.toLocaleString()}`;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                grid: {
+                  display: false,
+                },
+                border: {
+                  display: false,
+                },
+                ticks: {
+                  font: {
+                    size: 12,
+                    weight: "500",
+                  },
+                },
+              },
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: "#F3F4F6",
+                  borderDash: [2, 2],
+                },
+                border: {
+                  display: false,
+                },
+                ticks: {
+                  font: {
+                    size: 12,
+                    weight: "500",
+                  },
+                  callback: function (value) {
+                    return "GH" + (value / 1000).toFixed(0) + "K";
+                  },
+                },
+              },
+            },
+            animation: {
+              duration: 2000,
+              easing: "easeInOutQuart",
+            },
+          },
+        });
+      })
+      .catch((error) => {
+        console.error("Error loading performance data:", error);
+        document.getElementById("salesChart").parentElement.innerHTML =
+          '<div class="flex items-center justify-center h-64 text-gray-500"><i class="fas fa-exclamation-triangle mr-2"></i>Unable to load chart data</div>';
+      });
+  });
+</script>
+{% endblock %}

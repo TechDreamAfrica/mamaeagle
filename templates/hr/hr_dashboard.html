@@ -1,0 +1,955 @@
+{% extends 'base.html' %} {% load static %} {% block title %}HR Dashboard -
+DreamBiz Accounting{% endblock %} {% block content %}
+<div x-data="hrDashboard()" class="max-w-7xl mx-auto p-6">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Human Resources</h1>
+        <p class="text-gray-600 mt-1">
+          Manage employees, payroll, and HR operations
+        </p>
+      </div>
+      <div class="mt-4 md:mt-0 flex space-x-3">
+        <button
+          @click="showAddEmployeeModal = true"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+        >
+          <svg
+            class="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          Add Employee
+        </button>
+        <button
+          class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
+        >
+          <svg
+            class="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+            />
+          </svg>
+          Run Payroll
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div
+            class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">Total Employees</p>
+          <p class="text-2xl font-semibold text-gray-900">248</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div
+            class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">Monthly Payroll</p>
+          <p class="text-2xl font-semibold text-gray-900">GH890K</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div
+            class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-yellow-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">Pending Requests</p>
+          <p class="text-2xl font-semibold text-gray-900">12</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div
+            class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">Turnover Risk</p>
+          <p class="text-2xl font-semibold text-gray-900">8</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="mb-6">
+    <div class="sm:hidden">
+      <select
+        x-model="activeTab"
+        class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+      >
+        <option value="employees">Employees</option>
+        <option value="payroll">Payroll</option>
+        <option value="time-tracking">Time Tracking</option>
+        <option value="leave">Leave Management</option>
+        <option value="performance">Performance</option>
+      </select>
+    </div>
+    <div class="hidden sm:block">
+      <nav class="flex space-x-8" aria-label="Tabs">
+        <button
+          @click="activeTab = 'employees'"
+          :class="activeTab === 'employees' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
+        >
+          Employees
+        </button>
+        <button
+          @click="activeTab = 'payroll'"
+          :class="activeTab === 'payroll' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
+        >
+          Payroll
+        </button>
+        <button
+          @click="activeTab = 'time-tracking'"
+          :class="activeTab === 'time-tracking' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
+        >
+          Time Tracking
+        </button>
+        <button
+          @click="activeTab = 'leave'"
+          :class="activeTab === 'leave' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
+        >
+          Leave Management
+        </button>
+        <button
+          @click="activeTab = 'performance'"
+          :class="activeTab === 'performance' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
+        >
+          Performance
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Tab Content -->
+
+  <!-- Employees Tab -->
+  <div x-show="activeTab === 'employees'" class="space-y-6">
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Search</label
+          >
+          <input
+            x-model="filters.search"
+            type="text"
+            placeholder="Search employees..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Department</label
+          >
+          <select
+            x-model="filters.department"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">All Departments</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Sales">Sales</option>
+            <option value="Marketing">Marketing</option>
+            <option value="HR">Human Resources</option>
+            <option value="Finance">Finance</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Status</label
+          >
+          <select
+            x-model="filters.status"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="on_leave">On Leave</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Employment Type</label
+          >
+          <select
+            x-model="filters.employmentType"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">All Types</option>
+            <option value="full_time">Full Time</option>
+            <option value="part_time">Part Time</option>
+            <option value="contract">Contract</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Employee List -->
+    <div
+      class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+    >
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Employee Directory</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Employee
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Job Title
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Department
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Hire Date
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Performance
+              </th>
+              <th
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <template x-for="employee in filteredEmployees" :key="employee.id">
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10">
+                      <img
+                        class="h-10 w-10 rounded-full"
+                        :src="employee.avatar"
+                        :alt="employee.name"
+                      />
+                    </div>
+                    <div class="ml-4">
+                      <div
+                        class="text-sm font-medium text-gray-900"
+                        x-text="employee.name"
+                      ></div>
+                      <div
+                        class="text-sm text-gray-500"
+                        x-text="employee.email"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                  x-text="employee.jobTitle"
+                ></td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                  x-text="employee.department"
+                ></td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    :class="getStatusColor(employee.status)"
+                    x-text="employee.status"
+                  >
+                  </span>
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                  x-text="employee.hireDate"
+                ></td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="w-16 bg-gray-200 rounded-full h-2">
+                      <div
+                        class="h-2 rounded-full"
+                        :class="getPerformanceColor(employee.performance)"
+                        :style="`width: ${employee.performance}%`"
+                      ></div>
+                    </div>
+                    <span
+                      class="ml-2 text-sm text-gray-600"
+                      x-text="employee.performance + '%'"
+                    ></span>
+                  </div>
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                >
+                  <div class="flex items-center justify-end space-x-2">
+                    <button
+                      @click="viewEmployee(employee)"
+                      class="text-blue-600 hover:text-blue-900"
+                    >
+                      <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      @click="editEmployee(employee)"
+                      class="text-indigo-600 hover:text-indigo-900"
+                    >
+                      <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payroll Tab -->
+  <div x-show="activeTab === 'payroll'" class="space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Payroll Summary -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">
+              Current Pay Period
+            </h3>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-2 gap-6 mb-6">
+              <div>
+                <p class="text-sm font-medium text-gray-500">Pay Period</p>
+                <p class="text-lg font-semibold text-gray-900">
+                  Jan 1 - Jan 15, 2024
+                </p>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-500">Pay Date</p>
+                <p class="text-lg font-semibold text-gray-900">Jan 20, 2024</p>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div
+                class="flex justify-between items-center py-3 border-b border-gray-200"
+              >
+                <span class="text-sm font-medium text-gray-700">Gross Pay</span>
+                <span class="text-sm font-semibold text-gray-900"
+                  >GH890,450.00</span
+                >
+              </div>
+              <div
+                class="flex justify-between items-center py-3 border-b border-gray-200"
+              >
+                <span class="text-sm font-medium text-gray-700"
+                  >Federal Tax</span
+                >
+                <span class="text-sm font-semibold text-gray-900"
+                  >GH178,090.00</span
+                >
+              </div>
+              <div
+                class="flex justify-between items-center py-3 border-b border-gray-200"
+              >
+                <span class="text-sm font-medium text-gray-700">State Tax</span>
+                <span class="text-sm font-semibold text-gray-900"
+                  >GH53,427.00</span
+                >
+              </div>
+              <div
+                class="flex justify-between items-center py-3 border-b border-gray-200"
+              >
+                <span class="text-sm font-medium text-gray-700"
+                  >Social Security</span
+                >
+                <span class="text-sm font-semibold text-gray-900"
+                  >GH55,207.90</span
+                >
+              </div>
+              <div class="flex justify-between items-center py-3">
+                <span class="text-lg font-semibold text-gray-900">Net Pay</span>
+                <span class="text-lg font-bold text-green-600"
+                  >GH603,725.10</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payroll Actions -->
+      <div class="space-y-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">
+            Payroll Actions
+          </h3>
+          <div class="space-y-3">
+            <button
+              class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+            >
+              Process Payroll
+            </button>
+            <button
+              class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Generate Reports
+            </button>
+            <button
+              class="w-full bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+            >
+              Export Data
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">
+            Recent Activity
+          </h3>
+          <div class="space-y-3">
+            <div class="text-sm">
+              <p class="font-medium text-gray-900">Payroll Processed</p>
+              <p class="text-gray-500">Dec 20, 2023</p>
+            </div>
+            <div class="text-sm">
+              <p class="font-medium text-gray-900">Tax Filing Submitted</p>
+              <p class="text-gray-500">Dec 15, 2023</p>
+            </div>
+            <div class="text-sm">
+              <p class="font-medium text-gray-900">Benefits Updated</p>
+              <p class="text-gray-500">Dec 10, 2023</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Time Tracking Tab -->
+  <div x-show="activeTab === 'time-tracking'" class="space-y-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">
+        Time Tracking Overview
+      </h3>
+
+      <!-- Time Clock -->
+      <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-lg font-semibold text-blue-800">
+              Current Time: <span x-text="currentTime"></span>
+            </p>
+            <p class="text-sm text-blue-600">
+              John Doe - Engineering Department
+            </p>
+          </div>
+          <div class="flex space-x-3">
+            <button
+              @click="clockIn()"
+              :disabled="isClockedIn"
+              :class="isClockedIn ? 'bg-gray-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
+              class="px-4 py-2 text-white rounded-lg"
+            >
+              Clock In
+            </button>
+            <button
+              @click="clockOut()"
+              :disabled="!isClockedIn"
+              :class="!isClockedIn ? 'bg-gray-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'"
+              class="px-4 py-2 text-white rounded-lg"
+            >
+              Clock Out
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weekly Summary -->
+      <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+        <template x-for="day in weeklyHours" :key="day.date">
+          <div class="text-center p-4 border border-gray-200 rounded-lg">
+            <p class="text-sm font-medium text-gray-700" x-text="day.day"></p>
+            <p
+              class="text-lg font-semibold text-gray-900"
+              x-text="day.hours + 'h'"
+            ></p>
+            <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+              <div
+                class="bg-blue-600 h-2 rounded-full"
+                :style="`width: ${(day.hours / 8) * 100}%`"
+              ></div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leave Management Tab -->
+  <div x-show="activeTab === 'leave'" class="space-y-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div
+        class="px-6 py-4 border-b border-gray-200 flex justify-between items-center"
+      >
+        <h3 class="text-lg font-medium text-gray-900">Leave Requests</h3>
+        <button
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          Request Leave
+        </button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+              >
+                Employee
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+              >
+                Type
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+              >
+                Dates
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+              >
+                Days
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+              >
+                Status
+              </th>
+              <th
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <template x-for="request in leaveRequests" :key="request.id">
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <img
+                      class="h-8 w-8 rounded-full"
+                      :src="request.avatar"
+                      :alt="request.employee"
+                    />
+                    <div class="ml-3">
+                      <p
+                        class="text-sm font-medium text-gray-900"
+                        x-text="request.employee"
+                      ></p>
+                    </div>
+                  </div>
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                  x-text="request.type"
+                ></td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                  x-text="request.dates"
+                ></td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                  x-text="request.days"
+                ></td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    :class="getLeaveStatusColor(request.status)"
+                    x-text="request.status"
+                  >
+                  </span>
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                >
+                  <div
+                    x-show="request.status === 'pending'"
+                    class="flex justify-end space-x-2"
+                  >
+                    <button
+                      @click="approveLeave(request)"
+                      class="text-green-600 hover:text-green-900"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      @click="rejectLeave(request)"
+                      class="text-red-600 hover:text-red-900"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Tab -->
+  <div x-show="activeTab === 'performance'" class="space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Performance Overview -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">
+          Performance Overview
+        </h3>
+        <canvas id="performanceChart" width="400" height="200"></canvas>
+      </div>
+
+      <!-- Top Performers -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Top Performers</h3>
+        <div class="space-y-4">
+          <template x-for="performer in topPerformers" :key="performer.id">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <img
+                  class="h-10 w-10 rounded-full"
+                  :src="performer.avatar"
+                  :alt="performer.name"
+                />
+                <div class="ml-3">
+                  <p
+                    class="text-sm font-medium text-gray-900"
+                    x-text="performer.name"
+                  ></p>
+                  <p
+                    class="text-sm text-gray-500"
+                    x-text="performer.department"
+                  ></p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p
+                  class="text-sm font-semibold text-gray-900"
+                  x-text="performer.score + '%'"
+                ></p>
+                <p class="text-xs text-gray-500">Performance Score</p>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function hrDashboard() {
+    return {
+      activeTab: "employees",
+      showAddEmployeeModal: false,
+      currentTime: "",
+      isClockedIn: false,
+      filters: {
+        search: "",
+        department: "",
+        status: "",
+        employmentType: "",
+      },
+      employees: [
+        {
+          id: 1,
+          name: "John Doe",
+          email: "john.doe@company.com",
+          jobTitle: "Senior Software Engineer",
+          department: "Engineering",
+          status: "active",
+          hireDate: "Jan 15, 2022",
+          performance: 92,
+          avatar:
+            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+        },
+        {
+          id: 2,
+          name: "Jane Smith",
+          email: "jane.smith@company.com",
+          jobTitle: "Marketing Manager",
+          department: "Marketing",
+          status: "active",
+          hireDate: "Mar 10, 2021",
+          performance: 88,
+          avatar:
+            "https://images.unsplash.com/photo-1494790108755-2616b612a0c7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+        },
+      ],
+      weeklyHours: [
+        { day: "Mon", date: "2024-01-15", hours: 8 },
+        { day: "Tue", date: "2024-01-16", hours: 7.5 },
+        { day: "Wed", date: "2024-01-17", hours: 8 },
+        { day: "Thu", date: "2024-01-18", hours: 8 },
+        { day: "Fri", date: "2024-01-19", hours: 6 },
+        { day: "Sat", date: "2024-01-20", hours: 0 },
+        { day: "Sun", date: "2024-01-21", hours: 0 },
+      ],
+      leaveRequests: [
+        {
+          id: 1,
+          employee: "John Doe",
+          type: "Vacation",
+          dates: "Jan 25 - Jan 29",
+          days: 5,
+          status: "pending",
+          avatar:
+            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+        },
+      ],
+      topPerformers: [
+        {
+          id: 1,
+          name: "John Doe",
+          department: "Engineering",
+          score: 92,
+          avatar:
+            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+        },
+      ],
+
+      init() {
+        this.updateTime();
+        setInterval(() => this.updateTime(), 1000);
+      },
+
+      updateTime() {
+        this.currentTime = new Date().toLocaleTimeString();
+      },
+
+      get filteredEmployees() {
+        return this.employees.filter((employee) => {
+          const matchesSearch =
+            !this.filters.search ||
+            employee.name
+              .toLowerCase()
+              .includes(this.filters.search.toLowerCase()) ||
+            employee.email
+              .toLowerCase()
+              .includes(this.filters.search.toLowerCase());
+
+          const matchesDepartment =
+            !this.filters.department ||
+            employee.department === this.filters.department;
+          const matchesStatus =
+            !this.filters.status || employee.status === this.filters.status;
+
+          return matchesSearch && matchesDepartment && matchesStatus;
+        });
+      },
+
+      getStatusColor(status) {
+        const colors = {
+          active: "bg-green-100 text-green-800",
+          on_leave: "bg-yellow-100 text-yellow-800",
+          inactive: "bg-red-100 text-red-800",
+        };
+        return colors[status] || "bg-gray-100 text-gray-800";
+      },
+
+      getPerformanceColor(performance) {
+        if (performance >= 90) return "bg-green-500";
+        if (performance >= 80) return "bg-yellow-500";
+        if (performance >= 70) return "bg-orange-500";
+        return "bg-red-500";
+      },
+
+      getLeaveStatusColor(status) {
+        const colors = {
+          pending: "bg-yellow-100 text-yellow-800",
+          approved: "bg-green-100 text-green-800",
+          rejected: "bg-red-100 text-red-800",
+        };
+        return colors[status] || "bg-gray-100 text-gray-800";
+      },
+
+      clockIn() {
+        this.isClockedIn = true;
+        console.log("Clocked in at:", new Date().toLocaleTimeString());
+      },
+
+      clockOut() {
+        this.isClockedIn = false;
+        console.log("Clocked out at:", new Date().toLocaleTimeString());
+      },
+
+      viewEmployee(employee) {
+        console.log("Viewing employee:", employee);
+      },
+
+      editEmployee(employee) {
+        console.log("Editing employee:", employee);
+      },
+
+      approveLeave(request) {
+        request.status = "approved";
+        console.log("Leave approved:", request);
+      },
+
+      rejectLeave(request) {
+        request.status = "rejected";
+        console.log("Leave rejected:", request);
+      },
+    };
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'docs/doc_layout.html' %}
+{% block doc_content %}
+<h1 class="text-3xl font-bold text-gray-900 mb-6">
+  <i class="fas fa-file-invoice text-dreambiz-600"></i> Invoicing
+</h1>
+<div class="prose prose-blue max-w-none">
+  <p class="text-lg text-gray-700 mb-6">Professional invoice creation with automated numbering, recurring billing, and seamless payment integration.</p>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">Creating Invoices</h2>
+        <ol class="list-decimal list-inside text-gray-700 space-y-3 ml-4">
+          <li>Navigate to <strong>Invoicing → Create Invoice</strong></li>
+          <li>Select or create a customer</li>
+          <li>Add invoice items (products/services)</li>
+          <li>Set quantities and unit prices</li>
+          <li>Apply taxes and discounts if applicable</li>
+          <li>Add payment terms and due date</li>
+          <li>Include notes or special instructions</li>
+          <li>Preview and send invoice</li>
+        </ol>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">Features</h2>
+        <div class="space-y-4">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-gray-900 mb-2">
+              <i class="fas fa-magic text-dreambiz-600"></i> Auto-numbering
+            </h4>
+            <p class="text-sm text-gray-700">Automatic sequential invoice numbering with custom prefixes</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-gray-900 mb-2">
+              <i class="fas fa-repeat text-dreambiz-600"></i> Recurring Invoices
+            </h4>
+            <p class="text-sm text-gray-700">Set up automatic recurring invoices for subscriptions</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-gray-900 mb-2">
+              <i class="fas fa-envelope text-dreambiz-600"></i> Email Delivery
+            </h4>
+            <p class="text-sm text-gray-700">Send invoices directly via email with customizable templates</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-gray-900 mb-2">
+              <i class="fas fa-credit-card text-dreambiz-600"></i> Payment Tracking
+            </h4>
+            <p class="text-sm text-gray-700">Record partial and full payments with automatic updates</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-gray-900 mb-2">
+              <i class="fas fa-bell text-dreambiz-600"></i> Payment Reminders
+            </h4>
+            <p class="text-sm text-gray-700">Automatic reminder emails for overdue invoices</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">Invoice Status</h2>
+        <ul class="space-y-2">
+          <li class="flex items-center"><span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium mr-3">Draft</span> Invoice being prepared</li>
+          <li class="flex items-center"><span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium mr-3">Sent</span> Invoice sent to customer</li>
+          <li class="flex items-center"><span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium mr-3">Overdue</span> Payment past due date</li>
+          <li class="flex items-center"><span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium mr-3">Partial</span> Partially paid</li>
+          <li class="flex items-center"><span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium mr-3">Paid</span> Fully paid</li>
+          <li class="flex items-center"><span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium mr-3">Cancelled</span> Invoice cancelled</li>
+        </ul>
+      </section>
+
+      <section class="mt-12 pt-6 border-t border-gray-200">
+        <div class="flex justify-between">
+          <a href="{% url 'docs:dashboard' %}" class="text-dreambiz-600 hover:text-dreambiz-700">
+            <i class="fas fa-arrow-left mr-2"></i>Previous
+          </a>
+          <a href="{% url 'docs:expenses' %}" class="text-dreambiz-600 hover:text-dreambiz-700">
+            Next<i class="fas fa-arrow-right ml-2"></i>
+          </a>
+        </div>
+      </section>
+  <div class="bg-blue-50 border-l-4 border-blue-500 p-4 my-6">
+    <p class="text-blue-800 m-0">
+      <i class="fas fa-lightbulb mr-2"></i>
+      <strong>Tip:</strong> Use invoice templates and automated recurring billing to save time on repetitive invoicing tasks.
+    </p>
+  </div>
+</div>
+{% endblock %}

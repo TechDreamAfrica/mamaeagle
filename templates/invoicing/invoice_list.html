@@ -1,0 +1,1507 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% block title %}Invoices - DreamBiz Accounting{% endblock %} 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/invoice-modal.css' %}" />
+{% endblock %} 
+{% block content %} 
+{% csrf_token %}
+<div class="bg-gray-50 min-h-screen" x-data="invoiceList()">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="py-6">
+        <div class="md:flex md:items-center md:justify-between">
+          <div class="flex-1 min-w-0">
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+              <i class="fas fa-file-invoice text-dreambiz-600 mr-3"></i>Invoices
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+              Manage your invoices with advanced features and AI insights
+            </p>
+          </div>
+          <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+            <!-- Bulk Actions (shown when items are selected) -->
+            <div x-show="selectedInvoices.length > 0" class="flex space-x-2">
+              <button
+                @click="bulkExport()"
+                type="button"
+                class="bg-blue-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <i class="fas fa-download mr-2"></i>Export Selected (<span
+                  x-text="selectedInvoices.length"></span>)
+              </button>
+              <button
+                @click="bulkDelete()"
+                type="button"
+                class="bg-red-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                x-show="canDeleteSelected"
+              >
+                <i class="fas fa-trash mr-2"></i>Delete Selected (<span
+                  x-text="deletableCount"
+                ></span
+                >)
+              </button>
+            </div>
+
+            <!-- Regular Actions -->
+            <button
+              type="button"
+              class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+              onclick="exportInvoices()"
+            >
+              <i class="fas fa-download mr-2"></i>Export All
+            </button>
+            <a
+              href="{% url 'invoicing:invoice_create' %}"
+              class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              <i class="fas fa-plus mr-2"></i>Create Invoice
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Filters and Search -->
+    <div
+      class="bg-white rounded-lg shadow mb-6"
+      x-data="{ showFilters: false }"
+    >
+      <div class="p-6">
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0"
+        >
+          <!-- Search -->
+          <div class="flex-1 max-w-lg">
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <i class="fas fa-search text-gray-400"></i>
+              </div>
+              <input
+                type="text"
+                name="search"
+                id="search"
+                value="{{ search_query }}"
+                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                placeholder="Search invoices, customers..."
+              />
+            </div>
+          </div>
+
+          <!-- Filter Toggle -->
+          <button
+            @click="showFilters = !showFilters"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <i class="fas fa-filter mr-2"></i>
+            Filters
+            <i
+              class="fas fa-chevron-down ml-2 transform transition-transform"
+              :class="{'rotate-180': showFilters}"
+            ></i>
+          </button>
+        </div>
+
+        <!-- Expanded Filters -->
+        <div
+          x-show="showFilters"
+          x-transition:enter="transition ease-out duration-200"
+          x-transition:enter-start="opacity-0 transform scale-95"
+          x-transition:enter-end="opacity-100 transform scale-100"
+          x-transition:leave="transition ease-in duration-150"
+          x-transition:leave-start="opacity-100 transform scale-100"
+          x-transition:leave-end="opacity-0 transform scale-95"
+          class="mt-4 border-t border-gray-200 pt-4"
+        >
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Status</label
+              >
+              <select
+                x-model="filters.status"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+              >
+                <option value="">All Statuses</option>
+                <option value="draft">Draft</option>
+                <option value="sent">Sent</option>
+                <option value="paid">Paid</option>
+                <option value="overdue">Overdue</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Date From</label
+              >
+              <input
+                x-model="filters.dateFrom"
+                type="date"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Date To</label
+              >
+              <input
+                x-model="filters.dateTo"
+                type="date"
+                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500"
+              />
+            </div>
+            <div class="flex items-end space-x-2">
+              <button
+                @click="applyFilters()"
+                type="button"
+                class="flex-1 bg-dreambiz-600 text-white px-4 py-2 rounded-md hover:bg-dreambiz-700"
+              >
+                Apply Filters
+              </button>
+              <button
+                @click="clearFilters()"
+                type="button"
+                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                title="Clear Filters"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center"
+              >
+                <i class="fas fa-file-invoice text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Total Invoices
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">
+                  {{ summary.count|default:0 }}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center"
+              >
+                <i class="fas fa-dollar-sign text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Total Amount
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">
+                  GH{{ summary.total_amount|floatformat:2|default:"0.00" }}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center"
+              >
+                <i class="fas fa-clock text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Outstanding
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">
+                  GH{{ summary.outstanding|floatformat:2|default:"0.00" }}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center"
+              >
+                <i class="fas fa-exclamation-triangle text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Overdue
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">
+                  {{ overdue_count|default:0 }}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoice List -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+      <!-- Bulk Selection Header (Mobile) -->
+      <div class="block md:hidden" x-show="selectedInvoices.length > 0">
+        <div class="bg-blue-50 px-4 py-3 border-b border-blue-200">
+          <div class="flex items-center justify-between">
+            <div class="text-sm font-medium text-blue-800">
+              <span x-text="selectedInvoices.length"></span> invoice(s) selected
+            </div>
+            <div class="flex space-x-2">
+              <button
+                @click="bulkExport()"
+                class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+              >
+                <i class="fas fa-download mr-1"></i>Export
+              </button>
+              <button
+                @click="bulkDelete()"
+                x-show="canDeleteSelected"
+                class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+              >
+                <i class="fas fa-trash mr-1"></i>Delete
+              </button>
+              <button
+                @click="selectedInvoices = []; selectAll = false"
+                class="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          Invoice List
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+          Recent invoices and their status
+        </p>
+      </div>
+
+      <!-- Mobile View -->
+      <div class="block md:hidden">
+        <!-- Mobile Select All -->
+        <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+          <label class="flex items-center">
+            <input
+              type="checkbox"
+              @change="toggleSelectAll()"
+              :checked="selectAll"
+              class="h-4 w-4 text-dreambiz-600 focus:ring-dreambiz-500 border-gray-300 rounded"
+            />
+            <span class="ml-2 text-sm font-medium text-gray-700"
+              >Select All</span
+            >
+            <span
+              class="ml-2 text-xs text-gray-500"
+              x-show="selectedInvoices.length > 0"
+            >
+              (<span x-text="selectedInvoices.length"></span> selected)
+            </span>
+          </label>
+        </div>
+
+        {% for invoice in page_obj %}
+        <div
+          class="border-b border-gray-200 p-4"
+          :class="{'bg-blue-50': selectedInvoices.includes({{ invoice.pk }})}"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                :value="{{ invoice.pk }}"
+                @change="toggleInvoiceSelection({{ invoice.pk }})"
+                :checked="selectedInvoices.includes({{ invoice.pk }})"
+                class="h-4 w-4 text-dreambiz-600 focus:ring-dreambiz-500 border-gray-300 rounded"
+              />
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <p class="text-sm font-medium text-dreambiz-600">
+                    #{{ invoice.invoice_number }}
+                  </p>
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if invoice.status == 'paid' %}bg-green-100 text-green-800 {% elif invoice.status == 'sent' %}bg-blue-100 text-blue-800 {% elif invoice.status == 'overdue' %}bg-red-100 text-red-800 {% else %}bg-gray-100 text-gray-800{% endif %}"
+                  >
+                    {{ invoice.get_status_display }}
+                  </span>
+                </div>
+                <p class="text-sm text-gray-900 mt-1">
+                  {{ invoice.customer.name }}
+                </p>
+                <p class="text-sm text-gray-500">
+                  GH{{ invoice.total_amount|floatformat:2 }}
+                </p>
+                <p class="text-xs text-gray-500 mt-1">
+                  Due: {{ invoice.date_due }}
+                </p>
+              </div>
+            </div>
+            <div class="ml-4">
+              <div class="flex space-x-2">
+                <a
+                  href="{% url 'invoicing:invoice_detail' invoice.pk %}"
+                  class="text-dreambiz-600 hover:text-dreambiz-900"
+                >
+                  <i class="fas fa-eye"></i>
+                </a>
+                {% if invoice.status != 'paid' %}
+                <button
+                  @click="deleteInvoice({{ invoice.pk }}, '{{ invoice.invoice_number }}', '{{ invoice.customer.name }}')"
+                  class="text-red-600 hover:text-red-900"
+                  title="Delete"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="p-6 text-center">
+          <i class="fas fa-file-invoice text-gray-300 text-4xl mb-4"></i>
+          <p class="text-gray-500">No invoices found</p>
+          <a
+            href="{% url 'invoicing:invoice_create' %}"
+            class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-dreambiz-700 bg-dreambiz-100 hover:bg-dreambiz-200"
+          >
+            Create your first invoice
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Desktop View -->
+      <div class="hidden md:block">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                <input
+                  type="checkbox"
+                  @change="toggleSelectAll()"
+                  :checked="selectAll"
+                  class="h-4 w-4 text-dreambiz-600 focus:ring-dreambiz-500 border-gray-300 rounded"
+                />
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Invoice
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Customer
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Amount
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Due Date
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for invoice in page_obj %}
+            <tr
+              class="hover:bg-gray-50"
+              :class="{'bg-blue-50': selectedInvoices.includes({{ invoice.pk }})}"
+            >
+              <td class="px-6 py-4 whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  :value="{{ invoice.pk }}"
+                  @change="toggleInvoiceSelection({{ invoice.pk }})"
+                  :checked="selectedInvoices.includes({{ invoice.pk }})"
+                  class="h-4 w-4 text-dreambiz-600 focus:ring-dreambiz-500 border-gray-300 rounded"
+                />
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <div
+                      class="h-10 w-10 rounded-full bg-dreambiz-100 flex items-center justify-center"
+                    >
+                      <i class="fas fa-file-invoice text-dreambiz-600"></i>
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">
+                      #{{ invoice.invoice_number }}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      {{ invoice.date_created }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">
+                  {{ invoice.customer.name }}
+                </div>
+                <div class="text-sm text-gray-500">
+                  {{ invoice.customer.email }}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                GH{{ invoice.total_amount|floatformat:2 }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ invoice.date_due }} {% if invoice.is_overdue %}
+                <div class="text-red-600 text-xs">
+                  {{ invoice.days_overdue }} days overdue
+                </div>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if invoice.status == 'paid' %}bg-green-100 text-green-800 {% elif invoice.status == 'sent' %}bg-blue-100 text-blue-800 {% elif invoice.status == 'overdue' %}bg-red-100 text-red-800 {% else %}bg-gray-100 text-gray-800{% endif %}"
+                >
+                  {{ invoice.get_status_display }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex space-x-2">
+                  <a
+                    href="{% url 'invoicing:invoice_detail' invoice.pk %}"
+                    class="text-dreambiz-600 hover:text-dreambiz-900"
+                    title="View"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  {% if invoice.status == 'draft' %}
+                  <a
+                    href="{% url 'invoicing:invoice_edit' invoice.pk %}"
+                    class="text-amber-600 hover:text-amber-900"
+                    title="Edit"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  {% endif %}
+                  <a
+                    href="{% url 'invoicing:invoice_pdf' invoice.pk %}"
+                    class="text-green-600 hover:text-green-900"
+                    title="Download PDF"
+                  >
+                    <i class="fas fa-download"></i>
+                  </a>
+                  {% if invoice.status == 'draft' %}
+                  <a
+                    href="#"
+                    class="text-blue-600 hover:text-blue-900"
+                    title="Send"
+                  >
+                    <i class="fas fa-paper-plane"></i>
+                  </a>
+                  {% endif %} {% if invoice.status != 'paid' %}
+                  <button
+                    @click="deleteInvoice({{ invoice.pk }}, '{{ invoice.invoice_number }}', '{{ invoice.customer.name }}')"
+                    class="text-red-600 hover:text-red-900"
+                    title="Delete"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="px-6 py-8 text-center">
+                <div class="text-gray-500">
+                  <i class="fas fa-file-invoice text-4xl mb-4"></i>
+                  <p>No invoices found</p>
+                  <a
+                    href="{% url 'invoicing:invoice_create' %}"
+                    class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-dreambiz-700 bg-dreambiz-100 hover:bg-dreambiz-200"
+                  >
+                    Create your first invoice
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+      <div
+        class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"
+      >
+        <div class="flex-1 flex justify-between sm:hidden">
+          {% if page_obj.has_previous %}
+          <a
+            href="?page={{ page_obj.previous_page_number }}"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Previous
+          </a>
+          {% endif %} {% if page_obj.has_next %}
+          <a
+            href="?page={{ page_obj.next_page_number }}"
+            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Next
+          </a>
+          {% endif %}
+        </div>
+        <div
+          class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"
+        >
+          <div>
+            <p class="text-sm text-gray-700">
+              Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of
+              {{ page_obj.paginator.count }} results
+            </p>
+          </div>
+          <div>
+            <nav
+              class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+            >
+              {% if page_obj.has_previous %}
+              <a
+                href="?page={{ page_obj.previous_page_number }}"
+                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </a>
+              {% endif %} {% for num in page_obj.paginator.page_range %} {% if page_obj.number == num %}
+              <span
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-dreambiz-50 text-sm font-medium text-dreambiz-600"
+              >
+                {{ num }}
+              </span>
+              {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <a
+                href="?page={{ num }}"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                {{ num }}
+              </a>
+              {% endif %} {% endfor %} {% if page_obj.has_next %}
+              <a
+                href="?page={{ page_obj.next_page_number }}"
+                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </a>
+              {% endif %}
+            </nav>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Create Invoice Modal -->
+  <div
+    x-show="showCreateModal"
+    class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+    x-cloak
+    style="display: none"
+  >
+    <div
+      class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+    >
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-medium text-gray-900">
+            <i class="fas fa-plus-circle text-dreambiz-600 mr-2"></i>Create New
+            Invoice
+          </h3>
+          <button
+            @click="showCreateModal = false"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-6 py-4">
+        <form @submit.prevent="createInvoice()" x-ref="invoiceForm">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Customer Selection -->
+            <div class="md:col-span-2">
+              <h4 class="text-md font-medium text-gray-900 mb-4">
+                Customer Information
+              </h4>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Customer *</label
+              >
+              <div class="flex">
+                <select
+                  x-model="newInvoice.customer"
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select a customer</option>
+                  <template x-for="customer in customers" :key="customer.id">
+                    <option
+                      :value="customer.id"
+                      x-text="customer.name + (customer.company ? ' (' + customer.company + ')' : '')"
+                    ></option>
+                  </template>
+                </select>
+                <button
+                  @click="showNewCustomerModal = true"
+                  type="button"
+                  class="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg hover:bg-gray-200 focus:ring-2 focus:ring-dreambiz-500"
+                  title="Add new customer"
+                >
+                  <i class="fas fa-plus text-sm"></i>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Due Date *</label
+              >
+              <input
+                x-model="newInvoice.date_due"
+                type="date"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            <!-- Line Items -->
+            <div class="md:col-span-2">
+              <h4 class="text-md font-medium text-gray-900 mb-4">Line Items</h4>
+
+              <div class="space-y-3">
+                <template
+                  x-for="(item, index) in newInvoice.items"
+                  :key="index"
+                >
+                  <div class="grid grid-cols-12 gap-2 items-end">
+                    <div class="col-span-4">
+                      <label
+                        class="block text-xs font-medium text-gray-700 mb-1"
+                        x-show="index === 0"
+                        >Description</label
+                      >
+                      <input
+                        x-model="item.description"
+                        type="text"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent text-sm"
+                        placeholder="Item description"
+                      />
+                    </div>
+
+                    <div class="col-span-2">
+                      <label
+                        class="block text-xs font-medium text-gray-700 mb-1"
+                        x-show="index === 0"
+                        >Quantity</label
+                      >
+                      <input
+                        x-model="item.quantity"
+                        type="number"
+                        step="0.01"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent text-sm"
+                        placeholder="1"
+                        @input="calculateLineTotal(index)"
+                      />
+                    </div>
+
+                    <div class="col-span-2">
+                      <label
+                        class="block text-xs font-medium text-gray-700 mb-1"
+                        x-show="index === 0"
+                        >Unit Price</label
+                      >
+                      <input
+                        x-model="item.unit_price"
+                        type="number"
+                        step="0.01"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent text-sm"
+                        placeholder="0.00"
+                        @input="calculateLineTotal(index)"
+                      />
+                    </div>
+
+                    <div class="col-span-2">
+                      <label
+                        class="block text-xs font-medium text-gray-700 mb-1"
+                        x-show="index === 0"
+                        >Tax %</label
+                      >
+                      <input
+                        x-model="item.tax_rate"
+                        type="number"
+                        step="0.01"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent text-sm"
+                        placeholder="0.00"
+                        @input="calculateLineTotal(index)"
+                      />
+                    </div>
+
+                    <div class="col-span-1">
+                      <label
+                        class="block text-xs font-medium text-gray-700 mb-1"
+                        x-show="index === 0"
+                        >Total</label
+                      >
+                      <div
+                        class="px-3 py-2 text-sm font-medium text-gray-900"
+                        x-text="'$' + item.total.toFixed(2)"
+                      ></div>
+                    </div>
+
+                    <div class="col-span-1">
+                      <button
+                        @click="removeLineItem(index)"
+                        type="button"
+                        class="p-2 text-red-600 hover:text-red-800"
+                        title="Remove item"
+                        x-show="newInvoice.items.length > 1"
+                      >
+                        <i class="fas fa-trash text-sm"></i>
+                      </button>
+                    </div>
+                  </div>
+                </template>
+              </div>
+
+              <button
+                @click="addLineItem()"
+                type="button"
+                class="mt-3 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+              >
+                <i class="fas fa-plus mr-2"></i>Add Line Item
+              </button>
+            </div>
+
+            <!-- Notes and Terms -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Notes</label
+              >
+              <textarea
+                x-model="newInvoice.notes"
+                rows="3"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent"
+                placeholder="Additional notes for the customer"
+              ></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Terms</label
+              >
+              <textarea
+                x-model="newInvoice.terms"
+                rows="3"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent"
+                placeholder="Payment terms and conditions"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Invoice Total -->
+          <div class="mt-6 bg-gray-50 rounded-lg p-4">
+            <div class="space-y-2">
+              <div class="flex justify-between text-sm">
+                <span class="font-medium text-gray-700">Subtotal:</span>
+                <span
+                  class="text-gray-900"
+                  x-text="'$' + invoiceSubtotal.toFixed(2)"
+                ></span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="font-medium text-gray-700">Tax:</span>
+                <span
+                  class="text-gray-900"
+                  x-text="'$' + invoiceTax.toFixed(2)"
+                ></span>
+              </div>
+              <div class="border-t border-gray-200 pt-2">
+                <div class="flex justify-between text-base font-semibold">
+                  <span class="text-gray-900">Total:</span>
+                  <span
+                    class="text-gray-900"
+                    x-text="'$' + invoiceTotal.toFixed(2)"
+                  ></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="mt-6 flex justify-end space-x-3">
+            <button
+              @click="showCreateModal = false"
+              type="button"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              Cancel
+            </button>
+            <button
+              @click="saveAsDraft()"
+              type="button"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              Save as Draft
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 text-sm font-medium text-white bg-dreambiz-600 rounded-lg hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              Create Invoice
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Customer Modal -->
+  <div
+    x-show="showNewCustomerModal"
+    class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-60"
+    x-cloak
+    style="display: none"
+  >
+    <div
+      class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+    >
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-medium text-gray-900">
+            <i class="fas fa-user-plus text-dreambiz-600 mr-2"></i>Add New
+            Customer
+          </h3>
+          <button
+            @click="showNewCustomerModal = false"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-6 py-4">
+        <form @submit.prevent="createCustomer()">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Customer Name *</label
+              >
+              <input
+                x-model="newCustomer.name"
+                type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Company</label
+              >
+              <input
+                x-model="newCustomer.company"
+                type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Email *</label
+              >
+              <input
+                x-model="newCustomer.email"
+                type="email"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Phone</label
+              >
+              <input
+                x-model="newCustomer.phone"
+                type="tel"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent"
+              />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Address</label
+              >
+              <input
+                x-model="newCustomer.billing_address_line_1"
+                type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent"
+                placeholder="Street address"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >City</label
+              >
+              <input
+                x-model="newCustomer.billing_city"
+                type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >State</label
+              >
+              <input
+                x-model="newCustomer.billing_state"
+                type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end space-x-3">
+            <button
+              @click="showNewCustomerModal = false"
+              type="button"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 text-sm font-medium text-white bg-dreambiz-600 rounded-lg hover:bg-dreambiz-700"
+            >
+              Add Customer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Delete Confirmation Modal -->
+  <div
+    x-show="showBulkDeleteModal"
+    class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+    x-cloak
+    style="display: none"
+  >
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-medium text-gray-900">
+            <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>Bulk
+            Delete Invoices
+          </h3>
+          <button
+            @click="showBulkDeleteModal = false"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-6 py-4">
+        <div class="text-sm text-gray-500 mb-4">
+          Are you sure you want to delete the selected invoices? This action
+          cannot be undone.
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+          <div class="text-sm">
+            <div
+              class="font-medium text-gray-900"
+              x-text="`${deletableCount} invoice(s) will be deleted`"
+            ></div>
+            <div
+              class="text-gray-600 mt-1"
+              x-show="selectedInvoices.length !== deletableCount"
+            >
+              <i class="fas fa-info-circle mr-1"></i>
+              <span
+                x-text="`${selectedInvoices.length - deletableCount} paid invoice(s) will be skipped`"
+              ></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button
+            @click="showBulkDeleteModal = false"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+          >
+            Cancel
+          </button>
+          <button
+            @click="confirmBulkDelete()"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            <i class="fas fa-trash mr-2"></i>Delete Selected
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div
+    x-show="showDeleteModal"
+    class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+    x-cloak
+    style="display: none"
+  >
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-medium text-gray-900">
+            <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>Delete
+            Invoice
+          </h3>
+          <button
+            @click="showDeleteModal = false"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-6 py-4">
+        <div class="text-sm text-gray-500 mb-4">
+          Are you sure you want to delete this invoice? This action cannot be
+          undone.
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+          <div class="text-sm">
+            <div
+              class="font-medium text-gray-900"
+              x-text="deleteInvoiceData.invoice_number"
+            ></div>
+            <div
+              class="text-gray-600"
+              x-text="deleteInvoiceData.customer_name"
+            ></div>
+            <div
+              class="text-gray-900 font-medium"
+              x-text="'$' + deleteInvoiceData.total_amount"
+            ></div>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button
+            @click="showDeleteModal = false"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+          >
+            Cancel
+          </button>
+          <button
+            @click="confirmDelete()"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            <i class="fas fa-trash mr-2"></i>Delete Invoice
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  function invoiceList() {
+    const data = {
+      showDeleteModal: false,
+      showBulkDeleteModal: false,
+      selectedInvoices: [],
+      selectAll: false,
+      invoiceData: [], // Will be initialized in init()
+      originalInvoiceData: [], // Store original data for filtering
+      deleteInvoiceData: {
+        id: null,
+        invoice_number: '',
+        customer_name: '',
+        total_amount: ''
+      },
+      filters: {
+        status: '',
+        dateFrom: '',
+        dateTo: ''
+      },
+
+      // Initialize function
+      init() {
+        console.log('Invoice list initialized');
+
+        // Initialize invoice data from backend
+        try {
+          this.invoiceData = {{ invoices_data|safe }};
+          this.originalInvoiceData = [...this.invoiceData]; // Store original data
+          console.log('Invoice data loaded:', this.invoiceData);
+        } catch (e) {
+          console.error('Error loading invoice data:', e);
+          this.invoiceData = [];
+          this.originalInvoiceData = [];
+        }
+
+        // Populate filters from URL parameters
+        const params = new URLSearchParams(window.location.search);
+        this.filters.status = params.get('status') || '';
+        this.filters.dateFrom = params.get('date_from') || '';
+        this.filters.dateTo = params.get('date_to') || '';
+        
+        console.log('Initialized filters from URL:', this.filters);
+      },
+
+      // Filter functionality - redirect to server with filter parameters
+      applyFilters() {
+        console.log('Applying filters:', this.filters);
+        
+        const params = new URLSearchParams(window.location.search);
+        
+        // Clear existing filter params
+        params.delete('status');
+        params.delete('date_from');
+        params.delete('date_to');
+        params.delete('page'); // Reset pagination when filtering
+        
+        // Add new filter params
+        if (this.filters.status) {
+          params.set('status', this.filters.status);
+        }
+        if (this.filters.dateFrom) {
+          params.set('date_from', this.filters.dateFrom);
+        }
+        if (this.filters.dateTo) {
+          params.set('date_to', this.filters.dateTo);
+        }
+        
+        // Redirect with new parameters
+        window.location.search = params.toString();
+      },
+
+      clearFilters() {
+        console.log('Clearing filters');
+        // Redirect to page without filter parameters
+        const baseUrl = window.location.pathname;
+        const params = new URLSearchParams(window.location.search);
+        
+        // Remove filter parameters but keep others (like search)
+        params.delete('status');
+        params.delete('date_from');
+        params.delete('date_to');
+        params.delete('page');
+        
+        // Keep search if it exists
+        const search = params.get('search');
+        const finalParams = search ? `?search=${encodeURIComponent(search)}` : '';
+        
+        window.location.href = baseUrl + finalParams;
+      },
+
+      // Computed properties for bulk operations
+      get canDeleteSelected() {
+        return this.deletableCount > 0;
+      },
+
+      get deletableCount() {
+        return this.selectedInvoices.filter(id => {
+          const invoice = this.invoiceData.find(inv => inv.id === id);
+          return invoice && invoice.status !== 'paid';
+        }).length;
+      },
+
+      // Bulk selection methods
+      toggleSelectAll() {
+        if (this.selectAll) {
+          // Deselect all
+          this.selectedInvoices = [];
+          this.selectAll = false;
+        } else {
+          // Select all visible invoices
+          this.selectedInvoices = this.invoiceData.map(invoice => invoice.id);
+          this.selectAll = true;
+        }
+      },
+
+      toggleInvoiceSelection(invoiceId) {
+        const index = this.selectedInvoices.indexOf(invoiceId);
+        if (index > -1) {
+          this.selectedInvoices.splice(index, 1);
+        } else {
+          this.selectedInvoices.push(invoiceId);
+        }
+
+        // Update select all checkbox state
+        this.selectAll = this.selectedInvoices.length === this.invoiceData.length;
+      },
+
+      // Bulk operations
+      bulkDelete() {
+        if (this.deletableCount === 0) {
+          alert('No deletable invoices selected. Paid invoices cannot be deleted.');
+          return;
+        }
+        this.showBulkDeleteModal = true;
+      },
+
+      async confirmBulkDelete() {
+        try {
+          console.log('Bulk deleting invoices:', this.selectedInvoices);
+
+          const deletableIds = this.selectedInvoices.filter(id => {
+            const invoice = this.invoiceData.find(inv => inv.id === id);
+            return invoice && invoice.status !== 'paid';
+          });
+
+          const formData = new FormData();
+          formData.append('invoice_ids', JSON.stringify(deletableIds));
+          formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+          const response = await fetch('/invoicing/bulk-delete/', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log('Bulk delete successful:', result);
+
+            // Close modal and reset selections
+            this.showBulkDeleteModal = false;
+            this.selectedInvoices = [];
+            this.selectAll = false;
+
+            // Show success message
+            if (typeof showToast !== 'undefined') {
+              showToast(`${result.deleted_count} invoice(s) deleted successfully!`, 'success');
+            }
+
+            // Reload page to update the list
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            const errorText = await response.text();
+            console.error('Error bulk deleting invoices:', errorText);
+            alert('Error deleting invoices. Please try again.');
+            this.showBulkDeleteModal = false;
+          }
+        } catch (error) {
+          console.error('Network error:', error);
+          alert('Network error. Please check your connection and try again.');
+          this.showBulkDeleteModal = false;
+        }
+      },
+
+      bulkExport() {
+        if (this.selectedInvoices.length === 0) {
+          alert('Please select invoices to export.');
+          return;
+        }
+
+        console.log('Bulk exporting invoices:', this.selectedInvoices);
+
+        // Create a form to submit the selected IDs
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/invoicing/bulk-export/';
+
+        // Add CSRF token
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        form.appendChild(csrfInput);
+
+        // Add selected invoice IDs
+        const idsInput = document.createElement('input');
+        idsInput.type = 'hidden';
+        idsInput.name = 'invoice_ids';
+        idsInput.value = JSON.stringify(this.selectedInvoices);
+        form.appendChild(idsInput);
+
+        // Submit form
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+        // Show feedback
+        if (typeof showToast !== 'undefined') {
+          showToast(`Exporting ${this.selectedInvoices.length} invoice(s)...`, 'info');
+        }
+      },
+
+      // Delete invoice functionality
+      async deleteInvoice(invoiceId, invoiceNumber, customerName) {
+        try {
+          console.log('Preparing to delete invoice:', invoiceId);
+
+          this.deleteInvoiceData = {
+            id: invoiceId,
+            invoice_number: invoiceNumber,
+            customer_name: customerName,
+            total_amount: '0.00' // Will be updated by AJAX call if needed
+          };
+
+          this.showDeleteModal = true;
+        } catch (error) {
+          console.error('Error preparing delete:', error);
+          alert('Error preparing delete operation.');
+        }
+      },
+
+      async confirmDelete() {
+        try {
+          console.log('Confirming delete for invoice:', this.deleteInvoiceData.id);
+
+          const formData = new FormData();
+          formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+          const response = await fetch(`/invoicing/invoices/${this.deleteInvoiceData.id}/delete/`, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            console.log('Invoice deleted successfully');
+
+            // Close modal
+            this.showDeleteModal = false;
+
+            // Show success message and reload page
+            if (typeof showToast !== 'undefined') {
+              showToast(`Invoice ${this.deleteInvoiceData.invoice_number} deleted successfully!`, 'success');
+            }
+
+            // Reload page to update the list
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            const errorText = await response.text();
+            console.error('Error deleting invoice:', errorText);
+
+            // Try to extract error message from response
+            let errorMessage = 'Error deleting invoice.';
+            if (errorText.includes('Cannot delete')) {
+              const tempDiv = document.createElement('div');
+              tempDiv.innerHTML = errorText;
+              const messageElements = tempDiv.querySelectorAll('.alert, .error, .message');
+              if (messageElements.length > 0) {
+                errorMessage = messageElements[0].textContent.trim();
+              }
+            }
+
+            alert(errorMessage);
+            this.showDeleteModal = false;
+          }
+        } catch (error) {
+          console.error('Network error:', error);
+          alert('Network error. Please check your connection and try again.');
+          this.showDeleteModal = false;
+        }
+      }
+    };
+
+    console.log('InvoiceList function created, returning data:', data);
+    return data;
+  }
+
+  function exportInvoices() {
+    // Implementation for exporting invoices
+    showToast("Export functionality will be implemented", "info");
+  }
+
+  // Real-time search
+  document.getElementById("search").addEventListener("input", function (e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll("tbody tr");
+
+    rows.forEach((row) => {
+      const text = row.textContent.toLowerCase();
+      if (text.includes(searchTerm)) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    });
+  });
+</script>
+{% endblock %}

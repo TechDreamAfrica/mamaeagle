@@ -1,0 +1,581 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - DreamBiz{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow rounded-lg">
+  <div class="px-4 py-5 sm:p-6">
+    <!-- Header -->
+    <div class="sm:flex sm:items-center sm:justify-between">
+      <div class="sm:flex-auto">
+        <h1 class="text-2xl font-bold text-gray-900">
+          Welcome back, {{ user.first_name|default:user.username }}!
+        </h1>
+        <div class="mt-2 flex flex-wrap gap-4 text-sm text-gray-500">
+          <span class="flex items-center">
+            <i class="fas fa-calendar-alt mr-2"></i>
+            {{ today|date:"F d, Y" }}
+          </span>
+          <span class="flex items-center">
+            <i class="fas fa-clock mr-2"></i>
+            Last updated: just now
+          </span>
+        </div>
+      </div>
+      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'dashboard:export_data' %}"
+            class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors duration-200"
+          >
+            <i class="fas fa-download mr-2"></i>
+            Export Data
+          </a>
+          <div class="relative inline-block text-left" x-data="{ open: false }">
+            <div>
+              <button
+                @click="open = !open"
+                type="button"
+                class="inline-flex items-center rounded-md border border-transparent bg-dreambiz-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-dreambiz-700 transition-colors duration-200"
+              >
+                <i class="fas fa-plus mr-2"></i>
+                Quick Add
+                <i class="fas fa-chevron-down ml-2 text-xs"></i>
+              </button>
+            </div>
+            <div
+              x-show="open"
+              @click.away="open = false"
+              class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+            >
+              <div class="py-1">
+                <a href="{% url 'invoicing:invoice_create' %}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <i class="fas fa-file-invoice mr-3 text-green-500"></i>
+                  Create Invoice
+                </a>
+                <a href="{% url 'expenses:expense_create' %}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <i class="fas fa-receipt mr-3 text-red-500"></i>
+                  Add Expense
+                </a>
+                <a href="{% url 'invoicing:customer_create' %}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <i class="fas fa-user-plus mr-3 text-blue-500"></i>
+                  Add Customer
+                </a>
+                <a href="{% url 'inventory:product_create' %}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <i class="fas fa-box mr-3 text-purple-500"></i>
+                  Add Product
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <!-- Monthly Revenue -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-dollar-sign text-white"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Monthly Revenue
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">
+                  GH{{ metrics.monthly_revenue|floatformat:0 }}
+                </dd>
+                <dd class="text-sm {% if metrics.revenue_change >= 0 %}text-green-600{% else %}text-red-600{% endif %} font-medium">
+                  {% if metrics.revenue_change >= 0 %}+{% endif %}{{ metrics.revenue_change }}% from last month
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Expenses -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-credit-card text-white"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Monthly Expenses
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">
+                  GH{{ metrics.monthly_expenses|floatformat:0 }}
+                </dd>
+                <dd class="text-sm {% if metrics.expense_change <= 0 %}text-green-600{% else %}text-red-600{% endif %} font-medium">
+                  {% if metrics.expense_change >= 0 %}+{% endif %}{{ metrics.expense_change }}% from last month
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Net Income -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-12 h-12 bg-dreambiz-500 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-chart-line text-white"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Net Income
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">
+                  GH{{ metrics.net_income|floatformat:0 }}
+                </dd>
+                <dd class="text-sm text-dreambiz-600 font-medium">
+                  +18% from last month
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outstanding Invoices -->
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-file-invoice text-white"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Outstanding
+                </dt>
+                <dd class="text-lg font-medium text-gray-900">
+                  GH₵{{ metrics.outstanding_amount|floatformat:0 }}
+                </dd>
+                <dd class="text-sm text-yellow-600 font-medium">
+                  {{ metrics.outstanding_count }} invoices pending
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts and Quick Actions -->
+    <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-4">
+      <!-- Revenue Chart -->
+      <div class="lg:col-span-3">
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">
+              <i class="fas fa-chart-line mr-2 text-dreambiz-600"></i>
+              Revenue Trend (Last 30 Days)
+            </h3>
+            <div style="height: 300px">
+              <canvas id="revenueChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="lg:col-span-1">
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">
+              <i class="fas fa-bolt mr-2 text-dreambiz-600"></i>
+              Quick Actions
+            </h3>
+            <nav aria-label="Quick actions">
+              <div class="space-y-3">
+                {% if 'create' in team_permissions.invoicing %}
+                <a
+                  href="{% url 'invoicing:invoice_create' %}"
+                  class="group flex items-center p-3 text-sm font-medium rounded-lg bg-dreambiz-50 text-dreambiz-700 hover:bg-dreambiz-100 hover:text-dreambiz-900 transition-colors duration-200"
+                >
+                  <i
+                    class="fas fa-plus-circle mr-3 text-dreambiz-500 group-hover:text-dreambiz-700"
+                  ></i>
+                  Create Invoice
+                </a>
+                {% endif %}
+                
+                {% if 'create' in team_permissions.expenses %}
+                <a
+                  href="{% url 'expenses:expense_create' %}"
+                  class="group flex items-center p-3 text-sm font-medium rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
+                >
+                  <i
+                    class="fas fa-receipt mr-3 text-gray-500 group-hover:text-gray-700"
+                  ></i>
+                  Add Expense
+                </a>
+                {% endif %}
+                
+                {% if 'create' in team_permissions.sales %}
+                <a
+                  href="{% url 'sales:lead_create' %}"
+                  class="group flex items-center p-3 text-sm font-medium rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
+                >
+                  <i
+                    class="fas fa-user-plus mr-3 text-gray-500 group-hover:text-gray-700"
+                  ></i>
+                  Add Lead
+                </a>
+                {% endif %}
+                
+                {% if 'view' in team_permissions.reports %}
+                <a
+                  href="{% url 'reports:report_list' %}"
+                  class="group flex items-center p-3 text-sm font-medium rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
+                >
+                  <i
+                    class="fas fa-chart-bar mr-3 text-gray-500 group-hover:text-gray-700"
+                  ></i>
+                  View Reports
+                </a>
+                {% endif %}
+              </div>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Insights Section -->
+    <div class="mt-8">
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">
+            <i class="fas fa-brain mr-2 text-dreambiz-600"></i>
+            AI-Powered Insights
+          </h3>
+          <div id="ai-insights" class="space-y-4">
+            <!-- AI insights will be loaded here dynamically -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <i class="fas fa-lightbulb text-blue-400"></i>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-blue-800">
+                    Cash Flow Insight
+                  </h3>
+                  <div class="mt-2 text-sm text-blue-700">
+                    <p>
+                      Your accounts receivable is trending upward. Consider
+                      offering early payment discounts to improve cash flow.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity and Notifications -->
+    <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Recent Transactions -->
+      <div class="bg-white overflow-hidden shadow-md rounded-lg border border-gray-100">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+              <i class="fas fa-history mr-2 text-dreambiz-600"></i>
+              Recent Activity
+            </h3>
+          </div>
+          <div id="recent-activity" class="flow-root">
+            {% if recent_activities %}
+            <ul class="space-y-4">
+              {% for activity in recent_activities %}
+              <li>
+                <div class="relative flex space-x-4 p-4 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors duration-200">
+                  <div class="flex-shrink-0">
+                    <span class="h-10 w-10 rounded-full bg-{{ activity.color }}-500 flex items-center justify-center shadow-sm">
+                      <i class="{{ activity.icon }} text-white text-sm"></i>
+                    </span>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex justify-between items-start">
+                      <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900 mb-1">
+                          {% if activity.url %}
+                          <a href="{{ activity.url }}" class="hover:text-dreambiz-600 transition-colors duration-200">
+                            {{ activity.title }}
+                          </a>
+                          {% else %}
+                          {{ activity.title }}
+                          {% endif %}
+                        </p>
+                        <p class="text-xs text-gray-500 mb-1">{{ activity.description }}</p>
+                        {% if activity.amount %}
+                        <p class="text-sm font-semibold text-gray-900">GH₵{{ activity.amount }}</p>
+                        {% endif %}
+                      </div>
+                      <div class="text-right text-xs text-gray-400 ml-4 whitespace-nowrap">
+                        <time>{{ activity.date|timesince }} ago</time>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <div class="text-center py-12 bg-gray-50 rounded-lg border border-gray-100">
+              <i class="fas fa-clock text-gray-300 text-4xl mb-4"></i>
+              <p class="text-gray-500 text-base font-medium">No recent activity</p>
+              <p class="text-gray-400 text-sm mt-1">Your activity will appear here as you use the system</p>
+            </div>
+            {% endif %}
+            
+            <div class="mt-6 text-center">
+              <button id="load-more-activity" class="inline-flex items-center px-4 py-2 text-sm font-medium text-dreambiz-600 bg-dreambiz-50 border border-dreambiz-200 rounded-lg hover:bg-dreambiz-100 hover:text-dreambiz-700 transition-all duration-200">
+                <i class="fas fa-sync-alt mr-2"></i>
+                Refresh Activity
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Insights & Notifications -->
+      <div class="bg-white overflow-hidden shadow-md rounded-lg border border-gray-100">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+              <i class="fas fa-lightbulb mr-2 text-yellow-500"></i>
+              AI Insights & Alerts
+            </h3>
+          </div>
+          <div class="space-y-4">
+            <!-- AI Insight -->
+            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0">
+                  <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-brain text-purple-600"></i>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-base font-semibold text-purple-900 mb-2">
+                    Cash Flow Prediction
+                  </h4>
+                  <p class="text-sm text-purple-700 leading-relaxed">
+                    Based on current trends, you'll have <span class="font-semibold">GH₵15,230</span> in cash flow
+                    next month. Consider investing excess funds.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Warning -->
+            <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0">
+                  <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-amber-600"></i>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-base font-semibold text-amber-900 mb-2">
+                    Overdue Invoice Alert
+                  </h4>
+                  <p class="text-sm text-amber-700 leading-relaxed">
+                    Invoice <span class="font-semibold">#INV-00045</span> is <span class="font-semibold text-red-600">15 days overdue</span>. 
+                    Consider sending a follow-up.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Success -->
+            <div class="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0">
+                  <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-check-circle text-emerald-600"></i>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-base font-semibold text-emerald-900 mb-2">
+                    Expense Optimization
+                  </h4>
+                  <p class="text-sm text-emerald-700 leading-relaxed">
+                    AI detected you could save <span class="font-semibold text-green-600">12%</span> on office supplies by
+                    switching vendors.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 
+{% block extra_js %}
+<script>
+  // Revenue Chart
+  const ctx = document.getElementById("revenueChart").getContext("2d");
+  const revenueChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: [], // Will be populated by API
+      datasets: [
+        {
+          label: "Revenue",
+          data: [], // Will be populated by API
+          borderColor: "#0ea5e9",
+          backgroundColor: "rgba(14, 165, 233, 0.1)",
+          tension: 0.4,
+          fill: true,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false,
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function (value) {
+              return "GH" + value.toLocaleString();
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // Load chart data
+  // Load chart data
+  fetch('{% url "dashboard:revenue_chart_data" %}')
+    .then((response) => response.json())
+    .then((data) => {
+      revenueChart.data.labels = data.data.map((item) => {
+        const date = new Date(item.date);
+        return date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+      });
+      revenueChart.data.datasets[0].data = data.data.map(
+        (item) => item.revenue
+      );
+      revenueChart.update();
+    })
+    .catch((error) => console.error("Error loading chart data:", error));
+
+  // Refresh recent activity
+  function refreshActivity() {
+    const activityContainer = document.getElementById('recent-activity');
+    const refreshButton = document.getElementById('load-more-activity');
+    
+    refreshButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Loading...';
+    
+    fetch('{% url "dashboard:recent_activity" %}')
+      .then(response => response.json())
+      .then(data => {
+        if (data.activities.length > 0) {
+          let html = '<ul class="-mb-8">';
+          data.activities.forEach((activity, index) => {
+            html += `
+              <li>
+                <div class="relative ${index < data.activities.length - 1 ? 'pb-8' : ''}">
+                  ${index < data.activities.length - 1 ? '<span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"></span>' : ''}
+                  <div class="relative flex space-x-3">
+                    <div>
+                      <span class="h-8 w-8 rounded-full bg-${activity.color}-500 flex items-center justify-center ring-8 ring-white">
+                        <i class="${activity.icon} text-white text-sm"></i>
+                      </span>
+                    </div>
+                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                      <div>
+                        <p class="text-sm text-gray-500">
+                          <a href="${activity.url || '#'}" class="hover:text-gray-900">
+                            ${activity.title}
+                          </a>
+                          <br>
+                          <span class="text-xs">${activity.description}</span>
+                          ${activity.amount ? `<span class="font-medium text-gray-900">- GH₵${activity.amount}</span>` : ''}
+                        </p>
+                      </div>
+                      <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                        <time>${activity.time_ago}</time>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            `;
+          });
+          html += '</ul>';
+          html += `
+            <div class="mt-4 text-center">
+              <button id="load-more-activity" onclick="refreshActivity()" class="text-sm text-dreambiz-600 hover:text-dreambiz-700 font-medium">
+                <i class="fas fa-sync-alt mr-1"></i> Refresh Activity
+              </button>
+            </div>
+          `;
+          activityContainer.innerHTML = html;
+        } else {
+          activityContainer.innerHTML = `
+            <div class="text-center py-8">
+              <i class="fas fa-clock text-gray-400 text-3xl mb-3"></i>
+              <p class="text-gray-500">No recent activity</p>
+            </div>
+            <div class="mt-4 text-center">
+              <button id="load-more-activity" onclick="refreshActivity()" class="text-sm text-dreambiz-600 hover:text-dreambiz-700 font-medium">
+                <i class="fas fa-sync-alt mr-1"></i> Refresh Activity
+              </button>
+            </div>
+          `;
+        }
+      })
+      .catch(error => {
+        console.error('Error loading activity:', error);
+        refreshButton.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Error loading activity';
+      });
+  }
+
+  // Add event listener for refresh button
+  document.getElementById('load-more-activity').addEventListener('click', refreshActivity);
+</script>
+{% endblock %}

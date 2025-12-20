@@ -1,0 +1,802 @@
+{% extends 'website/base.html' %}
+
+{% block title %}Shopping Cart - Mama Eagle Plumbing Solutions{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="bg-gradient-to-r from-primary to-primary-dark text-white py-12">
+    <div class="max-w-7xl mx-auto px-4">
+        <!-- Hidden form with CSRF token for JavaScript -->
+        <form id="csrf-form" style="display: none;">
+            {% csrf_token %}
+        </form>
+        <!-- Breadcrumb -->
+        <nav class="mb-6" aria-label="Breadcrumb">
+            <ol class="flex space-x-2 text-sm text-blue-200">
+                <li><a href="{% url 'website:home' %}" class="hover:text-white transition duration-300">Home</a></li>
+                <li class="text-blue-300">/</li>
+                <li><a href="{% url 'website:product_list' %}" class="hover:text-white transition duration-300">Products</a></li>
+                <li class="text-blue-300">/</li>
+                <li class="text-white font-medium">Shopping Cart</li>
+            </ol>
+        </nav>
+        
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-4xl font-bold mb-2">Shopping Cart</h1>
+                <p class="text-blue-100">Review your selected items before checkout</p>
+            </div>
+            {% if cart_items %}
+            <div class="text-right">
+                <div class="text-2xl font-bold">{{ cart_items|length }} Item{{ cart_items|length|pluralize }}</div>
+                <div class="text-blue-200">in your cart</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-12">
+    {% if cart_items %}
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Cart Items -->
+            <div class="lg:col-span-2">
+                <div class="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                    <!-- Cart Header -->
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                        <div class="grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
+                            <div class="col-span-6">Product</div>
+                            <div class="col-span-2 text-center">Price</div>
+                            <div class="col-span-2 text-center">Quantity</div>
+                            <div class="col-span-2 text-center">Total</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cart Items -->
+                    <div class="divide-y divide-gray-200">
+                        {% for item in cart_items %}
+                        <div class="p-6 cart-item hover:bg-gray-50 transition duration-300" data-item-id="{{ item.id }}">
+                            <div class="grid grid-cols-12 gap-4 items-center">
+                                <!-- Product Info -->
+                                <div class="col-span-6">
+                                    <div class="flex items-start space-x-4">
+                                        <div class="flex-shrink-0">
+                                            {% if item.product.images.first %}
+                                                <img src="{{ item.product.images.first.image.url }}" 
+                                                     alt="{{ item.product.name }}" 
+                                                     class="w-20 h-20 object-cover rounded-lg shadow-md">
+                                            {% else %}
+                                                <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                                                    <span class="text-2xl text-gray-400">🔧</span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="font-semibold text-gray-900 hover:text-primary">
+                                                <a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
+                                            </h3>
+                                            <p class="text-sm text-gray-600 mt-1">{{ item.product.category.name }}</p>
+                                            {% if item.product.short_description %}
+                                                <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ item.product.short_description|truncatewords:15 }}</p>
+                                            {% endif %}
+                                            
+                                            <!-- Stock Status -->
+                                            <div class="mt-2">
+                                                {% if item.product.in_stock %}
+                                                    {% if item.quantity > item.product.stock_quantity %}
+                                                        <span class="text-red-600 text-sm font-medium">
+                                                            ⚠️ Only {{ item.product.stock_quantity }} in stock
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="text-green-600 text-sm">✓ In Stock</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-red-600 text-sm font-medium">✗ Out of Stock</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Price -->
+                                <div class="col-span-2 text-center">
+                                    {% if item.product.is_on_sale %}
+                                        <div class="text-lg font-semibold text-red-600">GHS {{ item.product.price }}</div>
+                                        <div class="text-sm text-gray-500 line-through">GHS {{ item.product.compare_at_price }}</div>
+                                    {% else %}
+                                        <div class="text-lg font-semibold text-gray-900">GHS {{ item.product.price }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Quantity -->
+                                <div class="col-span-2 text-center">
+                                    <div class="flex items-center justify-center">
+                                        <div class="flex items-center border border-gray-300 rounded-lg">
+                                            <button type="button" 
+                                                    class="quantity-btn minus-btn px-3 py-2 text-gray-600 hover:text-gray-800 {% if item.quantity <= 1 %}cursor-not-allowed opacity-50{% endif %}"
+                                                    data-item-id="{{ item.id }}"
+                                                    data-current-qty="{{ item.quantity }}"
+                                                    data-price="{{ item.product.price }}"
+                                                    {% if item.quantity <= 1 %}disabled{% endif %}>
+                                                -
+                                            </button>
+                                            <input type="number" 
+                                                   value="{{ item.quantity }}" 
+                                                   min="1" 
+                                                   max="{{ item.product.stock_quantity }}"
+                                                   class="w-16 text-center border-0 focus:ring-0 quantity-input"
+                                                   data-item-id="{{ item.id }}"
+                                                   data-price="{{ item.product.price }}">
+                                            <button type="button" 
+                                                    class="quantity-btn plus-btn px-3 py-2 text-gray-600 hover:text-gray-800 {% if item.quantity >= item.product.stock_quantity %}cursor-not-allowed opacity-50{% endif %}"
+                                                    data-item-id="{{ item.id }}"
+                                                    data-current-qty="{{ item.quantity }}"
+                                                    data-max-qty="{{ item.product.stock_quantity }}"
+                                                    data-price="{{ item.product.price }}"
+                                                    {% if item.quantity >= item.product.stock_quantity %}disabled{% endif %}>
+                                                +
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Total -->
+                                <div class="col-span-2 text-center">
+                                    <div class="text-lg font-semibold text-primary item-total" data-item-id="{{ item.id }}">
+                                        GHS {{ item.get_total_price }}
+                                    </div>
+                                    <button class="remove-btn text-red-500 hover:text-red-700 text-sm mt-1"
+                                            data-item-id="{{ item.id }}">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Continue Shopping -->
+                <div class="mt-6">
+                    <a href="{% url 'website:product_list' %}" 
+                       class="inline-flex items-center text-primary hover:text-primary-dark font-medium">
+                        ← Continue Shopping
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Order Summary -->
+            <div class="lg:col-span-1">
+                <div class="bg-white border border-gray-200 rounded-lg p-6 sticky top-4">
+                    <h2 class="text-lg font-semibold mb-4">Order Summary</h2>
+                    
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span>Subtotal ({{ cart_items|length }} items):</span>
+                            <span class="font-medium" id="cartSubtotal">GHS {{ cart.get_total_price }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span>Estimated Shipping:</span>
+                            <span class="font-medium" id="shippingCost">
+                                {% if cart.get_total_price >= 500 %}
+                                    <span class="text-green-600">FREE</span>
+                                {% else %}
+                                    GHS 25
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        {% if cart.get_total_price < 500 %}
+                        <div class="text-xs text-gray-600 bg-blue-50 p-2 rounded">
+                            💡 Add more for FREE shipping on orders over GHS 500!
+                        </div>
+                        {% endif %}
+                        
+                        <hr class="border-gray-200">
+                        
+                        <div class="flex justify-between text-lg font-semibold">
+                            <span>Total:</span>
+                            <span class="text-primary" id="cartTotal">
+                                GHS {% if cart.get_total_price >= 500 %}{{ cart.get_total_price }}{% else %}{{ cart.get_total_price|add:25 }}{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Checkout Button -->
+                    <div class="mt-6">
+                        <a href="{% url 'website:checkout' %}" 
+                           class="w-full bg-secondary text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-400 transition duration-300 text-center block">
+                            Proceed to Checkout
+                        </a>
+                        
+                        <div class="mt-3 text-center">
+                            <div class="flex items-center justify-center space-x-2 text-xs text-gray-600">
+                                <span>🔒</span>
+                                <span>Secure Checkout</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Security Badges -->
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <div class="text-center">
+                            <div class="text-xs text-gray-600 mb-2">We Accept</div>
+                            <div class="flex justify-center space-x-2">
+                                <div class="w-8 h-6 bg-blue-600 rounded text-white text-xs flex items-center justify-center font-bold">
+                                    VISA
+                                </div>
+                                <div class="w-8 h-6 bg-red-600 rounded text-white text-xs flex items-center justify-center font-bold">
+                                    MC
+                                </div>
+                                <div class="w-8 h-6 bg-green-600 rounded text-white text-xs flex items-center justify-center font-bold">
+                                    MTN
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Related Products Section -->
+        <div class="mt-16 bg-gray-50 py-16 -mx-4 px-4">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">You May Also Like</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">
+                        Complete your plumbing project with these carefully selected products from the same categories
+                    </p>
+                </div>
+                
+                {% if recommended_products %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {% for product in recommended_products|slice:":8" %}
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                        <a href="{{ product.get_absolute_url }}" class="block">
+                            <div class="relative overflow-hidden">
+                                {% if product.images.first %}
+                                    <img src="{{ product.images.first.image.url }}" 
+                                         alt="{{ product.name }}" 
+                                         class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                                {% else %}
+                                    <div class="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                        <span class="text-4xl text-gray-400">🔧</span>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Product badges -->
+                                <div class="absolute top-3 left-3">
+                                    {% if product.is_on_sale %}
+                                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                            {{ product.sale_percentage }}% OFF
+                                        </span>
+                                    {% elif product.is_featured %}
+                                        <span class="bg-secondary text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                            Featured
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Stock status -->
+                                <div class="absolute bottom-3 left-3">
+                                    {% if product.in_stock %}
+                                        {% if product.stock_quantity <= 5 %}
+                                            <span class="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                                Only {{ product.stock_quantity }} left
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                            Out of Stock
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <div class="p-5">
+                            <!-- Category -->
+                            <div class="text-xs text-gray-500 mb-2 uppercase tracking-wide">
+                                {{ product.category.name }}
+                            </div>
+                            
+                            <!-- Product name -->
+                            <h3 class="font-semibold text-gray-900 mb-3 hover:text-primary transition duration-300 line-clamp-2">
+                                <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                            </h3>
+                            
+                            <!-- Short description -->
+                            {% if product.short_description %}
+                                <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ product.short_description }}</p>
+                            {% endif %}
+                            
+                            <!-- Price and action -->
+                            <div class="flex justify-between items-center">
+                                <div class="flex flex-col">
+                                    {% if product.is_on_sale %}
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-lg font-bold text-red-600">GHS {{ product.price }}</span>
+                                            <span class="text-sm text-gray-500 line-through">GHS {{ product.compare_at_price }}</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-lg font-bold text-primary">GHS {{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if product.in_stock %}
+                                    <button onclick="addToCartQuick({{ product.id }})" 
+                                            class="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-400 transition duration-300 flex items-center space-x-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                        <span>Add</span>
+                                    </button>
+                                {% else %}
+                                    <button disabled class="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed">
+                                        Out of Stock
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- View all products link -->
+                <div class="text-center mt-12">
+                    <a href="{% url 'website:product_list' %}" 
+                       class="inline-flex items-center bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-dark transition duration-300 space-x-2">
+                        <span>Browse All Products</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </a>
+                </div>
+                
+                {% else %}
+                <div class="text-center py-12">
+                    <div class="text-4xl text-gray-300 mb-4">🔧</div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">No recommendations available</h3>
+                    <p class="text-gray-600 mb-6">Browse our full catalog of plumbing products</p>
+                    <a href="{% url 'website:product_list' %}" 
+                       class="inline-block bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition duration-300">
+                        View All Products
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+    {% else %}
+        <!-- Empty Cart -->
+        <div class="text-center py-16">
+            <div class="text-6xl text-gray-300 mb-6">🛒</div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
+            <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                Looks like you haven't added any plumbing materials to your cart yet. 
+                Browse our extensive collection of professional plumbing products.
+            </p>
+            
+            <div class="space-y-4">
+                <a href="{% url 'website:product_list' %}" 
+                   class="inline-block bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-dark transition duration-300">
+                    Start Shopping
+                </a>
+                
+                <!-- Featured Categories for Empty Cart -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold mb-4">Popular Categories</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+                        <a href="{% url 'website:product_list' %}?category=pipes-fittings" 
+                           class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:shadow-md transition duration-300">
+                            <div class="text-3xl mb-2">🔧</div>
+                            <div class="font-medium text-sm">Pipes & Fittings</div>
+                        </a>
+                        <a href="{% url 'website:product_list' %}?category=bathroom-fixtures" 
+                           class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:shadow-md transition duration-300">
+                            <div class="text-3xl mb-2">🚿</div>
+                            <div class="font-medium text-sm">Bathroom Fixtures</div>
+                        </a>
+                        <a href="{% url 'website:product_list' %}?category=kitchen-plumbing" 
+                           class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:shadow-md transition duration-300">
+                            <div class="text-3xl mb-2">🍽️</div>
+                            <div class="font-medium text-sm">Kitchen Plumbing</div>
+                        </a>
+                        <a href="{% url 'website:product_list' %}?category=tools-equipment" 
+                           class="p-4 border border-gray-200 rounded-lg hover:border-primary hover:shadow-md transition duration-300">
+                            <div class="text-3xl mb-2">🔨</div>
+                            <div class="font-medium text-sm">Tools & Equipment</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// Get CSRF token helper function
+function getCsrfToken() {
+    // Try multiple methods to get CSRF token
+    let token = null;
+    
+    // Method 1: From hidden form
+    const csrfForm = document.getElementById('csrf-form');
+    if (csrfForm) {
+        const csrfInput = csrfForm.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfInput) {
+            token = csrfInput.value;
+        }
+    }
+    
+    // Method 2: From any form on page
+    if (!token) {
+        const anyForm = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (anyForm) {
+            token = anyForm.value;
+        }
+    }
+    
+    // Method 3: From cookie
+    if (!token) {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') {
+                token = value;
+                break;
+            }
+        }
+    }
+    
+    // Method 4: From meta tag (if we add one)
+    if (!token) {
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) {
+            token = metaTag.getAttribute('content');
+        }
+    }
+    
+    if (!token) {
+        console.error('CSRF token not found!');
+        alert('Security token not found. Please refresh the page.');
+    }
+    
+    return token;
+}
+
+// Improved cart functionality with real-time calculations
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle quantity button clicks
+    document.querySelectorAll('.quantity-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            const isPlus = this.classList.contains('plus-btn');
+            const quantityInput = document.querySelector(`input[data-item-id="${itemId}"]`);
+            let currentQty = parseInt(quantityInput.value);
+            
+            if (isPlus) {
+                const maxQty = parseInt(this.dataset.maxQty);
+                if (currentQty < maxQty) {
+                    updateQuantity(itemId, currentQty + 1);
+                }
+            } else {
+                if (currentQty > 1) {
+                    updateQuantity(itemId, currentQty - 1);
+                }
+            }
+        });
+    });
+    
+    // Handle quantity input changes
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const itemId = this.dataset.itemId;
+            const newQuantity = parseInt(this.value);
+            if (newQuantity > 0) {
+                updateQuantity(itemId, newQuantity);
+            } else {
+                this.value = 1;
+                updateQuantity(itemId, 1);
+            }
+        });
+    });
+    
+    // Handle remove button clicks
+    document.querySelectorAll('.remove-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            removeItem(itemId);
+        });
+    });
+});
+
+function updateQuantity(itemId, newQuantity) {
+    if (newQuantity < 1) return;
+    
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
+        alert('Security token not found. Please refresh the page.');
+        return;
+    }
+    
+    // Show loading state
+    const quantityInput = document.querySelector(`input[data-item-id="${itemId}"]`);
+    const originalValue = quantityInput.value;
+    quantityInput.style.opacity = '0.5';
+    
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    formData.append('quantity', newQuantity);
+    
+    fetch(`{% url 'website:update_cart_item' 999 %}`.replace('999', itemId), {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Update quantity input
+            quantityInput.value = newQuantity;
+            quantityInput.style.opacity = '1';
+            
+            // Update item total with animation
+            const totalElement = document.querySelector(`[data-item-id="${itemId}"].item-total`);
+            if (totalElement) {
+                totalElement.style.transform = 'scale(1.1)';
+                totalElement.textContent = `GHS ${parseFloat(data.item_total).toFixed(2)}`;
+                setTimeout(() => {
+                    totalElement.style.transform = 'scale(1)';
+                }, 200);
+            }
+            
+            // Update cart totals
+            updateCartTotals(data.cart_subtotal, data.cart_total, data.cart_items);
+            
+            // Update button states
+            updateButtonStates(itemId, newQuantity);
+            
+        } else {
+            // Revert on error
+            quantityInput.value = originalValue;
+            quantityInput.style.opacity = '1';
+            alert(data.message || 'Error updating cart. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Revert on error
+        quantityInput.value = originalValue;
+        quantityInput.style.opacity = '1';
+        alert('An error occurred. Please try again.');
+    });
+}
+
+function removeItem(itemId) {
+    if (!confirm('Remove this item from your cart?')) return;
+    
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
+        alert('Security token not found. Please refresh the page.');
+        return;
+    }
+    
+    const itemElement = document.querySelector(`[data-item-id="${itemId}"].cart-item`);
+    if (!itemElement) {
+        console.error('Cart item element not found');
+        return;
+    }
+    
+    itemElement.style.opacity = '0.5';
+    
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    
+    fetch(`{% url 'website:remove_cart_item' 999 %}`.replace('999', itemId), {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Smooth remove animation
+            itemElement.style.transition = 'all 0.3s ease';
+            itemElement.style.transform = 'translateX(-100%)';
+            setTimeout(() => {
+                itemElement.remove();
+            }, 300);
+            
+            // Update cart totals
+            updateCartTotals(data.cart_subtotal, data.cart_total, data.cart_items);
+            
+            // If cart is now empty, reload page to show empty state
+            if (data.cart_items === 0) {
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            }
+        } else {
+            itemElement.style.opacity = '1';
+            alert(data.message || 'Error removing item. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        itemElement.style.opacity = '1';
+        alert('An error occurred. Please try again.');
+    });
+}
+
+function updateCartTotals(subtotal, total, itemCount) {
+    // Update subtotal with animation
+    const subtotalElement = document.getElementById('cartSubtotal');
+    subtotalElement.style.transform = 'scale(1.05)';
+    subtotalElement.textContent = `GHS ${parseFloat(subtotal).toFixed(2)}`;
+    
+    // Update total with animation
+    const totalElement = document.getElementById('cartTotal');
+    totalElement.style.transform = 'scale(1.05)';
+    totalElement.textContent = `GHS ${parseFloat(total).toFixed(2)}`;
+    
+    // Reset animations
+    setTimeout(() => {
+        subtotalElement.style.transform = 'scale(1)';
+        totalElement.style.transform = 'scale(1)';
+    }, 200);
+    
+    // Update shipping cost display
+    const shippingElement = document.getElementById('shippingCost');
+    if (parseFloat(subtotal) >= 500) {
+        shippingElement.innerHTML = '<span class="text-green-600">FREE</span>';
+    } else {
+        shippingElement.textContent = 'GHS 25.00';
+    }
+    
+    // Update cart count in header
+    const cartCountElements = document.querySelectorAll('.cart-count');
+    cartCountElements.forEach(element => {
+        element.textContent = itemCount;
+    });
+    
+    // Update items count in subtotal text
+    const itemsText = itemCount === 1 ? '1 item' : `${itemCount} items`;
+    const subtotalLabel = subtotalElement.closest('div').querySelector('span');
+    if (subtotalLabel) {
+        subtotalLabel.textContent = `Subtotal (${itemsText}):`;
+    }
+}
+
+function updateButtonStates(itemId, quantity) {
+    const minusBtn = document.querySelector(`.minus-btn[data-item-id="${itemId}"]`);
+    const plusBtn = document.querySelector(`.plus-btn[data-item-id="${itemId}"]`);
+    const maxQty = parseInt(plusBtn.dataset.maxQty);
+    
+    // Update minus button
+    if (quantity <= 1) {
+        minusBtn.disabled = true;
+        minusBtn.classList.add('cursor-not-allowed', 'opacity-50');
+    } else {
+        minusBtn.disabled = false;
+        minusBtn.classList.remove('cursor-not-allowed', 'opacity-50');
+    }
+    
+    // Update plus button
+    if (quantity >= maxQty) {
+        plusBtn.disabled = true;
+        plusBtn.classList.add('cursor-not-allowed', 'opacity-50');
+    } else {
+        plusBtn.disabled = false;
+        plusBtn.classList.remove('cursor-not-allowed', 'opacity-50');
+    }
+}
+
+// Quick add to cart function for related products
+function addToCartQuick(productId) {
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
+        alert('Security token not found. Please refresh the page.');
+        return;
+    }
+    
+    // Find the button and show loading state
+    const button = document.querySelector(`button[onclick="addToCartQuick(${productId})"]`);
+    if (button) {
+        const originalText = button.innerHTML;
+        button.innerHTML = '<span class="animate-spin">⏳</span> Adding...';
+        button.disabled = true;
+    }
+    
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    formData.append('quantity', '1');
+    
+    fetch(`{% url 'website:add_to_cart' 999 %}`.replace('999', productId), {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Update cart count in header
+            const cartCountElements = document.querySelectorAll('.cart-count');
+            cartCountElements.forEach(element => {
+                const currentCount = parseInt(element.textContent) || 0;
+                element.textContent = currentCount + 1;
+            });
+            
+            // Show success message
+            showNotification('Product added to cart!', 'success');
+            
+            // Reset button
+            if (button) {
+                button.innerHTML = '✓ Added';
+                button.classList.remove('bg-secondary', 'hover:bg-orange-400');
+                button.classList.add('bg-green-500', 'hover:bg-green-600');
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    button.classList.add('bg-secondary', 'hover:bg-orange-400');
+                    button.disabled = false;
+                }, 2000);
+            }
+        } else {
+            if (button) {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+            alert(data.message || 'Error adding product to cart');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        if (button) {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+        alert('An error occurred. Please try again.');
+    });
+}
+
+// Notification function for user feedback
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white transition-all duration-300 transform translate-x-full ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+</script>
+{% endblock %}

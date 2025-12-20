@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Vendor - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto p-6">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Delete Vendor</h1>
+    <p class="text-gray-600 mt-1">
+      Confirm vendor removal
+    </p>
+  </div>
+
+  <!-- Confirmation Card -->
+  <div class="bg-white rounded-lg shadow-sm p-6">
+
+    <!-- Warning -->
+    <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+      <div class="flex items-start">
+        <i class="fas fa-exclamation-triangle text-red-600 mt-1 mr-3"></i>
+        <div class="text-sm text-red-800">
+          <p class="font-semibold">Warning</p>
+          <p class="mt-1">Are you sure you want to delete this vendor? This action cannot be undone.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vendor Details -->
+    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+      <h3 class="text-sm font-semibold text-gray-900 mb-3">Vendor Details</h3>
+
+      <!-- Basic Info -->
+      <div class="space-y-3">
+        <div>
+          <p class="text-xs text-gray-600">Vendor Name</p>
+          <p class="font-medium text-gray-900">{{ vendor.name }}</p>
+        </div>
+
+        {% if vendor.email or vendor.phone %}
+        <div class="grid grid-cols-2 gap-4">
+          {% if vendor.email %}
+          <div>
+            <p class="text-xs text-gray-600">Email</p>
+            <p class="text-sm text-gray-900">{{ vendor.email }}</p>
+          </div>
+          {% endif %}
+          {% if vendor.phone %}
+          <div>
+            <p class="text-xs text-gray-600">Phone</p>
+            <p class="text-sm text-gray-900">{{ vendor.phone }}</p>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if vendor.city or vendor.state or vendor.country %}
+        <div>
+          <p class="text-xs text-gray-600">Location</p>
+          <p class="text-sm text-gray-900">
+            {% if vendor.city %}{{ vendor.city }}{% endif %}{% if vendor.city and vendor.state %}, {% endif %}{% if vendor.state %}{{ vendor.state }}{% endif %}{% if vendor.country %}, {{ vendor.country }}{% endif %}
+          </p>
+        </div>
+        {% endif %}
+
+        {% if vendor.payment_terms %}
+        <div>
+          <p class="text-xs text-gray-600">Payment Terms</p>
+          <p class="text-sm text-gray-900">{{ vendor.payment_terms }}</p>
+        </div>
+        {% endif %}
+
+        <div>
+          <p class="text-xs text-gray-600">Status</p>
+          <p class="text-sm">
+            {% if vendor.is_active %}
+            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+              Active
+            </span>
+            {% else %}
+            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+              Inactive
+            </span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Impact Note -->
+    <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <div class="flex items-start">
+        <i class="fas fa-info-circle text-yellow-600 mt-1 mr-3"></i>
+        <div class="text-sm text-yellow-800">
+          <p class="font-semibold">Impact</p>
+          <p class="mt-1">
+            This vendor is associated with existing expenses and bills. Deleting this vendor may affect:
+          </p>
+          <ul class="mt-2 space-y-1 list-disc list-inside">
+            <li>Historical expense records</li>
+            <li>Outstanding bills</li>
+            <li>Payment tracking</li>
+            <li>Financial reports</li>
+          </ul>
+          <p class="mt-2 font-semibold">
+            Consider marking the vendor as inactive instead of deleting.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alternative Action -->
+    <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div class="flex items-start">
+        <i class="fas fa-lightbulb text-blue-600 mt-1 mr-3"></i>
+        <div class="text-sm text-blue-800">
+          <p class="font-semibold">Recommended Alternative</p>
+          <p class="mt-1">
+            Instead of deleting, you can mark this vendor as inactive. Inactive vendors:
+          </p>
+          <ul class="mt-2 space-y-1 list-disc list-inside">
+            <li>Won't appear in dropdown lists for new expenses</li>
+            <li>Keep historical data intact</li>
+            <li>Can be reactivated later if needed</li>
+            <li>Maintain data integrity for reporting</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Form -->
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="flex items-center justify-between border-t pt-6">
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'expenses:vendor_list' %}"
+            class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </a>
+          <a
+            href="{% url 'expenses:vendor_update' vendor.pk %}"
+            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          >
+            <i class="fas fa-edit mr-2"></i>
+            Mark as Inactive
+          </a>
+        </div>
+        <button
+          type="submit"
+          class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center"
+        >
+          <i class="fas fa-trash mr-2"></i>
+          Yes, Delete Vendor
+        </button>
+      </div>
+    </form>
+
+  </div>
+
+</div>
+{% endblock %}

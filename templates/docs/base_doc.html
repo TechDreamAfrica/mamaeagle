@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} - DreamBiz Documentation{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <nav class="mb-6 text-sm">
+      <a href="{% url 'docs:home' %}" class="text-dreambiz-600">Documentation</a>
+      <span class="text-gray-400 mx-2">/</span>
+      <span class="text-gray-600">{{ page_title }}</span>
+    </nav>
+
+    <div class="bg-white rounded-lg shadow-sm p-8 border border-gray-200 prose prose-blue max-w-none">
+      {% block doc_content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}

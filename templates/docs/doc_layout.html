@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}{{ section_title }} - DreamBiz Documentation{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm">
+      <a href="{% url 'docs:home' %}" class="text-dreambiz-600 hover:text-dreambiz-700">Documentation</a>
+      <span class="text-gray-400 mx-2">/</span>
+      <span class="text-gray-600">{{ section_title }}</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <!-- Sidebar Navigation -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-4">
+          <h3 class="font-semibold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-list mr-2 text-dreambiz-600"></i>
+            Documentation
+          </h3>
+          <nav class="space-y-1">
+            <a href="{% url 'docs:getting_started' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'getting_started' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-rocket w-4"></i> Getting Started
+            </a>
+            <a href="{% url 'docs:dashboard' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'dashboard' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-tachometer-alt w-4"></i> Dashboard
+            </a>
+            <a href="{% url 'docs:invoicing' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'invoicing' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-file-invoice w-4"></i> Invoicing
+            </a>
+            <a href="{% url 'docs:expenses' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'expenses' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-receipt w-4"></i> Expenses
+            </a>
+            <a href="{% url 'docs:inventory' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'inventory' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-boxes w-4"></i> Inventory
+            </a>
+            <a href="{% url 'docs:hr' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'hr' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-users w-4"></i> HR Management
+            </a>
+            <a href="{% url 'docs:welfare' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'welfare' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-hand-holding-heart w-4"></i> Welfare
+            </a>
+            <a href="{% url 'docs:ai_insights' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'ai_insights' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-brain w-4"></i> AI Insights
+            </a>
+            <a href="{% url 'docs:bank_reconciliation' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'bank_reconciliation' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-university w-4"></i> Bank Reconciliation
+            </a>
+            <a href="{% url 'docs:reports' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'reports' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-chart-bar w-4"></i> Reports
+            </a>
+            <a href="{% url 'docs:sales' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'sales' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-shopping-cart w-4"></i> Sales
+            </a>
+            <a href="{% url 'docs:accounts' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'accounts' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-user-cog w-4"></i> Accounts
+            </a>
+            <a href="{% url 'docs:api' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'api' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-code w-4"></i> API Reference
+            </a>
+            <a href="{% url 'docs:troubleshooting' %}" class="block px-3 py-2 text-sm rounded hover:bg-gray-50 {% if section == 'troubleshooting' %}bg-dreambiz-50 text-dreambiz-700 font-medium{% else %}text-gray-700{% endif %}">
+              <i class="fas fa-tools w-4"></i> Troubleshooting
+            </a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="lg:col-span-3">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+          {% block doc_content %}
+          <h1 class="text-3xl font-bold text-gray-900 mb-6">{{ section_title }}</h1>
+          <p class="text-gray-600">Documentation content will be displayed here.</p>
+          {% endblock %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

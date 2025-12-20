@@ -1,0 +1,356 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Customers -
+DreamBiz Accounting{% endblock %} {% block content %}
+<div class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="py-6">
+        <div class="md:flex md:items-center md:justify-between">
+          <div class="flex-1 min-w-0">
+            <h2
+              class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate"
+            >
+              <i class="fas fa-users text-dreambiz-600 mr-3"></i>Customers
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+              Manage your customer relationships and contact information
+            </p>
+          </div>
+          <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+            <button
+              type="button"
+              class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+              onclick="exportCustomers()"
+            >
+              <i class="fas fa-download mr-2"></i>Export
+            </button>
+            <a
+              href="{% url 'invoicing:customer_create' %}"
+              class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              <i class="fas fa-plus mr-2"></i>Add Customer
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-lg shadow mb-6">
+      <div class="p-6">
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0"
+        >
+          <!-- Search -->
+          <div class="flex-1 max-w-lg">
+            <form method="get" class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <i class="fas fa-search text-gray-400"></i>
+              </div>
+              <input
+                type="text"
+                name="search"
+                id="search"
+                value="{{ search_query }}"
+                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-dreambiz-500 focus:border-dreambiz-500"
+                placeholder="Search customers by name, company, or email..."
+              />
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer List -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+      <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          Customer Directory
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+          Your customer database with contact and billing information
+        </p>
+      </div>
+
+      <!-- Mobile View -->
+      <div class="block md:hidden">
+        {% for customer in page_obj %}
+        <div class="border-b border-gray-200 p-4">
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10">
+                  <div
+                    class="h-10 w-10 rounded-full bg-dreambiz-100 flex items-center justify-center"
+                  >
+                    <span class="text-sm font-medium text-dreambiz-600">
+                      {{ customer.name|slice:":2"|upper }}
+                    </span>
+                  </div>
+                </div>
+                <div class="ml-4">
+                  <p class="text-sm font-medium text-gray-900">
+                    {{ customer.name }}
+                  </p>
+                  {% if customer.company %}
+                  <p class="text-sm text-gray-500">{{ customer.company }}</p>
+                  {% endif %}
+                  <p class="text-sm text-gray-500">{{ customer.email }}</p>
+                  {% if customer.phone %}
+                  <p class="text-sm text-gray-500">{{ customer.phone }}</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="ml-4">
+              <a
+                href="{% url 'invoicing:customer_create' %}"
+                class="text-dreambiz-600 hover:text-dreambiz-900"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="p-6 text-center">
+          <i class="fas fa-users text-gray-300 text-4xl mb-4"></i>
+          <p class="text-gray-500">No customers found</p>
+          <a
+            href="{% url 'invoicing:customer_create' %}"
+            class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-dreambiz-700 bg-dreambiz-100 hover:bg-dreambiz-200"
+          >
+            Add your first customer
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Desktop View -->
+      <div class="hidden md:block">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Customer
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Contact
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Location
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Payment Terms
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for customer in page_obj %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <div
+                      class="h-10 w-10 rounded-full bg-dreambiz-100 flex items-center justify-center"
+                    >
+                      <span class="text-sm font-medium text-dreambiz-600">
+                        {{ customer.name|slice:":2"|upper }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ customer.name }}
+                    </div>
+                    {% if customer.company %}
+                    <div class="text-sm text-gray-500">
+                      {{ customer.company }}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">{{ customer.email }}</div>
+                {% if customer.phone %}
+                <div class="text-sm text-gray-500">{{ customer.phone }}</div>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {% if customer.billing_city and customer.billing_state %} {{
+                customer.billing_city }}, {{ customer.billing_state }} {% elif
+                customer.billing_city %} {{ customer.billing_city }} {% elif
+                customer.billing_country %} {{ customer.billing_country }} {%
+                else %}
+                <span class="text-gray-400">Not specified</span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ customer.payment_terms|default:"Net 30" }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex space-x-2">
+                  <a
+                    href="{% url 'invoicing:customer_create' %}"
+                    class="text-dreambiz-600 hover:text-dreambiz-900"
+                    title="View Details"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <button
+                    onclick="createInvoiceForCustomer({{ customer.id }})"
+                    class="text-green-600 hover:text-green-900"
+                    title="Create Invoice"
+                  >
+                    <i class="fas fa-file-invoice"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="px-6 py-8 text-center">
+                <div class="text-gray-500">
+                  <i class="fas fa-users text-4xl mb-4"></i>
+                  <p>No customers found</p>
+                  <a
+                    href="{% url 'invoicing:customer_create' %}"
+                    class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-dreambiz-700 bg-dreambiz-100 hover:bg-dreambiz-200"
+                  >
+                    Add your first customer
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+      <div
+        class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"
+      >
+        <div class="flex-1 flex justify-between sm:hidden">
+          {% if page_obj.has_previous %}
+          <a
+            href="?page={{ page_obj.previous_page_number }}"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Previous
+          </a>
+          {% endif %} {% if page_obj.has_next %}
+          <a
+            href="?page={{ page_obj.next_page_number }}"
+            class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Next
+          </a>
+          {% endif %}
+        </div>
+        <div
+          class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"
+        >
+          <div>
+            <p class="text-sm text-gray-700">
+              Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of
+              {{ page_obj.paginator.count }} results
+            </p>
+          </div>
+          <div>
+            <nav
+              class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+            >
+              {% if page_obj.has_previous %}
+              <a
+                href="?page={{ page_obj.previous_page_number }}"
+                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </a>
+              {% endif %} {% for num in page_obj.paginator.page_range %} {% if
+              page_obj.number == num %}
+              <span
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-dreambiz-50 text-sm font-medium text-dreambiz-600"
+              >
+                {{ num }}
+              </span>
+              {% elif num > page_obj.number|add:'-3' and num <
+              page_obj.number|add:'3' %}
+              <a
+                href="?page={{ num }}"
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                {{ num }}
+              </a>
+              {% endif %} {% endfor %} {% if page_obj.has_next %}
+              <a
+                href="?page={{ page_obj.next_page_number }}"
+                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </a>
+              {% endif %}
+            </nav>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  function exportCustomers() {
+    // Implementation for exporting customers
+    showToast("Export functionality will be implemented", "info");
+  }
+
+  function createInvoiceForCustomer(customerId) {
+    // Redirect to invoice creation with pre-selected customer
+    window.location.href = `/invoicing/invoices/create/?customer=${customerId}`;
+  }
+
+  // Real-time search
+  document.getElementById("search").addEventListener("input", function (e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll("tbody tr");
+
+    rows.forEach((row) => {
+      const text = row.textContent.toLowerCase();
+      if (text.includes(searchTerm)) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    });
+  });
+
+  // Auto-submit search form
+  document.getElementById("search").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      this.form.submit();
+    }
+  });
+</script>
+{% endblock %}

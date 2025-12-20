@@ -1,0 +1,137 @@
+{% extends 'docs/doc_layout.html' %}
+{% block doc_content %}
+<h1 class="text-3xl font-bold text-gray-900 mb-6">
+  <i class="fas fa-tachometer-alt text-dreambiz-600"></i> Dashboard
+</h1>
+<div class="prose prose-blue max-w-none">
+  <p class="text-lg text-gray-700 mb-6">Your command center for monitoring business performance with real-time insights into key financial metrics and operational KPIs.</p>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">Overview</h2>
+        <p class="text-gray-700 mb-4">
+          The Dashboard is your command center for monitoring your business performance at a glance. 
+          It provides real-time insights into key financial metrics and operational KPIs.
+        </p>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">Key Metrics Displayed</h2>
+        
+        <div class="space-y-4">
+          <div class="border-l-4 border-dreambiz-500 pl-4">
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Revenue</h3>
+            <ul class="list-disc list-inside text-gray-700 space-y-1 ml-4">
+              <li>Total revenue for current period</li>
+              <li>Comparison with previous period</li>
+              <li>Revenue trend chart</li>
+              <li>Revenue by category breakdown</li>
+            </ul>
+          </div>
+
+          <div class="border-l-4 border-dreambiz-500 pl-4">
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Expenses</h3>
+            <ul class="list-disc list-inside text-gray-700 space-y-1 ml-4">
+              <li>Total expenses for current period</li>
+              <li>Top expense categories</li>
+              <li>Expense trend analysis</li>
+              <li>Budget vs actual comparison</li>
+            </ul>
+          </div>
+
+          <div class="border-l-4 border-dreambiz-500 pl-4">
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Profit/Loss</h3>
+            <ul class="list-disc list-inside text-gray-700 space-y-1 ml-4">
+              <li>Net profit/loss calculation</li>
+              <li>Profit margin percentage</li>
+              <li>Period-over-period comparison</li>
+              <li>Profitability trend chart</li>
+            </ul>
+          </div>
+
+          <div class="border-l-4 border-dreambiz-500 pl-4">
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Cash Flow</h3>
+            <ul class="list-disc list-inside text-gray-700 space-y-1 ml-4">
+              <li>Current cash position</li>
+              <li>Cash inflow and outflow</li>
+              <li>Projected cash flow for next 30 days</li>
+              <li>Low balance alerts</li>
+            </ul>
+          </div>
+
+          <div class="border-l-4 border-dreambiz-500 pl-4">
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Outstanding Invoices</h3>
+            <ul class="list-disc list-inside text-gray-700 space-y-1 ml-4">
+              <li>Total accounts receivable</li>
+              <li>Overdue invoices count and amount</li>
+              <li>Average days to payment</li>
+              <li>Top customers by outstanding balance</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <p class="text-gray-700 mb-4">From the dashboard, you can quickly access common tasks:</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-gray-900 mb-2">
+              <i class="fas fa-plus-circle text-dreambiz-600"></i> Create Invoice
+            </h4>
+            <p class="text-sm text-gray-700">Generate a new invoice for customers</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-gray-900 mb-2">
+              <i class="fas fa-receipt text-dreambiz-600"></i> Record Expense
+            </h4>
+            <p class="text-sm text-gray-700">Add a new expense entry</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-gray-900 mb-2">
+              <i class="fas fa-sync text-dreambiz-600"></i> Bank Reconciliation
+            </h4>
+            <p class="text-sm text-gray-700">Match transactions with bank statements</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-semibold text-gray-900 mb-2">
+              <i class="fas fa-chart-line text-dreambiz-600"></i> View Reports
+            </h4>
+            <p class="text-sm text-gray-700">Access financial reports</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">Customization</h2>
+        <p class="text-gray-700 mb-4">
+          You can customize your dashboard to show the metrics most important to your business:
+        </p>
+        <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
+          <li>Rearrange widget positions by dragging and dropping</li>
+          <li>Show/hide specific widgets based on your preferences</li>
+          <li>Set custom date ranges for metrics</li>
+          <li>Choose between chart types (line, bar, pie)</li>
+          <li>Save multiple dashboard layouts</li>
+        </ul>
+      </section>
+
+      <section class="mt-12 pt-6 border-t border-gray-200">
+        <div class="flex justify-between items-center">
+          <a href="{% url 'docs:getting_started' %}" class="text-dreambiz-600 hover:text-dreambiz-700 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Previous: Getting Started
+          </a>
+          <a href="{% url 'docs:invoicing' %}" class="text-dreambiz-600 hover:text-dreambiz-700 flex items-center">
+            Next: Invoicing
+            <i class="fas fa-arrow-right ml-2"></i>
+          </a>
+        </div>
+      </section>
+  <div class="bg-blue-50 border-l-4 border-blue-500 p-4 my-6">
+    <p class="text-blue-800 m-0">
+      <i class="fas fa-lightbulb mr-2"></i>
+      <strong>Tip:</strong> Check your dashboard daily to stay on top of your business performance and identify trends early.
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'website/base.html' %}
+
+{% block title %}Order History - Mama Eagle Enterprise{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-r from-primary to-primary-dark text-white overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute inset-0 bg-repeat opacity-20" style="background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><rect width="60" height="60" fill="%23ffffff" fill-opacity="0.1"/><path d="M30 0L60 30L30 60L0 30z" fill="%23ffffff" fill-opacity="0.05"/></svg>');"></div>
+    </div>
+    <div class="relative max-w-7xl mx-auto px-4 py-16">
+        <div class="text-center">
+            <h1 class="text-5xl md:text-6xl font-bold mb-6">Order History</h1>
+            <p class="text-xl text-blue-100 max-w-3xl mx-auto">
+                Track all your orders and view detailed information about your purchases.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Breadcrumb -->
+<nav class="bg-gray-50 py-4" aria-label="Breadcrumb">
+    <div class="max-w-7xl mx-auto px-4">
+        <ol class="flex space-x-2 text-sm">
+            <li><a href="{% url 'website:home' %}" class="text-primary hover:underline">Home</a></li>
+            <li class="text-gray-500">/</li>
+            <li class="text-gray-700 font-medium">Order History</li>
+        </ol>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto px-4 py-8">
+    {% if orders %}
+        <div class="space-y-6">
+            {% for order in orders %}
+            <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition duration-300">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">Order #{{ order.order_number }}</h3>
+                        <p class="text-gray-600 text-sm">
+                            Placed on {{ order.created_at|date:"F d, Y" }} at {{ order.created_at|time:"g:i A" }}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xl font-bold text-primary mb-2">GHS {{ order.total_amount }}</div>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium
+                            {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                            {% elif order.status == 'confirmed' %}bg-blue-100 text-blue-800  
+                            {% elif order.status == 'shipped' %}bg-purple-100 text-purple-800
+                            {% elif order.status == 'delivered' %}bg-green-100 text-green-800
+                            {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6 mb-4">
+                    <div>
+                        <h4 class="font-medium mb-2">Shipping Address</h4>
+                        <div class="text-gray-600 text-sm">
+                            {{ order.shipping_first_name }} {{ order.shipping_last_name }}<br>
+                            {{ order.shipping_address_line_1 }}<br>
+                            {% if order.shipping_address_line_2 %}
+                                {{ order.shipping_address_line_2 }}<br>
+                            {% endif %}
+                            {{ order.shipping_city }}, {{ order.shipping_region }}
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-medium mb-2">Order Items ({{ order.items.count }})</h4>
+                        <div class="space-y-1">
+                            {% for item in order.items.all|slice:":3" %}
+                                <div class="text-gray-600 text-sm">{{ item.quantity }}x {{ item.product.name }}</div>
+                            {% endfor %}
+                            {% if order.items.count > 3 %}
+                                <div class="text-gray-500 text-sm">... and {{ order.items.count|add:"-3" }} more items</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                    <div class="flex space-x-4">
+                        <a href="{% url 'website:order_detail' order.order_number %}" 
+                           class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition duration-300">
+                            View Details
+                        </a>
+                        {% if order.status == 'pending' %}
+                            <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition duration-300">
+                                Cancel Order
+                            </button>
+                        {% endif %}
+                    </div>
+                    {% if order.status == 'delivered' %}
+                        <button class="text-primary hover:text-primary-dark font-medium">
+                            Reorder Items
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-16">
+            <div class="text-6xl text-gray-300 mb-6">📦</div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">No Orders Yet</h2>
+            <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                You haven't placed any orders yet. Start shopping for quality plumbing materials!
+            </p>
+            <a href="{% url 'website:product_list' %}" 
+               class="inline-block bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-dark transition duration-300">
+                Start Shopping
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

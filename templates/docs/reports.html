@@ -1,0 +1,65 @@
+{% extends 'docs/doc_layout.html' %}
+{% block doc_content %}
+<h1 class="text-3xl font-bold text-gray-900 mb-6">
+  <i class="fas fa-chart-bar text-dreambiz-600"></i> Reports
+</h1>
+<div class="prose prose-blue max-w-none">
+  <p class="text-lg text-gray-700 mb-6">Generate comprehensive financial and operational reports for decision-making and compliance.</p>
+  
+  <h2>Financial Reports</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+    <div class="border border-gray-200 p-4 rounded-lg">
+      <h4 class="font-semibold text-gray-900"><i class="fas fa-balance-scale mr-2 text-blue-600"></i>Balance Sheet</h4>
+      <p class="text-sm text-gray-600">Assets, liabilities, and equity snapshot</p>
+    </div>
+    <div class="border border-gray-200 p-4 rounded-lg">
+      <h4 class="font-semibold text-gray-900"><i class="fas fa-chart-line mr-2 text-green-600"></i>Income Statement</h4>
+      <p class="text-sm text-gray-600">Revenue, expenses, and profit/loss</p>
+    </div>
+    <div class="border border-gray-200 p-4 rounded-lg">
+      <h4 class="font-semibold text-gray-900"><i class="fas fa-money-bill-wave mr-2 text-purple-600"></i>Cash Flow Statement</h4>
+      <p class="text-sm text-gray-600">Operating, investing, financing activities</p>
+    </div>
+    <div class="border border-gray-200 p-4 rounded-lg">
+      <h4 class="font-semibold text-gray-900"><i class="fas fa-list mr-2 text-orange-600"></i>Trial Balance</h4>
+      <p class="text-sm text-gray-600">All accounts with debit/credit balances</p>
+    </div>
+  </div>
+
+  <h2>Operational Reports</h2>
+  <ul>
+    <li><strong>Sales Reports:</strong> By product, customer, region, salesperson</li>
+    <li><strong>Expense Reports:</strong> By category, department, employee</li>
+    <li><strong>Inventory Reports:</strong> Stock levels, movements, valuation</li>
+    <li><strong>HR Reports:</strong> Headcount, payroll, leave balances</li>
+  </ul>
+
+  <h2>Tax Reports</h2>
+  <ul>
+    <li>VAT/Sales tax summary</li>
+    <li>Tax liability calculation</li>
+    <li>Tax payment history</li>
+    <li>Tax-deductible expenses</li>
+    <li>Withholding tax reports</li>
+  </ul>
+
+  <h2>Custom Reports</h2>
+  <p>Build your own reports with the report builder:</p>
+  <ol>
+    <li>Select data sources</li>
+    <li>Choose fields to include</li>
+    <li>Apply filters</li>
+    <li>Set grouping and sorting</li>
+    <li>Save as template</li>
+    <li>Schedule automatic generation</li>
+  </ol>
+
+  <h2>Export Options</h2>
+  <div class="flex gap-3 my-4">
+    <span class="bg-red-100 text-red-800 px-3 py-1 rounded"><i class="fas fa-file-pdf mr-1"></i> PDF</span>
+    <span class="bg-green-100 text-green-800 px-3 py-1 rounded"><i class="fas fa-file-excel mr-1"></i> Excel</span>
+    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded"><i class="fas fa-file-csv mr-1"></i> CSV</span>
+    <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded"><i class="fas fa-envelope mr-1"></i> Email</span>
+  </div>
+</div>
+{% endblock %}

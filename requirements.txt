@@ -1,0 +1,27 @@
+Django
+djangorestframework
+django-cors-headers
+python-decouple
+python-dateutil
+Pillow
+django-crispy-forms
+crispy-tailwind
+psycopg2-binary
+mysqlclient
+celery
+redis
+openai
+pandas
+numpy
+plotly
+django-extensions
+requests
+
+# Development dependencies
+black
+flake8
+isort
+
+# Production dependencies
+gunicorn
+whitenoise

@@ -1,0 +1,205 @@
+{% extends 'website/base.html' %}
+
+{% block title %}Contact Mama Eagle Plumbing Solutions{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-r from-primary to-primary-dark text-white overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute inset-0 bg-repeat opacity-20" style="background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><rect width="60" height="60" fill="%23ffffff" fill-opacity="0.1"/><path d="M30 0L60 30L30 60L0 30z" fill="%23ffffff" fill-opacity="0.05"/></svg>');"></div>
+    </div>
+    <div class="relative max-w-7xl mx-auto px-4 py-16">
+        <div class="text-center">
+            <h1 class="text-5xl md:text-6xl font-bold mb-6">Contact Us</h1>
+            <p class="text-xl text-blue-100 max-w-3xl mx-auto">
+                Get in touch with Ghana's leading plumbing solutions provider. We're here to help with all your needs.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Form & Info Section -->
+<div class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="grid lg:grid-cols-2 gap-16">
+            <!-- Contact Form -->
+            <div class="bg-gray-50 p-8 rounded-2xl">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Send us a Message</h2>
+                <p class="text-gray-600 mb-8">Have questions about our products or need technical advice? We'd love to hear from you.</p>
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-6 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 border border-green-300 text-green-700{% else %}bg-red-100 border border-red-300 text-red-700{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Name *</label>
+                            <input type="text" name="name" required 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-300"
+                                   placeholder="Your full name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email *</label>
+                            <input type="email" name="email" required 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-300"
+                                   placeholder="your@email.com">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Subject *</label>
+                        <input type="text" name="subject" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-300"
+                               placeholder="What's this about?">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Message *</label>
+                        <textarea name="message" rows="5" required 
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-300 resize-none"
+                                  placeholder="Tell us about your project or question..."></textarea>
+                    </div>
+                    <button type="submit" 
+                            class="w-full bg-primary text-white py-4 px-6 rounded-lg hover:bg-primary-dark transition duration-300 font-semibold text-lg flex items-center justify-center">
+                        Send Message
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Contact Information -->
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Get in Touch</h2>
+                
+                <div class="space-y-8">
+                    <div class="flex items-start">
+                        <div class="w-12 h-12 bg-primary text-white rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Visit Our Showroom</h3>
+                            <p class="text-gray-600 leading-relaxed">
+                                Mama Eagle Plumbing Solutions<br>
+                                Main Showroom & Warehouse<br>
+                                Accra, Greater Accra Region<br>
+                                Ghana
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="w-12 h-12 bg-secondary text-white rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Call Us</h3>
+                            <p class="text-gray-600 leading-relaxed">
+                                General Inquiries: <span class="font-semibold text-primary">+233 XXX XXX XXX</span><br>
+                                Technical Support: <span class="font-semibold text-primary">+233 XXX XXX XXX</span><br>
+                                WhatsApp: <span class="font-semibold text-primary">+233 XXX XXX XXX</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="w-12 h-12 bg-green-600 text-white rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Email Us</h3>
+                            <p class="text-gray-600 leading-relaxed">
+                                General: <span class="font-semibold text-primary">info@mamaeagle.com</span><br>
+                                Support: <span class="font-semibold text-primary">support@mamaeagle.com</span><br>
+                                Orders: <span class="font-semibold text-primary">orders@mamaeagle.com</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="w-12 h-12 bg-purple-600 text-white rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Business Hours</h3>
+                            <p class="text-gray-600 leading-relaxed">
+                                Monday - Friday: <span class="font-semibold">8:00 AM - 6:00 PM</span><br>
+                                Saturday: <span class="font-semibold">9:00 AM - 4:00 PM</span><br>
+                                Sunday: <span class="text-red-600 font-semibold">Closed</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Support -->
+                <div class="mt-12 p-6 bg-gradient-to-r from-red-50 to-orange-50 border border-orange-200 rounded-xl">
+                    <h3 class="text-xl font-bold text-orange-900 mb-3 flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        Emergency Plumbing Support
+                    </h3>
+                    <p class="text-orange-700 mb-4">
+                        For urgent plumbing emergencies outside business hours, call our emergency line. 
+                        We work with trusted contractors across Ghana.
+                    </p>
+                    <a href="tel:+233xxxxxxxxx" 
+                       class="inline-flex items-center bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition duration-300 font-semibold">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                        </svg>
+                        Emergency: +233 XXX XXX XXX
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FAQ Section -->
+<div class="py-20 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+            <p class="text-gray-600">Quick answers to common questions about our products and services</p>
+        </div>
+        
+        <div class="space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Do you deliver nationwide?</h3>
+                <p class="text-gray-600">Yes! We deliver to all regions in Ghana. Delivery times vary by location, typically 1-3 business days in Accra and 3-7 days for other regions.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Do you offer bulk discounts?</h3>
+                <p class="text-gray-600">Absolutely! We offer competitive bulk pricing for contractors, builders, and large projects. Contact us for a custom quote.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Can I get technical advice on product selection?</h3>
+                <p class="text-gray-600">Yes, our technical team provides free consultation on product selection, compatibility, and installation requirements for all your projects.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">What payment methods do you accept?</h3>
+                <p class="text-gray-600">We accept mobile money, bank transfers, credit/debit cards, and cash on delivery for eligible orders.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

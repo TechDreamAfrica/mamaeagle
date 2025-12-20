@@ -1,0 +1,491 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Invoice {{ invoice.invoice_number }} - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">
+        <i class="fas fa-edit text-dreambiz-600 mr-3"></i>Edit Invoice {{ invoice.invoice_number }}
+      </h1>
+      <p class="mt-2 text-gray-600">Update invoice details and line items</p>
+    </div>
+
+    <!-- Invoice Form -->
+    <form method="post" id="invoiceForm" @submit="validateInvoiceForm" x-data="invoiceForm()">
+      {% csrf_token %}
+      
+      <div class="space-y-6">
+        <!-- Customer and Date Information -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">
+            <i class="fas fa-info-circle text-dreambiz-600 mr-2"></i>Invoice Information
+          </h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Customer Selection -->
+            <div>
+              <label for="customer" class="block text-sm font-medium text-gray-700 mb-2">
+                Customer <span class="text-red-500">*</span>
+              </label>
+              <div class="flex space-x-2">
+                <select
+                  name="customer"
+                  id="customer"
+                  x-model="customer"
+                  required
+                  class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500"
+                >
+                  <option value="">Select a customer</option>
+                  {% for customer in customers %}
+                  <option value="{{ customer.id }}" {% if customer.id == invoice.customer.id %}selected{% endif %}>
+                    {{ customer.name }}{% if customer.company %} - {{ customer.company }}{% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+                <button
+                  type="button"
+                  @click="showCustomerModal = true"
+                  class="px-4 py-2 bg-dreambiz-600 text-white rounded-md hover:bg-dreambiz-700"
+                >
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Due Date -->
+            <div>
+              <label for="date_due" class="block text-sm font-medium text-gray-700 mb-2">
+                Due Date <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                name="date_due"
+                id="date_due"
+                x-model="dueDate"
+                value="{{ invoice.date_due|date:'Y-m-d' }}"
+                required
+                class="w-full rounded-md border-gray-300 shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500"
+              />
+            </div>
+
+            <!-- Terms -->
+            <div class="md:col-span-2">
+              <label for="terms" class="block text-sm font-medium text-gray-700 mb-2">
+                Payment Terms
+              </label>
+              <select
+                name="terms"
+                id="terms"
+                x-model="paymentTerms"
+                @change="updateDueDateFromTerms()"
+                class="w-full rounded-md border-gray-300 shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500"
+              >
+                <option value="">Select payment terms</option>
+                <option value="Net 15">Net 15</option>
+                <option value="Net 30">Net 30</option>
+                <option value="Net 60">Net 60</option>
+                <option value="Due on Receipt">Due on Receipt</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Line Items Section -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">
+              <i class="fas fa-list text-dreambiz-600 mr-2"></i>Line Items
+            </h3>
+            <button
+              type="button"
+              @click="addLineItem()"
+              class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-dreambiz-700 bg-dreambiz-100 hover:bg-dreambiz-200"
+            >
+              <i class="fas fa-plus mr-2"></i>Add Item
+            </button>
+          </div>
+
+          <!-- Line Items Table -->
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rate</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <template x-for="(item, index) in lineItems" :key="index">
+                  <tr>
+                    <td class="px-4 py-3">
+                      <input
+                        type="text"
+                        x-model="item.description"
+                        @input="calculateItemTotal(index)"
+                        placeholder="Item description"
+                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500"
+                      />
+                    </td>
+                    <td class="px-4 py-3">
+                      <input
+                        type="number"
+                        x-model.number="item.quantity"
+                        @input="calculateItemTotal(index)"
+                        min="0"
+                        step="0.01"
+                        class="w-20 border-gray-300 rounded-md shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500"
+                      />
+                    </td>
+                    <td class="px-4 py-3">
+                      <input
+                        type="number"
+                        x-model.number="item.rate"
+                        @input="calculateItemTotal(index)"
+                        min="0"
+                        step="0.01"
+                        class="w-24 border-gray-300 rounded-md shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500"
+                      />
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="text-gray-900 font-medium" x-text="'$' + item.total.toFixed(2)"></span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        @click="removeLineItem(index)"
+                        class="text-red-600 hover:text-red-900"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </template>
+                
+                <template x-if="lineItems.length === 0">
+                  <tr>
+                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                      No line items added. Click "Add Item" to add invoice items.
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Totals -->
+          <div class="mt-6 flex justify-end">
+            <div class="w-64 space-y-2">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Subtotal:</span>
+                <span class="font-medium" x-text="'$' + subtotal.toFixed(2)"></span>
+              </div>
+              <div class="flex justify-between text-lg font-bold border-t pt-2">
+                <span>Total:</span>
+                <span x-text="'$' + total.toFixed(2)"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-sticky-note text-dreambiz-600 mr-2"></i>Notes
+          </label>
+          <textarea
+            name="notes"
+            id="notes"
+            rows="4"
+            placeholder="Add any additional notes..."
+            class="w-full rounded-md border-gray-300 shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500"
+          >{{ invoice.notes }}</textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <div class="flex items-center justify-between">
+            <a
+              href="{% url 'invoicing:invoice_detail' invoice.pk %}"
+              class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              <i class="fas fa-times mr-2"></i>Cancel
+            </a>
+            <div class="flex space-x-3">
+              <button
+                type="submit"
+                name="action"
+                value="save_draft"
+                class="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              >
+                <i class="fas fa-save mr-2"></i>Save as Draft
+              </button>
+              <button
+                type="submit"
+                name="action"
+                value="save_and_send"
+                class="px-6 py-3 bg-dreambiz-600 text-white rounded-md hover:bg-dreambiz-700"
+              >
+                <i class="fas fa-paper-plane mr-2"></i>Update & Send
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden field for line items -->
+      <input type="hidden" name="line_items" :value="JSON.stringify(lineItems)" />
+    </form>
+
+    <!-- Customer Creation Modal -->
+    <div
+      x-show="showCustomerModal"
+      x-cloak
+      class="fixed inset-0 z-50 overflow-y-auto"
+      style="display: none;"
+    >
+      <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75" @click="showCustomerModal = false"></div>
+        
+        <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Add New Customer</h3>
+            <button @click="showCustomerModal = false" class="text-gray-400 hover:text-gray-500">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <form @submit.prevent="createCustomer()">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  type="text"
+                  x-model="newCustomer.name"
+                  required
+                  class="w-full rounded-md border-gray-300 shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                <input
+                  type="text"
+                  x-model="newCustomer.company"
+                  class="w-full rounded-md border-gray-300 shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  type="email"
+                  x-model="newCustomer.email"
+                  required
+                  class="w-full rounded-md border-gray-300 shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  x-model="newCustomer.phone"
+                  class="w-full rounded-md border-gray-300 shadow-sm focus:border-dreambiz-500 focus:ring-dreambiz-500"
+                />
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+              <button
+                type="button"
+                @click="showCustomerModal = false"
+                class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                :disabled="customerCreating"
+                class="px-4 py-2 bg-dreambiz-600 text-white rounded-md hover:bg-dreambiz-700 disabled:opacity-50"
+              >
+                <span x-show="!customerCreating">Create Customer</span>
+                <span x-show="customerCreating">Creating...</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function invoiceForm() {
+    return {
+      customer: {{ invoice.customer.id }},
+      dueDate: "{{ invoice.date_due|date:'Y-m-d' }}",
+      paymentTerms: "{{ invoice.terms }}",
+      lineItems: {{ line_items_json|safe }},
+      subtotal: 0,
+      total: 0,
+      showCustomerModal: false,
+      customerCreating: false,
+      newCustomer: {
+        name: '',
+        company: '',
+        email: '',
+        phone: ''
+      },
+
+      init() {
+        this.calculateTotals();
+      },
+
+      addLineItem() {
+        this.lineItems.push({
+          description: "",
+          quantity: 1,
+          rate: 0,
+          total: 0,
+        });
+      },
+
+      removeLineItem(index) {
+        this.lineItems.splice(index, 1);
+        this.calculateTotals();
+      },
+
+      calculateItemTotal(index) {
+        const item = this.lineItems[index];
+        item.total = item.quantity * item.rate;
+        this.calculateTotals();
+      },
+
+      calculateTotals() {
+        this.subtotal = this.lineItems.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+        this.total = this.subtotal;
+      },
+
+      async createCustomer() {
+        this.customerCreating = true;
+        
+        try {
+          const formData = new FormData();
+          formData.append('name', this.newCustomer.name);
+          formData.append('company', this.newCustomer.company);
+          formData.append('email', this.newCustomer.email);
+          formData.append('phone', this.newCustomer.phone);
+          formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+          const response = await fetch('{% url "invoicing:api_customer_create" %}', {
+            method: 'POST',
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Add new customer to dropdown
+            const select = document.getElementById('customer');
+            const option = new Option(data.customer.name + (data.customer.company ? ' - ' + data.customer.company : ''), data.customer.id, true, true);
+            select.add(option);
+            this.customer = data.customer.id;
+
+            // Reset form and close modal
+            this.newCustomer = { name: '', company: '', email: '', phone: '' };
+            this.showCustomerModal = false;
+            showToast('Customer created successfully!', 'success');
+          } else {
+            showToast(data.error || 'Failed to create customer', 'error');
+          }
+        } catch (error) {
+          showToast('An error occurred while creating customer', 'error');
+        } finally {
+          this.customerCreating = false;
+        }
+      },
+
+      validateInvoiceForm(event) {
+        if (!this.customer) {
+          event.preventDefault();
+          showToast('Please select a customer for this invoice', 'error');
+          document.querySelector('[name="customer"]').focus();
+          return false;
+        }
+        
+        const validItems = this.lineItems.filter(item => 
+          item.description && item.quantity > 0 && item.rate > 0
+        );
+        
+        if (validItems.length === 0) {
+          event.preventDefault();
+          showToast('Please add at least one line item to the invoice', 'error');
+          return false;
+        }
+        
+        return true;
+      },
+
+      updateDueDateFromTerms() {
+        if (!this.paymentTerms) return;
+        
+        const today = new Date();
+        let daysToAdd = 0;
+        
+        switch(this.paymentTerms) {
+          case 'Net 15':
+            daysToAdd = 15;
+            break;
+          case 'Net 30':
+            daysToAdd = 30;
+            break;
+          case 'Net 60':
+            daysToAdd = 60;
+            break;
+          case 'Due on Receipt':
+            daysToAdd = 0;
+            break;
+          default:
+            daysToAdd = 30;
+        }
+        
+        today.setDate(today.getDate() + daysToAdd);
+        this.dueDate = today.toISOString().split('T')[0];
+      }
+    };
+  }
+
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg transition-all duration-300 ${
+      type === 'success' ? 'bg-green-500 text-white' :
+      type === 'error' ? 'bg-red-500 text-white' :
+      type === 'warning' ? 'bg-yellow-500 text-black' :
+      'bg-blue-500 text-white'
+    }`;
+    
+    toast.innerHTML = `
+      <div class="flex items-center">
+        <i class="fas ${
+          type === 'success' ? 'fa-check-circle' :
+          type === 'error' ? 'fa-exclamation-circle' :
+          type === 'warning' ? 'fa-exclamation-triangle' :
+          'fa-info-circle'
+        } mr-2"></i>
+        <span>GH{message}</span>
+      </div>
+    `;
+    
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+</script>
+
+<style>
+  [x-cloak] { display: none !important; }
+</style>
+{% endblock %}

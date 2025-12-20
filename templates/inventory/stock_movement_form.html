@@ -1,0 +1,674 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+{% if object %}Edit Stock Movement - {{ object.movement_type }}{% else %}Record Stock Movement{% endif %} - DreamBiz Accounting
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            {% if object %}Edit Stock Movement - {{ object.movement_type }}{% else %}Record Stock Movement{% endif %}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            {% if object %}Update stock movement details and quantities{% else %}Track inventory movement between locations or adjustments{% endif %}
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'inventory:dashboard' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Main Form -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">
+              Stock Movement Details
+            </h3>
+          </div>
+          <div class="p-6">
+            <form method="post" class="space-y-6">
+              {% csrf_token %}
+
+              <!-- Movement Type & Reference -->
+              <div class="space-y-4">
+                <h4
+                  class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+                >
+                  Movement Information
+                </h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      for="{{ form.movement_type.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Movement Type <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.movement_type }}
+                    {% if form.movement_type.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.movement_type.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  <div>
+                    <label
+                      for="{{ form.reference_number.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Reference Number
+                    </label>
+                    {{ form.reference_number }}
+                    {% if form.reference_number.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.reference_number.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">
+                      Optional reference for tracking
+                    </p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      for="{{ form.movement_date.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Movement Date <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.movement_date }} {% if form.movement_date.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.movement_date.errors %} {{ error }}
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  <div>
+                    <label
+                      for="{{ form.processed_by.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Processed By
+                    </label>
+                    {{ form.processed_by }}
+                    {% if form.processed_by.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.processed_by.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Product Selection -->
+              <div class="space-y-4">
+                <h4
+                  class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+                >
+                  Product Information
+                </h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      for="{{ form.product.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Product <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.product }}
+                    {% if form.product.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.product.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Current Stock
+                    </label>
+                    <div
+                      class="px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm text-gray-700"
+                    >
+                      <span id="current-stock"
+                        >Select a product to view stock</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Location Information -->
+              <div class="space-y-4">
+                <h4
+                  class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+                >
+                  Location Details
+                </h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      for="{{ form.from_location.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      From Location
+                    </label>
+                    {{ form.from_location }}
+                    {% if form.from_location.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.from_location.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">
+                      Source location (for transfers)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      for="{{ form.to_location.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      To Location
+                    </label>
+                    {{ form.to_location }}
+                    {% if form.to_location.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.to_location.errors %}{{ error }}{% endfor %}
+                    </div>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">
+                      Destination location (for transfers)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quantity and Cost -->
+              <div class="space-y-4">
+                <h4
+                  class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+                >
+                  Quantity & Cost Details
+                </h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label
+                      for="{{ form.quantity.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Quantity <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.quantity }} {% if form.quantity.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.quantity.errors %}{{ error }}{%
+                      endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  <div>
+                    <label
+                      for="{{ form.unit_cost.id_for_label }}"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Unit Cost
+                    </label>
+                    {{ form.unit_cost }} {% if form.unit_cost.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                      {% for error in form.unit_cost.errors %}{{ error }}{%
+                      endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Total Value
+                    </label>
+                    <div
+                      class="px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm text-gray-700"
+                    >
+                      $<span id="total-value">0.00</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Reason and Notes -->
+              <div class="space-y-4">
+                <h4
+                  class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2"
+                >
+                  Additional Information
+                </h4>
+
+                <div>
+                  <label
+                    for="{{ form.reason.id_for_label }}"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Reason for Movement
+                  </label>
+                  {{ form.reason }} {% if form.reason.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.reason.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div>
+                  <label
+                    for="{{ form.notes.id_for_label }}"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Notes
+                  </label>
+                  {{ form.notes }} {% if form.notes.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.notes.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Form Actions -->
+              <div class="flex justify-between pt-6">
+                <a
+                  href="{% url 'inventory:dashboard' %}"
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                >
+                  Cancel
+                </a>
+                <button
+                  type="submit"
+                  class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                >
+                  {% if object %}
+                  <i class="fas fa-save mr-2"></i>
+                  Update Movement {% else %}
+                  <i class="fas fa-plus mr-2"></i>
+                  Record Movement {% endif %}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Reference Panel -->
+      <div class="lg:col-span-1">
+        <!-- Movement Types -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h4 class="text-lg font-semibold text-gray-900 mb-4">
+            Movement Types
+          </h4>
+          <div class="space-y-3">
+            <div class="flex items-center p-3 bg-green-50 rounded-lg">
+              <div class="flex-shrink-0">
+                <i class="fas fa-plus-circle text-green-600"></i>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-green-900">Stock In</p>
+                <p class="text-xs text-green-700">Receiving inventory</p>
+              </div>
+            </div>
+
+            <div class="flex items-center p-3 bg-red-50 rounded-lg">
+              <div class="flex-shrink-0">
+                <i class="fas fa-minus-circle text-red-600"></i>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-red-900">Stock Out</p>
+                <p class="text-xs text-red-700">Issuing inventory</p>
+              </div>
+            </div>
+
+            <div class="flex items-center p-3 bg-blue-50 rounded-lg">
+              <div class="flex-shrink-0">
+                <i class="fas fa-exchange-alt text-blue-600"></i>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-blue-900">Transfer</p>
+                <p class="text-xs text-blue-700">Between locations</p>
+              </div>
+            </div>
+
+            <div class="flex items-center p-3 bg-yellow-50 rounded-lg">
+              <div class="flex-shrink-0">
+                <i class="fas fa-wrench text-yellow-600"></i>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-yellow-900">Adjustment</p>
+                <p class="text-xs text-yellow-700">Quantity corrections</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Movements -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+          <h4 class="text-lg font-semibold text-gray-900 mb-4">
+            Recent Movements
+          </h4>
+          <div class="space-y-3">
+            <div
+              class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            >
+              <div>
+                <p class="text-sm font-medium text-gray-900">Widget A-100</p>
+                <p class="text-xs text-gray-600">Stock In +50</p>
+              </div>
+              <span class="text-xs text-gray-500">2 hours ago</span>
+            </div>
+
+            <div
+              class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            >
+              <div>
+                <p class="text-sm font-medium text-gray-900">Gadget B-200</p>
+                <p class="text-xs text-gray-600">Transfer -25</p>
+              </div>
+              <span class="text-xs text-gray-500">4 hours ago</span>
+            </div>
+
+            <div
+              class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            >
+              <div>
+                <p class="text-sm font-medium text-gray-900">Tool C-300</p>
+                <p class="text-xs text-gray-600">Adjustment +5</p>
+              </div>
+              <span class="text-xs text-gray-500">6 hours ago</span>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <a
+              href="#"
+              class="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+            >
+              View all movements →
+            </a>
+          </div>
+        </div>
+
+        <!-- Movement Guidelines -->
+        <div class="bg-blue-50 rounded-lg p-6 mt-6">
+          <h5 class="text-sm font-semibold text-blue-900 mb-3">
+            Movement Guidelines
+          </h5>
+          <ul class="space-y-2 text-xs text-blue-800">
+            <li class="flex items-start">
+              <i
+                class="fas fa-check-circle text-blue-600 mr-2 mt-0.5 flex-shrink-0"
+              ></i>
+              <span>Always verify product selection before recording</span>
+            </li>
+            <li class="flex items-start">
+              <i
+                class="fas fa-check-circle text-blue-600 mr-2 mt-0.5 flex-shrink-0"
+              ></i>
+              <span>Include reference numbers for audit trails</span>
+            </li>
+            <li class="flex items-start">
+              <i
+                class="fas fa-check-circle text-blue-600 mr-2 mt-0.5 flex-shrink-0"
+              ></i>
+              <span>Provide clear reasons for adjustments</span>
+            </li>
+            <li class="flex items-start">
+              <i
+                class="fas fa-check-circle text-blue-600 mr-2 mt-0.5 flex-shrink-0"
+              ></i>
+              <span>Check current stock levels before processing</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Add Tailwind classes to form fields
+    const inputs = document.querySelectorAll(
+      'input[type="text"], input[type="number"], input[type="date"], select, textarea'
+    );
+
+    inputs.forEach((input) => {
+      input.classList.add(
+        "block",
+        "w-full",
+        "px-3",
+        "py-2",
+        "border",
+        "border-gray-300",
+        "rounded-md",
+        "shadow-sm",
+        "placeholder-gray-400",
+        "focus:outline-none",
+        "focus:ring-indigo-500",
+        "focus:border-indigo-500",
+        "sm:text-sm"
+      );
+    });
+
+    // Add specific styling for textareas
+    const textareas = document.querySelectorAll("textarea");
+    textareas.forEach((textarea) => {
+      textarea.classList.add("h-24", "resize-none");
+    });
+
+    // Product selection and stock display
+    const productSelect = document.querySelector('[name="product"]');
+    const currentStockDisplay = document.getElementById("current-stock");
+
+    if (productSelect) {
+      productSelect.addEventListener("change", function () {
+        const productId = this.value;
+        if (productId) {
+          // In a real application, you would fetch this data via AJAX
+          // For now, we'll show a placeholder
+          currentStockDisplay.textContent = "Loading stock info...";
+
+          // Simulate API call
+          setTimeout(() => {
+            const mockStock = Math.floor(Math.random() * 1000) + 1;
+            currentStockDisplay.innerHTML = `
+              <span class="font-semibold">GH{mockStock} units</span>
+              <span class="text-gray-500 ml-2">in stock</span>
+            `;
+          }, 500);
+        } else {
+          currentStockDisplay.textContent = "Select a product to view stock";
+        }
+      });
+    }
+
+    // Calculate total value
+    const quantityInput = document.querySelector('[name="quantity"]');
+    const unitCostInput = document.querySelector('[name="unit_cost"]');
+    const totalValueDisplay = document.getElementById("total-value");
+
+    function calculateTotal() {
+      const quantity = parseFloat(quantityInput?.value || 0);
+      const unitCost = parseFloat(unitCostInput?.value || 0);
+      const total = quantity * unitCost;
+
+      if (totalValueDisplay) {
+        totalValueDisplay.textContent = total.toFixed(2);
+      }
+    }
+
+    if (quantityInput) {
+      quantityInput.addEventListener("input", calculateTotal);
+    }
+
+    if (unitCostInput) {
+      unitCostInput.addEventListener("input", calculateTotal);
+    }
+
+    // Movement type specific field visibility
+    const movementTypeSelect = document.querySelector('[name="movement_type"]');
+    const fromLocationDiv = document
+      .querySelector('[name="from_location"]')
+      ?.closest(".grid").children[0];
+    const toLocationDiv = document
+      .querySelector('[name="to_location"]')
+      ?.closest(".grid").children[1];
+
+    if (movementTypeSelect) {
+      movementTypeSelect.addEventListener("change", function () {
+        const movementType = this.value;
+
+        // Show/hide location fields based on movement type
+        if (movementType === "transfer") {
+          fromLocationDiv?.classList.remove("hidden");
+          toLocationDiv?.classList.remove("hidden");
+        } else if (movementType === "stock_in") {
+          fromLocationDiv?.classList.add("hidden");
+          toLocationDiv?.classList.remove("hidden");
+        } else if (movementType === "stock_out") {
+          fromLocationDiv?.classList.remove("hidden");
+          toLocationDiv?.classList.add("hidden");
+        } else {
+          // For adjustments, hide both
+          fromLocationDiv?.classList.add("hidden");
+          toLocationDiv?.classList.add("hidden");
+        }
+      });
+
+      // Trigger on page load
+      movementTypeSelect.dispatchEvent(new Event("change"));
+    }
+
+    // Form validation
+    const form = document.querySelector("form");
+    form.addEventListener("submit", function (e) {
+      let isValid = true;
+      const errorMessages = [];
+
+      // Check required fields
+      const requiredFields = [
+        { field: "movement_type", label: "Movement Type" },
+        { field: "movement_date", label: "Movement Date" },
+        { field: "product", label: "Product" },
+        { field: "quantity", label: "Quantity" },
+      ];
+
+      requiredFields.forEach((item) => {
+        const field = document.querySelector(`[name="${item.field}"]`);
+        if (field && !field.value.trim()) {
+          field.classList.remove("border-gray-300", "focus:border-indigo-500");
+          field.classList.add("border-red-300", "focus:border-red-500");
+          errorMessages.push(item.label);
+          isValid = false;
+        } else if (field) {
+          field.classList.remove("border-red-300", "focus:border-red-500");
+          field.classList.add("border-gray-300", "focus:border-indigo-500");
+        }
+      });
+
+      // Validate quantity is positive
+      const quantity = parseFloat(
+        document.querySelector('[name="quantity"]')?.value || 0
+      );
+      if (quantity <= 0) {
+        const quantityField = document.querySelector('[name="quantity"]');
+        quantityField.classList.remove(
+          "border-gray-300",
+          "focus:border-indigo-500"
+        );
+        quantityField.classList.add("border-red-300", "focus:border-red-500");
+        errorMessages.push("Quantity must be greater than 0");
+        isValid = false;
+      }
+
+      if (!isValid) {
+        e.preventDefault();
+        showNotification(
+          `Please fix the following errors: ${errorMessages.join(", ")}`,
+          "error"
+        );
+
+        // Scroll to first error field
+        const firstErrorField = document.querySelector(".border-red-300");
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          firstErrorField.focus();
+        }
+      }
+    });
+
+    // Show notification function
+    function showNotification(message, type = "info") {
+      const notification = document.createElement("div");
+      notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
+        type === "success"
+          ? "bg-green-100 border border-green-400 text-green-700"
+          : type === "error"
+          ? "bg-red-100 border border-red-400 text-red-700"
+          : "bg-blue-100 border border-blue-400 text-blue-700"
+      }`;
+
+      notification.innerHTML = `
+        <div class="flex items-center">
+          <i class="fas fa-${
+            type === "success"
+              ? "check-circle"
+              : type === "error"
+              ? "exclamation-circle"
+              : "info-circle"
+          } mr-2"></i>
+          <span class="font-medium">GH{message}</span>
+        </div>
+      `;
+
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 5000);
+    }
+  });
+</script>
+{% endblock %}

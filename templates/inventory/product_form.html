@@ -1,0 +1,986 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+{% if object %}Edit Product - {{ object.name }}{% else %}Add New Product{% endif %} - DreamBiz Accounting
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            {% if object %}Edit Product - {{ object.name }}{% else %}Add New Product{% endif %}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            {% if object %}Update product information and inventory details{% else %}Create a new product for inventory management{% endif %}
+          </p>
+        </div>
+        <div>
+          <a href="{% url 'inventory:product_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Products
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <form method="post" class="space-y-6" id="product-form">
+      {% csrf_token %}
+
+      <!-- Display Form Errors -->
+      {% if form.non_field_errors %}
+      <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <i class="fas fa-exclamation-circle text-red-400"></i>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-red-700">
+              {{ form.non_field_errors }}
+            </p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Progress Indicator -->
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center">
+              <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-medium">1</div>
+              <span class="ml-2 text-sm font-medium text-gray-900">Basic Info</span>
+            </div>
+            <div class="w-16 h-0.5 bg-gray-300"></div>
+            <div class="flex items-center">
+              <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-white text-sm font-medium">2</div>
+              <span class="ml-2 text-sm font-medium text-gray-500">Pricing</span>
+            </div>
+            <div class="w-16 h-0.5 bg-gray-300"></div>
+            <div class="flex items-center">
+              <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-white text-sm font-medium">3</div>
+              <span class="ml-2 text-sm font-medium text-gray-500">Inventory</span>
+            </div>
+            <div class="w-16 h-0.5 bg-gray-300"></div>
+            <div class="flex items-center">
+              <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-white text-sm font-medium">4</div>
+              <span class="ml-2 text-sm font-medium text-gray-500">Details</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Form Column -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- Basic Information -->
+          <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-indigo-700">
+              <h3 class="text-lg font-semibold text-white flex items-center">
+                <i class="fas fa-info-circle mr-2"></i>
+                Basic Information
+              </h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="{{ form.sku.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    SKU (Stock Keeping Unit) <span class="text-red-500">*</span>
+                  </label>
+                  {{ form.sku }}
+                  {% if form.sku.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.sku.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                  <p class="mt-1 text-xs text-gray-500">Unique identifier for this product</p>
+                </div>
+
+                <div>
+                  <label for="{{ form.barcode.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Barcode / UPC
+                  </label>
+                  <div class="flex space-x-2">
+                    {{ form.barcode }}
+                    <button type="button" id="scan-barcode-btn" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200">
+                      <i class="fas fa-qrcode mr-1"></i> Scan
+                    </button>
+                  </div>
+                  {% if form.barcode.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.barcode.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                  <p class="mt-1 text-xs text-gray-500">Product barcode for scanning or manual entry</p>
+                  <div id="barcode-scanner" class="hidden mt-2">
+                    <div class="bg-gray-100 p-3 rounded-lg">
+                      <p class="text-sm text-gray-600 mb-2">Position barcode within the frame:</p>
+                      <video id="barcode-video" width="100%" height="200" style="border: 1px solid #ccc; border-radius: 4px;"></video>
+                      <div class="flex space-x-2 mt-2">
+                        <button type="button" id="stop-scan-btn" class="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700">
+                          Stop Scanning
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  Product Name <span class="text-red-500">*</span>
+                </label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.name.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.description.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+                <p class="mt-1 text-xs text-gray-500">Detailed product description</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Category
+                  </label>
+                  {{ form.category }}
+                  <button type="button" id="add-category-btn" class="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    <i class="fas fa-plus mr-1"></i> Add new category
+                  </button>
+                  {% if form.category.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.category.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+
+                <div>
+                  <label for="{{ form.product_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Product Type <span class="text-red-500">*</span>
+                  </label>
+                  {{ form.product_type }}
+                  {% if form.product_type.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.product_type.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div>
+                <label for="{{ form.unit_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                  Unit of Measure <span class="text-red-500">*</span>
+                </label>
+                {{ form.unit_type }}
+                {% if form.unit_type.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.unit_type.errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Pricing Information -->
+          <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-600 to-green-700">
+              <h3 class="text-lg font-semibold text-white flex items-center">
+                <i class="fas fa-dollar-sign mr-2"></i>
+                Pricing & Financials
+              </h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="{{ form.cost_price.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Cost Price <span class="text-red-500">*</span>
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span class="text-gray-500 sm:text-sm">GH</span>
+                    </div>
+                    {{ form.cost_price }}
+                  </div>
+                  {% if form.cost_price.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.cost_price.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                  <p class="mt-1 text-xs text-gray-500">Your purchase/manufacturing cost</p>
+                </div>
+
+                <div>
+                  <label for="{{ form.selling_price.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Selling Price <span class="text-red-500">*</span>
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span class="text-gray-500 sm:text-sm">GH</span>
+                    </div>
+                    {{ form.selling_price }}
+                  </div>
+                  {% if form.selling_price.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.selling_price.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                  <p class="mt-1 text-xs text-gray-500">Customer purchase price</p>
+                </div>
+              </div>
+
+              <!-- Profit Margin Indicator -->
+              <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-gray-700">Profit Analysis</p>
+                    <p id="profit-margin" class="text-xs text-blue-700 mt-1">Enter prices to calculate margin</p>
+                  </div>
+                  <div id="margin-indicator" class="text-2xl">📊</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inventory Management -->
+          <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700">
+              <h3 class="text-lg font-semibold text-white flex items-center">
+                <i class="fas fa-warehouse mr-2"></i>
+                Inventory Management
+              </h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="{{ form.minimum_stock_level.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Minimum Stock Level <span class="text-red-500">*</span>
+                  </label>
+                  {{ form.minimum_stock_level }}
+                  {% if form.minimum_stock_level.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.minimum_stock_level.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                  <p class="mt-1 text-xs text-gray-500">Minimum quantity to maintain</p>
+                </div>
+
+                <div>
+                  <label for="{{ form.maximum_stock_level.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Maximum Stock Level <span class="text-red-500">*</span>
+                  </label>
+                  {{ form.maximum_stock_level }}
+                  {% if form.maximum_stock_level.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.maximum_stock_level.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                  <p class="mt-1 text-xs text-gray-500">Maximum storage capacity</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="{{ form.reorder_point.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Reorder Point <span class="text-red-500">*</span>
+                  </label>
+                  {{ form.reorder_point }}
+                  {% if form.reorder_point.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.reorder_point.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                  <p class="mt-1 text-xs text-gray-500">Trigger automatic reorder alert</p>
+                </div>
+
+                <div>
+                  <label for="{{ form.reorder_quantity.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Reorder Quantity <span class="text-red-500">*</span>
+                  </label>
+                  {{ form.reorder_quantity }}
+                  {% if form.reorder_quantity.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.reorder_quantity.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                  <p class="mt-1 text-xs text-gray-500">Quantity to order when restocking</p>
+                </div>
+              </div>
+
+              <!-- Stock Level Visualization -->
+              <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+                <p class="text-sm font-medium text-gray-700 mb-2">Stock Level Guide</p>
+                <div class="flex items-center space-x-2 text-xs">
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
+                    <span>Min Level</span>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 bg-yellow-500 rounded-full mr-1"></div>
+                    <span>Reorder Point</span>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                    <span>Max Level</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Details -->
+          <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-purple-600 to-purple-700">
+              <h3 class="text-lg font-semibold text-white flex items-center">
+                <i class="fas fa-cogs mr-2"></i>
+                Additional Details
+              </h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="{{ form.weight.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Weight (kg)
+                  </label>
+                  {{ form.weight }}
+                  {% if form.weight.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.weight.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                  <p class="mt-1 text-xs text-gray-500">Product weight in kilograms</p>
+                </div>
+
+                <div>
+                  <label for="{{ form.dimensions.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Dimensions (L×W×H)
+                  </label>
+                  {{ form.dimensions }}
+                  {% if form.dimensions.errors %}
+                  <div class="mt-1 text-sm text-red-600">
+                    {% for error in form.dimensions.errors %}{{ error }}{% endfor %}
+                  </div>
+                  {% endif %}
+                  <p class="mt-1 text-xs text-gray-500">e.g., 10×5×3 cm</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Sidebar Column -->
+        <div class="space-y-6">
+          
+          <!-- Product Status -->
+          <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                <i class="fas fa-toggle-on mr-2"></i>
+                Product Status
+              </h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  {{ form.is_active }}
+                </div>
+                <div class="ml-3">
+                  <label for="{{ form.is_active.id_for_label }}" class="font-medium text-gray-700">
+                    Active Product
+                  </label>
+                  <p class="text-xs text-gray-500">Product is available for sale</p>
+                </div>
+              </div>
+              {% if form.is_active.errors %}
+              <div class="text-sm text-red-600">
+                {% for error in form.is_active.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  {{ form.is_serialized }}
+                </div>
+                <div class="ml-3">
+                  <label for="{{ form.is_serialized.id_for_label }}" class="font-medium text-gray-700">
+                    Serialized Item
+                  </label>
+                  <p class="text-xs text-gray-500">Track individual serial numbers</p>
+                </div>
+              </div>
+              {% if form.is_serialized.errors %}
+              <div class="text-sm text-red-600">
+                {% for error in form.is_serialized.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  {{ form.tax_exempt }}
+                </div>
+                <div class="ml-3">
+                  <label for="{{ form.tax_exempt.id_for_label }}" class="font-medium text-gray-700">
+                    Tax Exempt
+                  </label>
+                  <p class="text-xs text-gray-500">Exempt from sales tax</p>
+                </div>
+              </div>
+              {% if form.tax_exempt.errors %}
+              <div class="text-sm text-red-600">
+                {% for error in form.tax_exempt.errors %}{{ error }}{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Quick Tips -->
+          <div class="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg shadow-lg overflow-hidden border border-indigo-200">
+            <div class="px-6 py-4 border-b border-indigo-200">
+              <h3 class="text-lg font-semibold text-indigo-900 flex items-center">
+                <i class="fas fa-lightbulb mr-2"></i>
+                Quick Tips
+              </h3>
+            </div>
+            <div class="p-6">
+              <ul class="space-y-3 text-sm text-gray-700">
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-500 mr-2 mt-0.5"></i>
+                  <span>Use unique SKUs for easy identification</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-500 mr-2 mt-0.5"></i>
+                  <span>Set reorder point above minimum stock</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-500 mr-2 mt-0.5"></i>
+                  <span>Maintain healthy profit margins (20%+)</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check-circle text-green-500 mr-2 mt-0.5"></i>
+                  <span>Add detailed descriptions for clarity</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Required Fields Notice -->
+          <div class="bg-yellow-50 rounded-lg shadow-lg overflow-hidden border border-yellow-200">
+            <div class="p-6">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <i class="fas fa-exclamation-triangle text-yellow-400 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-yellow-800">Required Fields</h3>
+                  <div class="mt-2 text-sm text-yellow-700">
+                    <p>Fields marked with <span class="text-red-500">*</span> are required</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Form Actions (Sticky Bottom) -->
+      <div class="bg-white rounded-lg shadow-lg p-6 sticky bottom-4">
+        <div class="flex justify-between items-center">
+          <a href="{% url 'inventory:product_list' %}" class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+            <i class="fas fa-times mr-2"></i>
+            Cancel
+          </a>
+          <button type="submit" class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+            {% if object %}
+              <i class="fas fa-save mr-2"></i> Update Product
+            {% else %}
+              <i class="fas fa-plus-circle mr-2"></i> Create Product
+            {% endif %}
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // URL endpoints for AJAX calls
+  const AJAX_URLS = {
+    addCategory: '{% url "inventory:add_category_ajax" %}',
+    barcodeLookup: '{% url "inventory:barcode_lookup" %}'
+  };
+  
+  document.addEventListener("DOMContentLoaded", function () {
+    // Global form input references
+    const skuInput = document.querySelector('[name="sku"]');
+    const nameInput = document.querySelector('[name="name"]');
+    
+    // Apply Tailwind classes to all form fields dynamically
+    const inputs = document.querySelectorAll("input:not([type='checkbox']), select, textarea");
+    inputs.forEach(input => {
+      input.classList.add(
+        "block", "w-full", "px-3", "py-2", "border", "border-gray-300", 
+        "rounded-md", "shadow-sm", "placeholder-gray-400",
+        "focus:outline-none", "focus:ring-2", "focus:ring-indigo-500", "focus:border-indigo-500", "sm:text-sm",
+        "transition-colors", "duration-200"
+      );
+    });
+
+    // Special styling for money inputs
+    document.querySelectorAll('[name="cost_price"], [name="selling_price"]').forEach(input => {
+      input.classList.add("pl-7");
+    });
+
+    // Checkbox styling
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.classList.add("h-4", "w-4", "text-indigo-600", "focus:ring-indigo-500", "border-gray-300", "rounded", "cursor-pointer");
+    });
+
+    // Profit margin calculation with visual feedback
+    const costPrice = document.querySelector('[name="cost_price"]');
+    const sellingPrice = document.querySelector('[name="selling_price"]');
+    const profitMargin = document.getElementById("profit-margin");
+    const marginIndicator = document.getElementById("margin-indicator");
+
+    function calculateProfitMargin() {
+      if (!costPrice || !sellingPrice) return;
+      const cost = parseFloat(costPrice.value) || 0;
+      const selling = parseFloat(sellingPrice.value) || 0;
+
+      if (cost > 0 && selling > 0) {
+        const profit = selling - cost;
+        const margin = ((profit / cost) * 100).toFixed(2);
+        
+        profitMargin.innerHTML = `
+          <span class="font-semibold">Profit:</span> GH₵${profit.toFixed(2)} | 
+          <span class="font-semibold">Margin:</span> ${margin}%
+        `;
+        
+        // Color coding and emoji based on margin
+        if (margin < 0) {
+          profitMargin.className = "text-sm text-red-700 font-medium";
+          marginIndicator.textContent = "❌";
+        } else if (margin < 10) {
+          profitMargin.className = "text-sm text-orange-700 font-medium";
+          marginIndicator.textContent = "⚠️";
+        } else if (margin < 20) {
+          profitMargin.className = "text-sm text-yellow-700 font-medium";
+          marginIndicator.textContent = "⚡";
+        } else {
+          profitMargin.className = "text-sm text-green-700 font-medium";
+          marginIndicator.textContent = "✅";
+        }
+      } else {
+        profitMargin.textContent = "Enter both prices to calculate margin";
+        profitMargin.className = "text-sm text-blue-700";
+        marginIndicator.textContent = "📊";
+      </div>
+    }
+
+    if (costPrice && sellingPrice) {
+      console.log('Setting up profit calculation event listeners');
+      costPrice.addEventListener("input", function() {
+        console.log('Cost price changed:', this.value);
+        calculateProfitMargin();
+      });
+      sellingPrice.addEventListener("input", function() {
+        console.log('Selling price changed:', this.value);
+        calculateProfitMargin();
+      });
+      // Calculate on page load if editing
+      setTimeout(() => {
+        calculateProfitMargin();
+        console.log('Profit calculation initialized');
+      }, 100);
+    } else {
+      console.warn('Cost price or selling price inputs not found for profit calculation');
+      console.log('CostPrice element:', costPrice);
+      console.log('SellingPrice element:', sellingPrice);
+    }
+
+    // Stock level validation
+    const minStock = document.querySelector('[name="minimum_stock_level"]');
+    const maxStock = document.querySelector('[name="maximum_stock_level"]');
+    const reorderPoint = document.querySelector('[name="reorder_point"]');
+
+    function validateStockLevels() {
+      const min = parseInt(minStock?.value) || 0;
+      const max = parseInt(maxStock?.value) || 0;
+      const reorder = parseInt(reorderPoint?.value) || 0;
+
+      if (min > 0 && max > 0 && min > max) {
+        maxStock.classList.add("border-red-500");
+        minStock.classList.add("border-red-500");
+      } else {
+        maxStock.classList.remove("border-red-500");
+        minStock.classList.remove("border-red-500");
+      }
+
+      if (reorder > 0 && min > 0 && reorder < min) {
+        reorderPoint.classList.add("border-yellow-500");
+      } else {
+        reorderPoint.classList.remove("border-yellow-500");
+      }
+    }
+
+    [minStock, maxStock, reorderPoint].forEach(input => {
+      input?.addEventListener("input", validateStockLevels);
+    });
+    validateStockLevels(); // Validate on page load
+
+    // Form submission validation
+    const form = document.getElementById("product-form");
+    form?.addEventListener("submit", function(e) {
+      const min = parseInt(minStock?.value) || 0;
+      const max = parseInt(maxStock?.value) || 0;
+
+      if (min > max && max > 0) {
+        e.preventDefault();
+        alert("Maximum stock level must be greater than minimum stock level");
+        maxStock.focus();
+        return false;
+      }
+    });
+
+    // Auto-generate SKU if empty (optional enhancement)
+    
+    if (skuInput && nameInput && !skuInput.value) {
+      nameInput.addEventListener("blur", function() {
+        if (!skuInput.value && nameInput.value) {
+          // Generate SKU from first 3 letters + random numbers
+          const prefix = nameInput.value.substring(0, 3).toUpperCase();
+          const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+          skuInput.value = `${prefix}-${random}`;
+        }
+      });
+    }
+    // Add Category Modal functionality
+    const addCategoryBtn = document.getElementById('add-category-btn');
+    const categoryModal = document.getElementById('category-modal');
+    const closeCategoryModal = document.getElementById('close-category-modal');
+    const categoryForm = document.getElementById('category-form');
+    const categorySelect = document.querySelector('[name="category"]');
+    
+    function clearCategoryForm() {
+      const nameInput = document.getElementById('new-category-name');
+      const descInput = document.getElementById('new-category-description');
+      if (nameInput) nameInput.value = '';
+      if (descInput) descInput.value = '';
+    }
+    
+    function closeCategoryModalHandler() {
+      if (categoryModal) {
+        categoryModal.classList.add('hidden');
+        clearCategoryForm();
+      }
+    }
+
+    if (addCategoryBtn && categoryModal) {
+      console.log('Setting up category modal functionality');
+      addCategoryBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Add category button clicked');
+        categoryModal.classList.remove('hidden');
+        // Focus on name input
+        const nameInput = document.getElementById('new-category-name');
+        if (nameInput) {
+          setTimeout(() => nameInput.focus(), 100);
+        }
+      });
+    } else {
+      console.warn('Category modal elements not found');
+      console.log('AddCategoryBtn:', addCategoryBtn);
+      console.log('CategoryModal:', categoryModal);
+    }
+
+      // Close modal handlers
+      if (closeCategoryModal) {
+        closeCategoryModal.addEventListener('click', closeCategoryModalHandler);
+      }
+
+      // Close modal when clicking outside
+      categoryModal.addEventListener('click', function(e) {
+        if (e.target === categoryModal) {
+          closeCategoryModalHandler();
+        }
+      });
+
+      const closeCategoryModalBtn = document.getElementById('close-category-modal-btn');
+      if (closeCategoryModalBtn) {
+        closeCategoryModalBtn.addEventListener('click', closeCategoryModalHandler);
+      }
+    }
+
+    // Handle category form submission
+    if (categoryForm) {
+      categoryForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const submitBtn = this.querySelector('[type="submit"]');
+        
+        // Show loading state
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
+        }
+
+        fetch(AJAX_URLS.addCategory, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          },
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Add the new category to the select dropdown
+            const option = new Option(data.category_name, data.category_id, true, true);
+            if (categorySelect) {
+              categorySelect.add(option);
+            }
+            
+            // Close modal and clear form
+            closeCategoryModalHandler();
+            
+            // Show success toast
+            if (typeof showToast === 'function') {
+              showToast('Category added successfully!', 'success');
+            }
+          } else {
+            // Handle validation errors
+            const errors = data.errors || {};
+            let errorMessage = 'Failed to add category';
+            
+            if (errors.name) {
+              errorMessage = errors.name[0];
+            } else if (errors.general) {
+              errorMessage = errors.general[0];
+            }
+            
+            if (typeof showToast === 'function') {
+              showToast('Error: ' + errorMessage, 'error');
+            } else {
+              alert('Error: ' + errorMessage);
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error adding category:', error);
+          if (typeof showToast === 'function') {
+            showToast('Network error occurred', 'error');
+          } else {
+            alert('Network error occurred');
+          }
+        })
+        .finally(() => {
+          // Reset button state
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-plus mr-2"></i>Add Category';
+          }
+        });
+      });
+    }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showToast('Network error occurred', 'error');
+      });
+    });
+
+    // Barcode scanning functionality
+    const scanBarcodeBtn = document.getElementById('scan-barcode-btn');
+    const barcodeScanner = document.getElementById('barcode-scanner');
+    const barcodeVideo = document.getElementById('barcode-video');
+    const stopScanBtn = document.getElementById('stop-scan-btn');
+    const barcodeInput = document.querySelector('[name="barcode"]');
+    let stream = null;
+    
+
+
+    if (scanBarcodeBtn) {
+      console.log('Setting up barcode scan functionality');
+      scanBarcodeBtn.addEventListener('click', async function() {
+        console.log('Barcode scan button clicked');
+        try {
+          // Check if getUserMedia is supported
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('Camera not supported');
+          }
+          
+          // Try to start camera for barcode scanning
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } // Prefer rear camera
+          });
+          
+          if (barcodeVideo && barcodeScanner) {
+            barcodeVideo.srcObject = stream;
+            barcodeVideo.play();
+            barcodeScanner.classList.remove('hidden');
+            
+            // Show toast notification
+            if (typeof showToast === 'function') {
+              showToast('Position barcode in camera view (manual entry fallback available)', 'info');
+            }
+            
+            // Simulate barcode detection after 3 seconds for demo
+            setTimeout(() => {
+              const demoBarcode = prompt('Enter barcode manually:');
+              if (demoBarcode && barcodeInput) {
+                barcodeInput.value = demoBarcode;
+                lookupProductByBarcode(demoBarcode);
+              }
+              stopScanning();
+            }, 3000);
+          }
+        
+      } catch (error) {
+        console.error('Camera access failed:', error);
+        // Fallback to manual entry
+        const manualBarcode = prompt('Camera not available. Enter barcode manually:');
+        if (manualBarcode) {
+          barcodeInput.value = manualBarcode;
+          lookupProductByBarcode(manualBarcode);
+        }
+      }
+    });
+    } else {
+      console.warn('Barcode scan button not found');
+    }
+
+    stopScanBtn?.addEventListener('click', stopScanning);
+
+    function stopScanning() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      barcodeScanner.classList.add('hidden');
+    }
+
+    // Lookup product details by barcode
+    function lookupProductByBarcode(barcode) {
+      if (!barcode) return;
+
+      fetch(AJAX_URLS.barcodeLookup, {
+        method: 'POST',
+        body: JSON.stringify({ barcode: barcode }),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.product) {
+          // Pre-fill form with product data
+          const product = data.product;
+          if (product.name) nameInput.value = product.name;
+          if (product.description) document.querySelector('[name="description"]').value = product.description;
+          if (product.cost_price) document.querySelector('[name="cost_price"]').value = product.cost_price;
+          if (product.selling_price) document.querySelector('[name="selling_price"]').value = product.selling_price;
+          // Trigger profit calculation after filling prices
+          calculateProfitMargin();
+          
+          showToast('Product details loaded from barcode!', 'success');
+        } else {
+          showToast('Product not found for this barcode', 'warning');
+        }
+      })
+      .catch(error => {
+        console.error('Barcode lookup error:', error);
+        showToast('Error looking up barcode', 'error');
+      });
+    }
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 ${
+        type === 'success' ? 'bg-green-600' :
+        type === 'error' ? 'bg-red-600' :
+        type === 'warning' ? 'bg-yellow-600' :
+        'bg-blue-600'
+      }`;
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+  });
+</script>
+
+<!-- Category Modal -->
+<div id="category-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-900">Add New Category</h3>
+      <button id="close-category-modal" class="text-gray-400 hover:text-gray-600">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <form id="category-form">
+      {% csrf_token %}
+      <div class="space-y-4">
+        <div>
+          <label for="new-category-name" class="block text-sm font-medium text-gray-700 mb-1">
+            Category Name <span class="text-red-500">*</span>
+          </label>
+          <input type="text" id="new-category-name" name="name" required
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+        
+        <div>
+          <label for="new-category-description" class="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <textarea id="new-category-description" name="description" rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"></textarea>
+        </div>
+      </div>
+      
+      <div class="flex justify-end space-x-3 mt-6">
+        <button type="button" id="close-category-modal-btn" 
+                class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
+          Cancel
+        </button>
+        <button type="submit" 
+                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          Add Category
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

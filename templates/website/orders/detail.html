@@ -1,0 +1,269 @@
+{% extends 'website/base.html' %}
+
+{% block title %}Order #{{ order.order_number }} - Mama Eagle Enterprise{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-r from-primary to-primary-dark text-white overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute inset-0 bg-repeat opacity-20" style="background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><rect width="60" height="60" fill="%23ffffff" fill-opacity="0.1"/><path d="M30 0L60 30L30 60L0 30z" fill="%23ffffff" fill-opacity="0.05"/></svg>');"></div>
+    </div>
+    <div class="relative max-w-7xl mx-auto px-4 py-16">
+        <div class="text-center">
+            <h1 class="text-5xl md:text-6xl font-bold mb-6">Order Details</h1>
+            <p class="text-xl text-blue-100 max-w-3xl mx-auto">
+                View detailed information about order #{{ order.order_number }}.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Breadcrumb -->
+<nav class="bg-gray-50 py-4" aria-label="Breadcrumb">
+    <div class="max-w-7xl mx-auto px-4">
+        <ol class="flex space-x-2 text-sm">
+            <li><a href="{% url 'website:home' %}" class="text-primary hover:underline">Home</a></li>
+            <li class="text-gray-500">/</li>
+            <li><a href="{% url 'website:order_history' %}" class="text-primary hover:underline">Order History</a></li>
+            <li class="text-gray-500">/</li>
+            <li class="text-gray-700 font-medium">Order #{{ order.order_number }}</li>
+        </ol>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Order Header -->
+    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Order #{{ order.order_number }}</h2>
+                <p class="text-gray-600">
+                    Placed on {{ order.created_at|date:"F d, Y" }} at {{ order.created_at|time:"g:i A" }}
+                </p>
+            </div>
+            <span class="px-4 py-2 rounded-full text-sm font-medium
+                {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                {% elif order.status == 'confirmed' %}bg-blue-100 text-blue-800  
+                {% elif order.status == 'shipped' %}bg-purple-100 text-purple-800
+                {% elif order.status == 'delivered' %}bg-green-100 text-green-800
+                {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ order.get_status_display }}
+            </span>
+        </div>
+        
+        <!-- Order Progress -->
+        <div class="mt-6">
+            <div class="flex items-center">
+                <div class="flex items-center {% if order.status == 'pending' or order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}text-primary{% else %}text-gray-400{% endif %}">
+                    <div class="rounded-full transition duration-500 ease-in-out h-12 w-12 py-3 border-2 {% if order.status == 'pending' or order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}bg-primary border-primary{% else %}border-gray-300{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bookmark {% if order.status == 'pending' or order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}text-white{% else %}text-gray-400{% endif %}">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="absolute top-0 -ml-10 text-center mt-16 w-32 text-xs font-medium uppercase {% if order.status == 'pending' or order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}text-primary{% else %}text-gray-400{% endif %}">Order Placed</div>
+                </div>
+                
+                <div class="flex-auto border-t-2 transition duration-500 ease-in-out {% if order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}border-primary{% else %}border-gray-300{% endif %}"></div>
+                
+                <div class="flex items-center {% if order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}text-primary{% else %}text-gray-400{% endif %} relative">
+                    <div class="rounded-full transition duration-500 ease-in-out h-12 w-12 py-3 border-2 {% if order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}bg-primary border-primary{% else %}border-gray-300{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-check {% if order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}text-white{% else %}text-gray-400{% endif %}">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <polyline points="17,11 19,13 23,9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="absolute top-0 -ml-10 text-center mt-16 w-32 text-xs font-medium uppercase {% if order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}text-primary{% else %}text-gray-400{% endif %}">Confirmed</div>
+                </div>
+                
+                <div class="flex-auto border-t-2 transition duration-500 ease-in-out {% if order.status == 'shipped' or order.status == 'delivered' %}border-primary{% else %}border-gray-300{% endif %}"></div>
+                
+                <div class="flex items-center {% if order.status == 'shipped' or order.status == 'delivered' %}text-primary{% else %}text-gray-400{% endif %} relative">
+                    <div class="rounded-full transition duration-500 ease-in-out h-12 w-12 py-3 border-2 {% if order.status == 'shipped' or order.status == 'delivered' %}bg-primary border-primary{% else %}border-gray-300{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-truck {% if order.status == 'shipped' or order.status == 'delivered' %}text-white{% else %}text-gray-400{% endif %}">
+                            <rect x="1" y="3" width="15" height="13"></rect>
+                            <polygon points="16,8 20,8 23,11 23,16 16,16"></polygon>
+                            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                        </svg>
+                    </div>
+                    <div class="absolute top-0 -ml-10 text-center mt-16 w-32 text-xs font-medium uppercase {% if order.status == 'shipped' or order.status == 'delivered' %}text-primary{% else %}text-gray-400{% endif %}">Shipped</div>
+                </div>
+                
+                <div class="flex-auto border-t-2 transition duration-500 ease-in-out {% if order.status == 'delivered' %}border-primary{% else %}border-gray-300{% endif %}"></div>
+                
+                <div class="flex items-center {% if order.status == 'delivered' %}text-primary{% else %}text-gray-400{% endif %} relative">
+                    <div class="rounded-full transition duration-500 ease-in-out h-12 w-12 py-3 border-2 {% if order.status == 'delivered' %}bg-primary border-primary{% else %}border-gray-300{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-package {% if order.status == 'delivered' %}text-white{% else %}text-gray-400{% endif %}">
+                            <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line>
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27,6.96 12,12.01 20.73,6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                    </div>
+                    <div class="absolute top-0 -ml-10 text-center mt-16 w-32 text-xs font-medium uppercase {% if order.status == 'delivered' %}text-primary{% else %}text-gray-400{% endif %}">Delivered</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Order Items -->
+        <div class="lg:col-span-2">
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Order Items</h2>
+                
+                <div class="space-y-4">
+                    {% for item in order.items.all %}
+                    <div class="flex items-start space-x-4 py-4 border-b border-gray-200 last:border-b-0">
+                        <div class="flex-shrink-0">
+                            {% if item.product.images.first %}
+                                <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}" class="w-16 h-16 object-cover rounded-lg">
+                            {% else %}
+                                <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-2xl text-gray-400">🔧</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-medium text-gray-900">{{ item.product.name }}</h3>
+                            <p class="text-sm text-gray-600">{{ item.product.category.name }}</p>
+                            <div class="mt-1 flex items-center space-x-4 text-sm">
+                                <span class="text-gray-600">Qty: {{ item.quantity }}</span>
+                                <span class="text-gray-600">Unit Price: GHS {{ item.unit_price }}</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-medium text-gray-900">GHS {{ item.get_total_price }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Summary & Details -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Order Summary -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
+                
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span>Subtotal:</span>
+                        <span>GHS {{ order.subtotal }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Shipping:</span>
+                        <span>GHS {{ order.shipping_cost }}</span>
+                    </div>
+                    {% if order.tax_amount %}
+                    <div class="flex justify-between">
+                        <span>Tax:</span>
+                        <span>GHS {{ order.tax_amount }}</span>
+                    </div>
+                    {% endif %}
+                    <hr class="border-gray-200">
+                    <div class="flex justify-between text-lg font-semibold">
+                        <span>Total:</span>
+                        <span class="text-primary">GHS {{ order.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Customer Details -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Customer Information</h2>
+                
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <div class="font-medium">{{ order.customer_name }}</div>
+                        <div class="text-gray-600">{{ order.customer_phone }}</div>
+                        <div class="text-gray-600">{{ order.customer_email }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Shipping Details -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Shipping Details</h2>
+                
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <div class="font-medium">Shipping Address:</div>
+                        <div class="text-gray-600">
+                            {{ order.shipping_address }}<br>
+                            {{ order.shipping_city }}, {{ order.shipping_state }}
+                            {% if order.shipping_postal_code %}<br>{{ order.shipping_postal_code }}{% endif %}
+                            <br>{{ order.shipping_country }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Billing Details -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Billing Details</h2>
+                
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <div class="font-medium">Billing Address:</div>
+                        <div class="text-gray-600">
+                            {{ order.billing_address }}<br>
+                            {{ order.billing_city }}, {{ order.billing_state }}
+                            {% if order.billing_postal_code %}<br>{{ order.billing_postal_code }}{% endif %}
+                            <br>{{ order.billing_country }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Details -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Payment Details</h2>
+                
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span>Payment Method:</span>
+                        <span class="font-medium">{{ order.payment_method|title }}</span>
+                    </div>
+                    {% if order.payment_reference %}
+                    <div class="flex justify-between">
+                        <span>Payment Reference:</span>
+                        <span class="font-medium">{{ order.payment_reference }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.notes %}
+                    <div>
+                        <div class="font-medium">Order Notes:</div>
+                        <div class="text-gray-600">{{ order.notes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="space-y-3">
+                {% if order.status == 'pending' %}
+                    <button class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-300">
+                        Cancel Order
+                    </button>
+                {% endif %}
+                
+                {% if order.status == 'delivered' %}
+                    <button class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition duration-300">
+                        Reorder Items
+                    </button>
+                {% endif %}
+                
+                <a href="/order/{{ order.order_number }}/invoice/" 
+                   target="_blank"
+                   class="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition duration-300 text-center inline-block">
+                    📄 Download Invoice
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

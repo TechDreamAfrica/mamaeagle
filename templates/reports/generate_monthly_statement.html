@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Generate Monthly Financial Statement - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Generate Monthly Financial Statement</h1>
+            <p class="text-gray-600">Create detailed financial statements for a specific month following accounting standards</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white shadow-lg rounded-lg p-8">
+            <form method="POST" action="{% url 'reports:generate_monthly' %}">
+                {% csrf_token %}
+                
+                <!-- Period Selection -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Select Period</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Year -->
+                        <div>
+                            <label for="year" class="block text-sm font-medium text-gray-700 mb-2">Year</label>
+                            <select name="year" id="year" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                {% for year in years %}
+                                    <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Month -->
+                        <div>
+                            <label for="month" class="block text-sm font-medium text-gray-700 mb-2">Month</label>
+                            <select name="month" id="month" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="1" {% if current_month == 1 %}selected{% endif %}>January</option>
+                                <option value="2" {% if current_month == 2 %}selected{% endif %}>February</option>
+                                <option value="3" {% if current_month == 3 %}selected{% endif %}>March</option>
+                                <option value="4" {% if current_month == 4 %}selected{% endif %}>April</option>
+                                <option value="5" {% if current_month == 5 %}selected{% endif %}>May</option>
+                                <option value="6" {% if current_month == 6 %}selected{% endif %}>June</option>
+                                <option value="7" {% if current_month == 7 %}selected{% endif %}>July</option>
+                                <option value="8" {% if current_month == 8 %}selected{% endif %}>August</option>
+                                <option value="9" {% if current_month == 9 %}selected{% endif %}>September</option>
+                                <option value="10" {% if current_month == 10 %}selected{% endif %}>October</option>
+                                <option value="11" {% if current_month == 11 %}selected{% endif %}>November</option>
+                                <option value="12" {% if current_month == 12 %}selected{% endif %}>December</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accounting Standard -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Accounting Standard</h2>
+                    <div class="space-y-2">
+                        {% for standard in accounting_standards %}
+                        <div class="flex items-center">
+                            <input type="radio" name="accounting_standard" id="standard_{{ standard }}" value="{{ standard }}" 
+                                   {% if standard == 'GAAP' %}checked{% endif %}
+                                   class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                            <label for="standard_{{ standard }}" class="ml-3 text-gray-700">
+                                <span class="font-medium">{{ standard }}</span>
+                                <span class="text-sm text-gray-500 ml-2">
+                                    {% if standard == 'GAAP' %}
+                                        (Generally Accepted Accounting Principles - US Standard)
+                                    {% else %}
+                                        (International Financial Reporting Standards)
+                                    {% endif %}
+                                </span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Statement Type -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Statement Type</h2>
+                    <select name="statement_type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        {% for value, label in statement_types %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Information Box -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-blue-800">What will be generated?</h3>
+                            <p class="text-sm text-blue-700 mt-1">
+                                Your comprehensive financial statement will include:
+                                Balance Sheet, Income Statement, Cash Flow Statement, and Statement of Changes in Equity.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-between items-center">
+                    <a href="{% url 'reports:reports_main' %}" class="text-gray-600 hover:text-gray-800">
+                        ← Back to Reports
+                    </a>
+                    <button type="submit" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                        Generate Statement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

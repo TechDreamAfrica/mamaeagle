@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You've been invited to {{ company.name }}</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0;">Welcome to DreamBiz!</h1>
+    </div>
+    
+    <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px;">Hello!</p>
+        
+        <p style="font-size: 16px;">
+            <strong>{{ invited_by.get_full_name }}</strong> has invited you to join 
+            <strong>{{ company.name }}</strong> on DreamBiz Accounting Platform.
+        </p>
+        
+        {% if invitation.message %}
+        <div style="background: white; padding: 15px; border-left: 4px solid #667eea; margin: 20px 0;">
+            <p style="margin: 0; font-style: italic;">{{ invitation.message }}</p>
+        </div>
+        {% endif %}
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #667eea;">Your Invitation Details:</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;"><strong>Company:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;">{{ company.name }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;"><strong>Role:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;">{{ invitation.get_role_display }}</td>
+                </tr>
+                {% if invitation.department %}
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;"><strong>Department:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;">{{ invitation.department }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td style="padding: 8px 0;"><strong>Invitation Expires:</strong></td>
+                    <td style="padding: 8px 0;">{{ invitation.expires_at|date:"F d, Y" }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ invitation_url }}" 
+               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                      color: white; 
+                      padding: 15px 40px; 
+                      text-decoration: none; 
+                      border-radius: 8px; 
+                      display: inline-block; 
+                      font-weight: bold;
+                      font-size: 16px;">
+                Accept Invitation
+            </a>
+        </div>
+        
+        <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; font-size: 14px; color: #856404;">
+                <strong>⚠️ Security Note:</strong> This invitation will expire on <strong>{{ invitation.expires_at|date:"F d, Y" }}</strong>. 
+                If you didn't expect this invitation, please ignore this email.
+            </p>
+        </div>
+        
+        <p style="font-size: 14px; color: #666; margin-top: 30px;">
+            If the button above doesn't work, copy and paste this link into your browser:
+        </p>
+        <p style="font-size: 12px; background: #e9ecef; padding: 10px; border-radius: 4px; word-break: break-all;">
+            {{ invitation_url }}
+        </p>
+        
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+        
+        <p style="font-size: 12px; color: #999; text-align: center;">
+            This email was sent by DreamBiz Accounting Platform<br>
+            © {% now "Y" %} DreamBiz. All rights reserved.
+        </p>
+    </div>
+</body>
+</html>

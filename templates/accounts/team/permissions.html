@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load team_filters %}
+
+{% block title %}Manage Permissions - {{ team_member.user.get_full_name }} - DreamBiz{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Manage Permissions</h1>
+        <p class="mt-2 text-gray-600">Configure access permissions for {{ team_member.user.get_full_name }}</p>
+      </div>
+      <a href="{% url 'accounts:team_dashboard' %}" 
+         class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Team
+      </a>
+    </div>
+  </div>
+
+  <!-- User Info Card -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+    <div class="flex items-center">
+      <div class="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-md">
+        {{ team_member.user.first_name|first|upper }}{{ team_member.user.last_name|first|upper }}
+      </div>
+      <div class="ml-4 flex-1">
+        <h2 class="text-xl font-bold text-gray-900">{{ team_member.user.get_full_name }}</h2>
+        <p class="text-sm text-gray-600">{{ team_member.user.email }}</p>
+        <div class="flex items-center gap-3 mt-2">
+          <span class="px-3 py-1 text-xs font-semibold rounded-full
+                     {% if team_member.user.role == 'admin' %}bg-red-100 text-red-700
+                     {% elif team_member.user.role == 'accountant' %}bg-blue-100 text-blue-700
+                     {% elif team_member.user.role == 'manager' %}bg-purple-100 text-purple-700
+                     {% elif team_member.user.role == 'employee' %}bg-green-100 text-green-700
+                     {% else %}bg-gray-100 text-gray-700{% endif %}">
+            {{ team_member.user.get_role_display }}
+          </span>
+          {% if team_member.user.department %}
+          <span class="text-xs text-gray-500">
+            <i class="fas fa-building mr-1"></i>{{ team_member.user.department }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form method="post" id="permissionsForm">
+    {% csrf_token %}
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- General Permissions -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-6">General Permissions</h3>
+          
+          <div class="space-y-4">
+            <!-- Can Invite Users -->
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                {{ form.can_invite_users }}
+              </div>
+              <div class="ml-3">
+                <label for="{{ form.can_invite_users.id_for_label }}" class="font-medium text-gray-700 cursor-pointer">
+                  Can Invite Users
+                </label>
+                <p class="text-sm text-gray-500">Allow this user to send team invitations</p>
+              </div>
+            </div>
+
+            <!-- Can Manage Roles -->
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                {{ form.can_manage_roles }}
+              </div>
+              <div class="ml-3">
+                <label for="{{ form.can_manage_roles.id_for_label }}" class="font-medium text-gray-700 cursor-pointer">
+                  Can Manage Roles
+                </label>
+                <p class="text-sm text-gray-500">Allow this user to change other users' roles</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity Stats -->
+          <div class="mt-8 pt-6 border-t border-gray-200">
+            <h4 class="text-sm font-semibold text-gray-700 mb-4">Activity Statistics</h4>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600">Last Active:</span>
+                <span class="font-medium text-gray-900">
+                  {% if team_member.last_active %}
+                    {{ team_member.last_active|timesince }} ago
+                  {% else %}
+                    Never
+                  {% endif %}
+                </span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600">Login Count:</span>
+                <span class="font-medium text-gray-900">{{ team_member.login_count }}</span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600">Joined:</span>
+                <span class="font-medium text-gray-900">{{ team_member.joined_at|date:"M d, Y" }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="mt-6 pt-6 border-t border-gray-200 space-y-3">
+            <button type="submit"
+                    class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
+              <i class="fas fa-save mr-2"></i>Save Permissions
+            </button>
+            <a href="{% url 'accounts:team_dashboard' %}"
+               class="block w-full px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors text-center">
+              Cancel
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module Permissions Matrix -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">Module Permissions</h3>
+                <p class="text-sm text-gray-600 mt-1">Configure detailed access for each module</p>
+              </div>
+              <div class="flex gap-2">
+                <button type="button" onclick="selectAll()" 
+                        class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                  Select All
+                </button>
+                <button type="button" onclick="deselectAll()" 
+                        class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  Clear All
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Module
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <i class="fas fa-eye mr-1"></i>View
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <i class="fas fa-plus mr-1"></i>Create
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <i class="fas fa-edit mr-1"></i>Edit
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <i class="fas fa-trash mr-1"></i>Delete
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {% for module, label, icon, color in modules %}
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="h-8 w-8 rounded-lg bg-{{ color }}-100 text-{{ color }}-600 flex items-center justify-center mr-3">
+                        <i class="fas fa-{{ icon }} text-sm"></i>
+                      </div>
+                      <span class="text-sm font-medium text-gray-900">{{ label }}</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <input type="checkbox" 
+                           name="permission_{{ module }}_view"
+                           class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                           {% if module in current_permissions and 'view' in current_permissions|get_item:module %}checked{% endif %}>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <input type="checkbox" 
+                           name="permission_{{ module }}_create"
+                           class="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                           {% if module in current_permissions and 'create' in current_permissions|get_item:module %}checked{% endif %}>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <input type="checkbox" 
+                           name="permission_{{ module }}_edit"
+                           class="h-4 w-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500"
+                           {% if module in current_permissions and 'edit' in current_permissions|get_item:module %}checked{% endif %}>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <input type="checkbox" 
+                           name="permission_{{ module }}_delete"
+                           class="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                           {% if module in current_permissions and 'delete' in current_permissions|get_item:module %}checked{% endif %}>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Permission Legend -->
+          <div class="p-6 bg-gray-50 border-t border-gray-200">
+            <h4 class="text-sm font-semibold text-gray-700 mb-3">Permission Levels</h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+              <div class="flex items-center">
+                <i class="fas fa-eye text-blue-600 mr-2"></i>
+                <span class="text-gray-700"><strong>View:</strong> Can see records</span>
+              </div>
+              <div class="flex items-center">
+                <i class="fas fa-plus text-green-600 mr-2"></i>
+                <span class="text-gray-700"><strong>Create:</strong> Can add new records</span>
+              </div>
+              <div class="flex items-center">
+                <i class="fas fa-edit text-yellow-600 mr-2"></i>
+                <span class="text-gray-700"><strong>Edit:</strong> Can modify records</span>
+              </div>
+              <div class="flex items-center">
+                <i class="fas fa-trash text-red-600 mr-2"></i>
+                <span class="text-gray-700"><strong>Delete:</strong> Can remove records</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+function selectAll() {
+  document.querySelectorAll('input[type="checkbox"][name^="permission_"]').forEach(cb => {
+    cb.checked = true;
+  });
+}
+
+function deselectAll() {
+  document.querySelectorAll('input[type="checkbox"][name^="permission_"]').forEach(cb => {
+    cb.checked = false;
+  });
+}
+
+// Form submission with AJAX
+document.getElementById('permissionsForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const form = e.target;
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalText = submitBtn.innerHTML;
+  
+  // Disable button and show loading state
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+  
+  fetch(window.location.href, {
+    method: 'POST',
+    body: new FormData(form),
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(data => {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.success) {
+      alert('Permissions updated successfully!');
+      window.location.href = data.redirect || '{% url "accounts:team_dashboard" %}';
+    } else {
+      alert('Error: ' + (data.error || 'Failed to update permissions'));
+      console.error('Server error details:', data);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('An error occurred: ' + error.message);
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
+  });
+});
+</script>
+{% endblock %}

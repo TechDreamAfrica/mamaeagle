@@ -1,0 +1,82 @@
+{% extends 'docs/doc_layout.html' %}
+{% block doc_content %}
+<h1 class="text-3xl font-bold text-gray-900 mb-6">
+  <i class="fas fa-code text-dreambiz-600"></i> API Reference
+</h1>
+<div class="prose prose-blue max-w-none">
+  <p class="text-lg text-gray-700 mb-6">RESTful API documentation for developers integrating with DreamBiz.</p>
+  
+  <h2>Authentication</h2>
+  <h3>API Key Authentication</h3>
+  <p>Include your API key in the request header:</p>
+  <pre class="bg-gray-900 text-gray-100 p-4 rounded my-4">Authorization: Bearer YOUR_API_KEY</pre>
+
+  <h3>Obtaining API Key</h3>
+  <ol>
+    <li>Navigate to <strong>Settings → API Access</strong></li>
+    <li>Click "Generate API Key"</li>
+    <li>Copy and store securely</li>
+    <li>Never share or commit to version control</li>
+  </ol>
+
+  <h2>Base URL</h2>
+  <pre class="bg-gray-900 text-gray-100 p-4 rounded my-4">https://your-domain.com/api/v1/</pre>
+
+  <h2>Endpoints</h2>
+  
+  <h3>Invoices</h3>
+  <div class="bg-gray-50 p-4 rounded my-4 space-y-2">
+    <div><span class="bg-green-600 text-white px-2 py-1 rounded text-sm">GET</span> <code>/api/v1/invoices/</code> - List invoices</div>
+    <div><span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">POST</span> <code>/api/v1/invoices/</code> - Create invoice</div>
+    <div><span class="bg-green-600 text-white px-2 py-1 rounded text-sm">GET</span> <code>/api/v1/invoices/{id}/</code> - Get invoice</div>
+    <div><span class="bg-yellow-600 text-white px-2 py-1 rounded text-sm">PUT</span> <code>/api/v1/invoices/{id}/</code> - Update invoice</div>
+    <div><span class="bg-red-600 text-white px-2 py-1 rounded text-sm">DELETE</span> <code>/api/v1/invoices/{id}/</code> - Delete invoice</div>
+  </div>
+
+  <h3>Expenses</h3>
+  <div class="bg-gray-50 p-4 rounded my-4 space-y-2">
+    <div><span class="bg-green-600 text-white px-2 py-1 rounded text-sm">GET</span> <code>/api/v1/expenses/</code> - List expenses</div>
+    <div><span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">POST</span> <code>/api/v1/expenses/</code> - Create expense</div>
+    <div><span class="bg-green-600 text-white px-2 py-1 rounded text-sm">GET</span> <code>/api/v1/expenses/{id}/</code> - Get expense</div>
+  </div>
+
+  <h3>Customers</h3>
+  <div class="bg-gray-50 p-4 rounded my-4 space-y-2">
+    <div><span class="bg-green-600 text-white px-2 py-1 rounded text-sm">GET</span> <code>/api/v1/customers/</code> - List customers</div>
+    <div><span class="bg-blue-600 text-white px-2 py-1 rounded text-sm">POST</span> <code>/api/v1/customers/</code> - Create customer</div>
+  </div>
+
+  <h2>Response Format</h2>
+  <pre class="bg-gray-900 text-gray-100 p-4 rounded my-4">{
+  "success": true,
+  "data": {...},
+  "message": "Success",
+  "timestamp": "2025-11-11T10:30:00Z"
+}</pre>
+
+  <h2>Error Codes</h2>
+  <ul>
+    <li><code>200</code> - Success</li>
+    <li><code>201</code> - Created</li>
+    <li><code>400</code> - Bad Request</li>
+    <li><code>401</code> - Unauthorized</li>
+    <li><code>403</code> - Forbidden</li>
+    <li><code>404</code> - Not Found</li>
+    <li><code>500</code> - Server Error</li>
+  </ul>
+
+  <h2>Rate Limits</h2>
+  <ul>
+    <li>1000 requests per hour per API key</li>
+    <li>100 requests per minute</li>
+    <li>Bulk endpoints have lower limits</li>
+  </ul>
+
+  <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 my-6">
+    <p class="text-yellow-800 m-0">
+      <i class="fas fa-exclamation-triangle mr-2"></i>
+      <strong>Important:</strong> Keep your API key secure. Rate limits apply to prevent abuse.
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1689 @@
+{% extends 'base.html' %} 
+{% load static %} {% block title %}Expenses - DreamBiz Accounting{% endblock %} 
+
+{% block extra_head %}
+<style>
+  [x-cloak] { 
+    display: none !important; 
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div x-data="expenseList()" x-init="console.log('Alpine.js component initialized', $data)" class="max-w-7xl mx-auto p-6">
+  
+
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Expenses</h1>
+        <p class="text-gray-600 mt-1">
+          Track and manage your business expenses
+        </p>
+      </div>
+      <div class="mt-4 md:mt-0 flex space-x-3">
+        <!-- Bulk Actions (shown when items are selected) -->
+        <div x-show="selectedExpenses.length > 0" class="flex space-x-2">
+          <button
+            @click="bulkExport()"
+            type="button"
+            class="bg-blue-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <i class="fas fa-download mr-2"></i>Export Selected (<span
+              x-text="selectedExpenses.length"
+            ></span
+            >)
+          </button>
+          <button
+            @click="bulkDelete()"
+            type="button"
+            class="bg-red-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            <i class="fas fa-trash mr-2"></i>Delete Selected (<span
+              x-text="selectedExpenses.length"
+            ></span
+            >)
+          </button>
+        </div>
+
+        <!-- Regular Actions -->
+        <a
+          href="{% url 'expenses:expense_create' %}"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+        >
+          <i class="fas fa-plus mr-2"></i>
+          Add Expense
+        </a>
+        <button
+          @click="showCategoryModal = true"
+          class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
+        >
+          <i class="fas fa-tags mr-2"></i>
+          Categories
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Insights Alert -->
+  <div
+    x-show="showAIInsights"
+    class="mb-6 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4"
+  >
+    <div class="flex items-start">
+      <div class="flex-shrink-0">
+        <svg
+          class="w-6 h-6 text-purple-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+          />
+        </svg>
+      </div>
+      <div class="ml-3 flex-1">
+        <h3 class="text-sm font-medium text-purple-800">AI Expense Insights</h3>
+        <div class="mt-1 text-sm text-purple-700">
+          <p>
+            • Detected unusual spending in Office Supplies category (+45% this month)
+          </p>
+          <p>• 3 expenses missing receipts - tax compliance risk</p>
+          <p>• Potential duplicate expense detected: GH₵89.99 Amazon purchase</p>
+        </div>
+      </div>
+      <button @click="showAIInsights = false" class="flex-shrink-0 ml-4">
+        <svg
+          class="w-5 h-5 text-purple-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- Search -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Search</label
+        >
+        <div class="relative">
+          <input
+            name="search"
+            type="text"
+            value="{{ search_query }}"
+            placeholder="Search expenses..."
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+        </div>
+      </div>
+
+      <!-- Category Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Category</label
+        >
+        <select
+          name="category"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">All Categories</option>
+          {% for category in categories %}
+          <option value="{{ category.id }}" {% if category.id|stringformat:"s" == category_filter %}selected{% endif %}>
+            {{ category.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Status Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Status</label
+        >
+        <select
+          name="status"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="">All Statuses</option>
+          {% for value, label in status_choices %}
+          <option value="{{ value }}" {% if value == status_filter %}selected{% endif %}>
+            {{ label }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="flex items-end">
+        <button
+          type="submit"
+          class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <i class="fas fa-filter mr-2"></i>Filter
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div
+            class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"
+          >
+            <i class="fas fa-dollar-sign text-blue-600"></i>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">Total Expenses</p>
+          <p class="text-2xl font-semibold text-gray-900">
+            GH{{ summary.total_amount|floatformat:2|default:"0.00" }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div
+            class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center"
+          >
+            <i class="fas fa-clock text-yellow-600"></i>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">Count</p>
+          <p class="text-2xl font-semibold text-gray-900">{{ summary.count|default:"0" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div
+            class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"
+          >
+            <i class="fas fa-receipt text-red-600"></i>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">Tax Amount</p>
+          <p class="text-2xl font-semibold text-gray-900">
+            GH{{ summary.total_tax|floatformat:2|default:"0.00" }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div
+            class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"
+          >
+            <i class="fas fa-chart-line text-green-600"></i>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">This Page</p>
+          <p class="text-2xl font-semibold text-gray-900">{{ page_obj.paginator.count }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expenses Table -->
+  <div
+    class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+  >
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Recent Expenses</h3>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              <input
+                type="checkbox"
+                @change="toggleSelectAll()"
+                :checked="selectAll"
+                class="h-4 w-4 text-dreambiz-600 focus:ring-dreambiz-500 border-gray-300 rounded"
+              />
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Date
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Description
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Category
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Amount
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Status
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Receipt
+            </th>
+            <th
+              class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for expense in page_obj %}
+            <tr class="hover:bg-gray-50"
+                :class="{'bg-blue-50': selectedExpenses.includes({{ expense.pk }})}">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  :value="{{ expense.pk }}"
+                  @change="toggleExpenseSelection({{ expense.pk }})"
+                  :checked="selectedExpenses.includes({{ expense.pk }})"
+                  class="h-4 w-4 text-dreambiz-600 focus:ring-dreambiz-500 border-gray-300 rounded"
+                />
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ expense.date|date:"M d, Y" }}
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-900">
+                <div>
+                  <div class="font-medium">{{ expense.description }}</div>
+                  {% if expense.vendor %}
+                    <div class="text-gray-500">{{ expense.vendor.name }}</div>
+                  {% endif %}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                {% if expense.category %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    {{ expense.category.name }}
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    Uncategorized
+                  </span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                GH{{ expense.amount|floatformat:2 }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                {% if expense.status == 'draft' %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Draft</span>
+                {% elif expense.status == 'pending' %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
+                {% elif expense.status == 'approved' %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Approved</span>
+                {% elif expense.status == 'paid' %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Paid</span>
+                {% elif expense.status == 'rejected' %}
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Rejected</span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <div class="flex items-center">
+                  {% if expense.receipt %}
+                    <i class="fas fa-check text-green-500"></i>
+                  {% else %}
+                    <i class="fas fa-times text-red-500"></i>
+                  {% endif %}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div class="flex items-center justify-end space-x-2">
+                  <a
+                    href="{% url 'expenses:expense_detail' expense.pk %}"
+                    class="text-blue-600 hover:text-blue-900"
+                    title="View"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  {% if expense.status == 'draft' or expense.status == 'rejected' %}
+                    <button
+                      @click="editExpense({{ expense.id }})"
+                      class="text-indigo-600 hover:text-indigo-900"
+                      title="Edit"
+                    >
+                      <i class="fas fa-edit"></i>
+                    </button>
+                  {% endif %}
+                  <button
+                    @click="deleteExpense({{ expense.id }})"
+                    class="text-red-600 hover:text-red-900"
+                    title="Delete"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                No expenses found. <a href="{% url 'expenses:expense_create' %}" @click="showCreateModal = true" class="text-blue-600 hover:text-blue-800">Create your first expense</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div class="mt-6 flex items-center justify-between">
+    <div class="text-sm text-gray-500">
+      Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+    </div>
+    <div class="flex space-x-2">
+      {% if page_obj.has_previous %}
+        <a
+          href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}"
+          class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          Previous
+        </a>
+      {% endif %}
+      
+      {% for page_num in page_obj.paginator.page_range %}
+        {% if page_num == page_obj.number %}
+          <span class="px-3 py-2 text-sm bg-blue-600 text-white rounded-md">{{ page_num }}</span>
+        {% elif page_num > page_obj.number|add:'-3' and page_num < page_obj.number|add:'3' %}
+          <a
+            href="?page={{ page_num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}"
+            class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            {{ page_num }}
+          </a>
+        {% endif %}
+      {% endfor %}
+      
+      {% if page_obj.has_next %}
+        <a
+          href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}"
+          class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          Next
+        </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Create Expense Modal -->
+<div
+  x-show="showCreateModal"
+  x-transition:enter="transition ease-out duration-300"
+  x-transition:enter-start="opacity-0"
+  x-transition:enter-end="opacity-100"
+  x-transition:leave="transition ease-in duration-200"
+  x-transition:leave-start="opacity-100"
+  x-transition:leave-end="opacity-0"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+  x-cloak
+  style="display: none"
+  @click.away="closeCreateModal()"
+  @keydown.escape.window="closeCreateModal()"
+>
+  <div
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 transform scale-95"
+    x-transition:enter-end="opacity-100 transform scale-100"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 transform scale-100"
+    x-transition:leave-end="opacity-0 transform scale-95"
+    class="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-screen overflow-y-auto"
+    @click.stop
+  >
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-medium text-gray-900">Add New Expense</h3>
+        <p class="text-sm text-gray-500 mt-1">Create a new business expense record</p>
+      </div>
+      <button 
+        @click="closeCreateModal()"
+        class="text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div class="px-6 py-6">
+      <form id="expenseForm">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Description *</label
+            >
+            <input
+              name="description"
+              type="text"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Amount *</label
+            >
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="text-gray-500 sm:text-sm">GH</span>
+              </div>
+              <input
+                name="amount"
+                type="number"
+                step="0.01"
+                class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Category</label
+            >
+            <select
+              name="category"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select Category</option>
+              {% for category in categories %}
+              <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Date *</label
+            >
+            <input
+              name="date"
+              type="date"
+              value="{% now 'Y-m-d' %}"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Payment Method</label
+            >
+            <select
+              name="payment_method"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="credit_card">Credit Card</option>
+              <option value="cash">Cash</option>
+              <option value="debit_card">Debit Card</option>
+              <option value="check">Check</option>
+              <option value="bank_transfer">Bank Transfer</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Vendor</label
+            >
+            <div class="flex space-x-2">
+              <select
+                name="vendor"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Vendor (Optional)</option>
+                {% for vendor in vendors %}
+                <option value="{{ vendor.id }}">{{ vendor.name }}</option>
+                {% empty %}
+                <option value="">No vendors available</option>
+                {% endfor %}
+              </select>
+              <button
+                type="button"
+                @click="showVendorModal = true"
+                class="px-3 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+                title="Add new vendor"
+              >
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Receipt</label
+            >
+            <div
+              class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors"
+              x-data="{ 
+                uploading: false,
+                processing: false,
+                fileName: '',
+                filePreview: null
+              }"
+            >
+              <!-- Upload Area -->
+              <div x-show="!uploading && !processing && !fileName">
+                <i class="fas fa-cloud-upload-alt mx-auto text-4xl text-gray-400 mb-4"></i>
+                <div class="mt-4">
+                  <label class="cursor-pointer">
+                    <span class="mt-2 block text-sm font-medium text-gray-900"
+                      >Upload Receipt</span
+                    >
+                    <span class="mt-1 block text-xs text-gray-500"
+                      >Drag and drop or click to browse</span
+                    >
+                    <input 
+                      type="file" 
+                      name="receipt"
+                      class="sr-only" 
+                      accept="image/*"
+                      @change="handleReceiptUpload($event)"
+                    />
+                  </label>
+                  <p class="mt-2 text-xs text-gray-500">
+                    PNG, JPG, GIF up to 10MB • AI will extract data automatically
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Processing State -->
+              <div x-show="processing" class="text-center">
+                <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+                <p class="text-sm text-gray-600 font-medium">Processing receipt with AI...</p>
+                <p class="text-xs text-gray-500 mt-1">Extracting vendor, amount, and date information</p>
+              </div>
+
+              <!-- File Uploaded State -->
+              <div x-show="fileName && !processing" class="text-center">
+                <i class="fas fa-file-image text-4xl text-green-600 mb-4"></i>
+                <p class="text-sm font-medium text-gray-900" x-text="fileName"></p>
+                <p class="text-xs text-gray-500 mt-1">Receipt uploaded successfully</p>
+                <button 
+                  type="button"
+                  @click="fileName = ''; filePreview = null; $el.closest('.border-dashed').querySelector('input[type=file]').value = ''"
+                  class="mt-2 text-xs text-red-600 hover:text-red-800"
+                >
+                  Remove file
+                </button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Tax Amount</label
+            >
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="text-gray-500 sm:text-sm">GH</span>
+              </div>
+              <input
+                name="tax_amount"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <p class="mt-1 text-xs text-gray-500">Leave blank for automatic calculation</p>
+          </div>
+          <div class="md:col-span-2">
+            <div class="flex items-center space-x-6">
+              <div class="flex items-center">
+                <input
+                  name="is_billable"
+                  type="checkbox"
+                  id="is_billable"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label for="is_billable" class="ml-2 block text-sm text-gray-900">
+                  Billable to client
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input
+                  name="has_receipt"
+                  type="checkbox"
+                  id="has_receipt"
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label for="has_receipt" class="ml-2 block text-sm text-gray-900">
+                  Receipt available
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Notes</label
+            >
+            <textarea
+              name="notes"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Additional notes about this expense..."
+            ></textarea>
+          </div>
+        </div>
+        
+        <!-- AI Insights Section -->
+        <div 
+          x-show="aiInsights" 
+          x-data="{ aiInsights: false }"
+          class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4"
+        >
+          <div class="flex items-start">
+            <i class="fas fa-robot text-blue-600 mt-1 mr-3"></i>
+            <div class="flex-1">
+              <h4 class="text-sm font-medium text-blue-900">AI Suggestions</h4>
+              <ul class="mt-2 text-sm text-blue-800 space-y-1" x-text="aiSuggestions">
+                <!-- AI suggestions will be populated here -->
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 flex justify-between items-center">
+          <div class="text-sm text-gray-500">
+            <i class="fas fa-info-circle mr-1"></i>
+            Draft expenses can be edited later
+          </div>
+          <div class="flex space-x-3">
+            <button
+              @click="closeCreateModal()"
+              type="button"
+              class="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              @click="saveExpense('draft')"
+              class="px-6 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <i class="fas fa-save mr-2"></i>Save as Draft
+            </button>
+            <button
+              type="button"
+              @click="saveExpense('pending')"
+              class="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <i class="fas fa-paper-plane mr-2"></i>Submit for Approval
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div
+  x-show="showCategoryModal"
+  x-transition:enter="transition ease-out duration-300"
+  x-transition:enter-start="opacity-0"
+  x-transition:enter-end="opacity-100"
+  x-transition:leave="transition ease-in duration-200"
+  x-transition:leave-start="opacity-100"
+  x-transition:leave-end="opacity-0"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+  x-cloak
+  @click.away="closeCategoryModal()"
+  @keydown.escape.window="closeCategoryModal()"
+>
+  <div 
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 transform scale-95"
+    x-transition:enter-end="opacity-100 transform scale-100"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 transform scale-100"
+    x-transition:leave-end="opacity-0 transform scale-95"
+    class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4"
+    @click.stop
+  >
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-medium text-gray-900">Add New Category</h3>
+        <p class="text-sm text-gray-500 mt-1">Organize your expenses better</p>
+      </div>
+      <button 
+        @click="closeCategoryModal()"
+        class="text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div class="px-6 py-6">
+      <form id="categoryForm" x-data="{ selectedColor: '#6B7280' }">
+        {% csrf_token %}
+        <div class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Category Name *
+            </label>
+            <input
+              name="name"
+              type="text"
+              placeholder="e.g., Office Supplies, Travel, Marketing"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <textarea
+              name="description"
+              rows="2"
+              placeholder="Optional description of what this category includes..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            ></textarea>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-3">
+              Category Color
+            </label>
+            <div class="flex items-center space-x-3">
+              <input
+                name="color"
+                type="color"
+                x-model="selectedColor"
+                class="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
+              />
+              <div class="flex-1">
+                <div class="flex items-center space-x-2">
+                  <div 
+                    class="w-4 h-4 rounded-full"
+                    :style="{ backgroundColor: selectedColor }"
+                  ></div>
+                  <span class="text-sm text-gray-600" x-text="selectedColor"></span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Color helps identify expenses quickly</p>
+              </div>
+            </div>
+            
+            <!-- Preset Colors -->
+            <div class="mt-3">
+              <p class="text-xs text-gray-500 mb-2">Quick colors:</p>
+              <div class="flex space-x-2">
+                <template x-for="color in ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#6366F1', '#EC4899', '#14B8A6']">
+                  <button
+                    type="button"
+                    class="w-6 h-6 rounded-full border-2 border-gray-200 hover:border-gray-400 transition-colors"
+                    :style="{ backgroundColor: color }"
+                    @click="selectedColor = color"
+                  ></button>
+                </template>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <input
+                  name="is_tax_deductible"
+                  type="checkbox"
+                  id="is_tax_deductible"
+                  checked
+                  class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label for="is_tax_deductible" class="ml-3 block text-sm font-medium text-gray-900">
+                  Tax deductible
+                </label>
+              </div>
+              <i class="fas fa-info-circle text-gray-400" title="Mark if expenses in this category are typically tax deductible"></i>
+            </div>
+            <p class="mt-2 text-xs text-gray-600">
+              Check this if expenses in this category are typically tax deductible for your business
+            </p>
+          </div>
+        </div>
+        
+        <div class="mt-8 flex justify-end space-x-3">
+          <button
+            @click="closeCategoryModal()"
+            type="button"
+            class="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            @click="saveCategory()"
+            class="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <i class="fas fa-plus mr-2"></i>Add Category
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Vendor Modal -->
+<div
+  x-show="showVendorModal"
+  x-transition:enter="transition ease-out duration-300"
+  x-transition:enter-start="opacity-0"
+  x-transition:enter-end="opacity-100"
+  x-transition:leave="transition ease-in duration-200"
+  x-transition:leave-start="opacity-100"
+  x-transition:leave-end="opacity-0"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+  x-cloak
+  @click.away="closeVendorModal()"
+  @keydown.escape.window="closeVendorModal()"
+>
+  <div 
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 transform scale-95"
+    x-transition:enter-end="opacity-100 transform scale-100"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 transform scale-100"
+    x-transition:leave-end="opacity-0 transform scale-95"
+    class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-screen overflow-y-auto"
+    @click.stop
+  >
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-medium text-gray-900">Add New Vendor</h3>
+        <p class="text-sm text-gray-500 mt-1">Add a vendor for expense tracking</p>
+      </div>
+      <button 
+        @click="closeVendorModal()"
+        class="text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div class="px-6 py-6">
+      <form id="vendorForm">
+        {% csrf_token %}
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Vendor Name *
+            </label>
+            <input
+              name="name"
+              type="text"
+              placeholder="e.g., Staples, Amazon, Microsoft"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Email
+              </label>
+              <input
+                name="email"
+                type="email"
+                placeholder="billing@vendor.com"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Phone
+              </label>
+              <input
+                name="phone"
+                type="tel"
+                placeholder="+1 (555) 123-4567"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Website
+            </label>
+            <input
+              name="website"
+              type="url"
+              placeholder="https://vendor-website.com"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          
+          <!-- Address Section -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Address Line 1
+              </label>
+              <input
+                name="address_line_1"
+                type="text"
+                placeholder="123 Business Street"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Address Line 2
+              </label>
+              <input
+                name="address_line_2"
+                type="text"
+                placeholder="Suite 456 (optional)"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                City
+              </label>
+              <input
+                name="city"
+                type="text"
+                placeholder="New York"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                State/Province
+              </label>
+              <input
+                name="state"
+                type="text"
+                placeholder="NY"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ZIP/Postal Code
+              </label>
+              <input
+                name="postal_code"
+                type="text"
+                placeholder="10001"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Country *
+              </label>
+              <input
+                name="country"
+                type="text"
+                value="United States"
+                placeholder="Country"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Tax ID
+              </label>
+              <input
+                name="tax_id"
+                type="text"
+                placeholder="Tax ID (optional)"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Payment Terms
+            </label>
+            <input
+              name="payment_terms"
+              type="text"
+              placeholder="e.g., Net 30, COD, Due on receipt"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+        
+        <div class="mt-8 flex justify-end space-x-3">
+          <button
+            @click="closeVendorModal()"
+            type="button"
+            class="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            @click="saveVendor()"
+            class="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <i class="fas fa-plus mr-2"></i>Add Vendor
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bulk Delete Confirmation Modal -->
+  <div
+    x-show="showBulkDeleteModal"
+    class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50"
+    x-cloak
+    style="display: none"
+  >
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-medium text-gray-900">
+            <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>Bulk
+            Delete Expenses
+          </h3>
+          <button
+            @click="showBulkDeleteModal = false"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="px-6 py-4">
+        <div class="text-sm text-gray-500 mb-4">
+          Are you sure you want to delete the selected expenses? This action
+          cannot be undone.
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+          <div class="text-sm">
+            <div
+              class="font-medium text-gray-900"
+              x-text="`${selectedExpenses.length} expense(s) will be deleted`"
+            ></div>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button
+            @click="showBulkDeleteModal = false"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+          >
+            Cancel
+          </button>
+          <button
+            @click="confirmBulkDelete()"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            <i class="fas fa-trash mr-2"></i>Delete Selected
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function expenseList() {
+    console.log('Initializing expense list Alpine.js component');
+    console.log('Alpine.js version:', Alpine ? Alpine.version || 'Unknown' : 'Not loaded');
+    return {
+      showCreateModal: false,
+      showCategoryModal: false,
+      showVendorModal: false,
+      showAIInsights: true,
+      
+      // Bulk operations properties
+      selectedExpenses: [],
+      selectAll: false,
+      showBulkDeleteModal: false,
+      expenseData: [
+        {% for expense in page_obj %}
+        {
+          id: {{ expense.pk }},
+          description: '{{ expense.description|escapejs }}',
+          amount: '{{ expense.amount }}'
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ],
+      
+      // Get CSRF token
+      getCsrfToken() {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        return csrfToken ? csrfToken.value : '';
+      },
+
+      // Handle receipt upload and AI processing
+      async handleReceiptUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+          this.showNotification('File size must be less than 10MB', 'error');
+          return;
+        }
+
+        // Update UI state
+        const uploadArea = event.target.closest('[x-data]');
+        uploadArea.fileName = file.name;
+        uploadArea.processing = true;
+
+        const formData = new FormData();
+        formData.append('receipt', file);
+        formData.append('csrfmiddlewaretoken', this.getCsrfToken());
+
+        try {
+          const response = await fetch('/expenses/ajax/process-receipt/', {
+            method: 'POST',
+            body: formData
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            // Fill form with extracted data
+            const form = document.getElementById('expenseForm');
+            if (result.data.description) {
+              form.description.value = result.data.description;
+            }
+            if (result.data.amount) {
+              form.amount.value = result.data.amount;
+            }
+            if (result.data.date) {
+              form.date.value = result.data.date;
+            }
+            if (result.data.tax_amount) {
+              form.tax_amount.value = result.data.tax_amount;
+            }
+            
+            // Show AI insights
+            if (result.suggestions && result.suggestions.length > 0) {
+              const insightsEl = document.querySelector('[x-data*="aiInsights"]');
+              if (insightsEl) {
+                insightsEl.__x.$data.aiInsights = true;
+                const suggestionsEl = document.querySelector('[x-text="aiSuggestions"]');
+                if (suggestionsEl) {
+                  suggestionsEl.textContent = result.suggestions.join('\n• ');
+                }
+              }
+            }
+            
+            this.showNotification('Receipt processed successfully! Form auto-filled.', 'success');
+          } else {
+            this.showNotification('Failed to process receipt', 'error');
+          }
+        } catch (error) {
+          console.error('Error processing receipt:', error);
+          this.showNotification('Error processing receipt', 'error');
+        } finally {
+          uploadArea.processing = false;
+        }
+      },
+
+      // Save expense
+      async saveExpense(status) {
+        console.log('Saving expense with status:', status);
+        
+        const form = document.getElementById('expenseForm');
+        if (!form) {
+          this.showNotification('Form not found', 'error');
+          return;
+        }
+        
+        const formData = new FormData(form);
+        
+        // Add status
+        formData.append('status', status);
+        
+        // Add save type for backend processing
+        if (status === 'draft') {
+          formData.append('save_draft', '1');
+        } else {
+          formData.append('submit', '1');
+        }
+
+        // Validate required fields
+        const description = formData.get('description');
+        const amount = formData.get('amount');
+        const date = formData.get('date');
+
+        console.log('Form data:', {
+          description: description,
+          amount: amount,
+          date: date
+        });
+
+        if (!description || !amount || !date) {
+          this.showNotification('Please fill in all required fields', 'error');
+          return;
+        }
+
+        // Show loading state - find the correct button
+        const submitBtn = status === 'draft' ? 
+          document.querySelector('button[onclick*="saveExpense(\'draft\')"]') ||
+          document.querySelector('button[x-on\\:click*="saveExpense(\'draft\')"]') ||
+          event.target :
+          document.querySelector('button[onclick*="saveExpense(\'pending\')"]') ||
+          document.querySelector('button[x-on\\:click*="saveExpense(\'pending\')"]') ||
+          event.target;
+        
+        if (!submitBtn) {
+          console.error('Submit button not found');
+          this.showNotification('Button not found', 'error');
+          return;
+        }
+        
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch('/expenses/create/', {
+            method: 'POST',
+            body: formData
+          });
+
+          console.log('Response status:', response.status);
+
+          if (response.ok) {
+            this.showNotification(
+              status === 'draft' ? 'Expense saved as draft!' : 'Expense submitted for approval!',
+              'success'
+            );
+            this.closeCreateModal();
+            // Reload page to show new expense
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            const errorData = await response.text();
+            console.error('Response error:', errorData);
+            this.showNotification('Error saving expense. Please check your input.', 'error');
+          }
+        } catch (error) {
+          console.error('Error saving expense:', error);
+          this.showNotification('Network error. Please try again.', 'error');
+        } finally {
+          // Restore button state
+          if (submitBtn) {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+          }
+        }
+      },
+
+      // Save category
+      async saveCategory() {
+        const form = document.getElementById('categoryForm');
+        const formData = new FormData(form);
+
+        // Validate required fields
+        const name = formData.get('name');
+        if (!name || name.trim() === '') {
+          this.showNotification('Please enter a category name', 'error');
+          return;
+        }
+
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="button"]:last-child');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch('/expenses/ajax/add-category/', {
+            method: 'POST',
+            body: formData
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            this.showNotification('Category created successfully!', 'success');
+            this.showCategoryModal = false;
+            
+            // Add new category to dropdown
+            const categorySelect = document.querySelector('select[name="category"]');
+            if (categorySelect && result.category) {
+              const option = document.createElement('option');
+              option.value = result.category.id;
+              option.textContent = result.category.name;
+              categorySelect.appendChild(option);
+            }
+            
+            // Reset form
+            form.reset();
+            
+            // Reload page to show new category in filters
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            const errorMsg = result.errors && result.errors.name ? 
+              result.errors.name[0] : 'Error creating category';
+            this.showNotification(errorMsg, 'error');
+          }
+        } catch (error) {
+          console.error('Error creating category:', error);
+          this.showNotification('Network error. Please try again.', 'error');
+        } finally {
+          // Restore button state
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
+      },
+
+      // Edit expense
+      editExpense(expenseId) {
+        window.location.href = `/expenses/${expenseId}/edit/`;
+      },
+
+      // Delete expense
+      async deleteExpense(expenseId) {
+        if (!confirm('Are you sure you want to delete this expense?')) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/expenses/${expenseId}/delete/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': this.getCsrfToken(),
+              'X-Requested-With': 'XMLHttpRequest',
+              'Content-Type': 'application/json',
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const result = await response.json();
+
+          if (result.success) {
+            this.showNotification('Expense deleted successfully!', 'success');
+            setTimeout(() => {
+              window.location.reload();
+            }, 500);
+          } else {
+            this.showNotification('Error deleting expense', 'error');
+          }
+        } catch (error) {
+          console.error('Error deleting expense:', error);
+          this.showNotification('Error deleting expense', 'error');
+        }
+      },
+
+      // Save vendor
+      async saveVendor() {
+        const form = document.getElementById('vendorForm');
+        const formData = new FormData(form);
+
+        // Validate required fields
+        const name = formData.get('name');
+        if (!name || name.trim() === '') {
+          this.showNotification('Please enter a vendor name', 'error');
+          return;
+        }
+
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="button"]:last-child');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+        submitBtn.disabled = true;
+
+        try {
+          const response = await fetch('/expenses/ajax/add-vendor/', {
+            method: 'POST',
+            body: formData
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            this.showNotification('Vendor created successfully!', 'success');
+            this.closeVendorModal();
+            
+            // Add new vendor to dropdown
+            const vendorSelect = document.querySelector('select[name="vendor"]');
+            if (vendorSelect && result.vendor) {
+              const option = document.createElement('option');
+              option.value = result.vendor.id;
+              option.textContent = result.vendor.name;
+              vendorSelect.appendChild(option);
+              // Select the newly created vendor
+              option.selected = true;
+            }
+            
+            // Reset form
+            form.reset();
+          } else {
+            const errorMsg = result.errors && result.errors.name ? 
+              result.errors.name[0] : 'Error creating vendor';
+            this.showNotification(errorMsg, 'error');
+          }
+        } catch (error) {
+          console.error('Error creating vendor:', error);
+          this.showNotification('Network error. Please try again.', 'error');
+        } finally {
+          // Restore button state
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
+      },
+
+      
+      // Close modal functions
+      closeCreateModal() {
+        console.log('Closing create modal');
+        this.showCreateModal = false;
+        // Reset form when closing
+        const form = document.getElementById('expenseForm');
+        if (form) {
+          form.reset();
+        }
+      },      closeCategoryModal() {
+        this.showCategoryModal = false;
+        // Reset form when closing
+        const form = document.getElementById('categoryForm');
+        if (form) {
+          form.reset();
+        }
+      },
+
+      closeVendorModal() {
+        this.showVendorModal = false;
+        // Reset form when closing
+        const form = document.getElementById('vendorForm');
+        if (form) {
+          form.reset();
+        }
+      },
+
+      // Bulk selection methods
+      toggleSelectAll() {
+        if (this.selectAll) {
+          // Deselect all
+          this.selectedExpenses = [];
+          this.selectAll = false;
+        } else {
+          // Select all visible expenses
+          this.selectedExpenses = this.expenseData.map(expense => expense.id);
+          this.selectAll = true;
+        }
+      },
+
+      toggleExpenseSelection(expenseId) {
+        const index = this.selectedExpenses.indexOf(expenseId);
+        if (index > -1) {
+          this.selectedExpenses.splice(index, 1);
+        } else {
+          this.selectedExpenses.push(expenseId);
+        }
+
+        // Update select all checkbox state
+        this.selectAll = this.selectedExpenses.length === this.expenseData.length;
+      },
+
+      // Bulk operations
+      bulkDelete() {
+        if (this.selectedExpenses.length === 0) {
+          alert('Please select expenses to delete.');
+          return;
+        }
+        this.showBulkDeleteModal = true;
+      },
+
+      async confirmBulkDelete() {
+        try {
+          console.log('Bulk deleting expenses:', this.selectedExpenses);
+
+          const formData = new FormData();
+          formData.append('expense_ids', JSON.stringify(this.selectedExpenses));
+          formData.append('csrfmiddlewaretoken', this.getCsrfToken());
+
+          const response = await fetch('/expenses/bulk-delete/', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log('Bulk delete successful:', result);
+
+            // Close modal and reset selections
+            this.showBulkDeleteModal = false;
+            this.selectedExpenses = [];
+            this.selectAll = false;
+
+            // Show success message
+            this.showNotification(`${result.deleted_count} expense(s) deleted successfully!`, 'success');
+
+            // Reload page to update the list
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            const errorText = await response.text();
+            console.error('Error bulk deleting expenses:', errorText);
+            alert('Error deleting expenses. Please try again.');
+            this.showBulkDeleteModal = false;
+          }
+        } catch (error) {
+          console.error('Network error:', error);
+          alert('Network error. Please check your connection and try again.');
+          this.showBulkDeleteModal = false;
+        }
+      },
+
+      bulkExport() {
+        if (this.selectedExpenses.length === 0) {
+          alert('Please select expenses to export.');
+          return;
+        }
+
+        console.log('Bulk exporting expenses:', this.selectedExpenses);
+
+        // Create a form to submit the selected IDs
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/expenses/bulk-export/';
+
+        // Add CSRF token
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = this.getCsrfToken();
+        form.appendChild(csrfInput);
+
+        // Add selected expense IDs
+        const idsInput = document.createElement('input');
+        idsInput.type = 'hidden';
+        idsInput.name = 'expense_ids';
+        idsInput.value = JSON.stringify(this.selectedExpenses);
+        form.appendChild(idsInput);
+
+        // Submit form
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+        // Show feedback
+        this.showNotification(`Exporting ${this.selectedExpenses.length} expense(s)...`, 'info');
+      },
+
+      // Show notification
+      showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
+          type === 'success' ? 'bg-green-500 text-white' :
+          type === 'error' ? 'bg-red-500 text-white' :
+          'bg-blue-500 text-white'
+        }`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+          notification.remove();
+        }, 3000);
+      }
+    };
+  }
+</script>
+{% endblock %}

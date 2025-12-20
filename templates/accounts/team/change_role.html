@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}Change Role - {{ user_company.user.get_full_name }} - DreamBiz{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Change User Role</h1>
+        <p class="mt-2 text-gray-600">Update the role and department for {{ user_company.user.get_full_name }}</p>
+      </div>
+      <a href="{% url 'accounts:team_dashboard' %}" 
+         class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Team
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Form -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <!-- User Info -->
+        <div class="flex items-center mb-6 pb-6 border-b border-gray-200">
+          <div class="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-md">
+            {{ user_company.user.first_name|first|upper }}{{ user_company.user.last_name|first|upper }}
+          </div>
+          <div class="ml-4">
+            <h2 class="text-xl font-bold text-gray-900">{{ user_company.user.get_full_name }}</h2>
+            <p class="text-sm text-gray-600">{{ user_company.user.email }}</p>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="text-xs text-gray-500">Current Role:</span>
+              <span class="px-3 py-1 text-xs font-semibold rounded-full
+                         {% if user_company.user.role == 'admin' %}bg-red-100 text-red-700
+                         {% elif user_company.user.role == 'accountant' %}bg-blue-100 text-blue-700
+                         {% elif user_company.user.role == 'manager' %}bg-purple-100 text-purple-700
+                         {% elif user_company.user.role == 'employee' %}bg-green-100 text-green-700
+                         {% else %}bg-gray-100 text-gray-700{% endif %}">
+                {{ user_company.user.get_role_display }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <form method="post" id="changeRoleForm">
+          {% csrf_token %}
+          
+          <div class="space-y-5">
+            <!-- Role -->
+            <div>
+              <label for="{{ form.role.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                New Role <span class="text-red-500">*</span>
+              </label>
+              {{ form.role }}
+              {% if form.role.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.role.errors.0 }}</p>
+              {% endif %}
+              <p class="mt-1 text-xs text-gray-500">Select the new role for this user</p>
+            </div>
+
+            <!-- Department -->
+            <div>
+              <label for="{{ form.department.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                Department
+              </label>
+              {{ form.department }}
+              {% if form.department.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.department.errors.0 }}</p>
+              {% endif %}
+              <p class="mt-1 text-xs text-gray-500">Optionally update the user's department</p>
+            </div>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="flex gap-3 mt-8 pt-6 border-t border-gray-200">
+            <button type="submit"
+                    class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
+              <i class="fas fa-save mr-2"></i>Update Role
+            </button>
+            <a href="{% url 'accounts:team_dashboard' %}"
+               class="px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors text-center">
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Information Panel -->
+    <div class="space-y-6">
+      <!-- Role Information -->
+      <div class="bg-blue-50 rounded-xl border border-blue-200 p-6">
+        <div class="flex items-center mb-4">
+          <div class="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center">
+            <i class="fas fa-info-circle text-white"></i>
+          </div>
+          <h3 class="ml-3 text-lg font-semibold text-gray-900">Role Permissions</h3>
+        </div>
+        <p class="text-sm text-gray-700 mb-4">Different roles have different default permissions:</p>
+        <ul class="space-y-3 text-sm">
+          <li class="flex items-start">
+            <span class="px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded mr-2 mt-0.5">ADMIN</span>
+            <span class="text-gray-700">Full system access and user management</span>
+          </li>
+          <li class="flex items-start">
+            <span class="px-2 py-0.5 text-xs font-bold bg-blue-100 text-blue-700 rounded mr-2 mt-0.5">ACCOUNTANT</span>
+            <span class="text-gray-700">Financial records and reports access</span>
+          </li>
+          <li class="flex items-start">
+            <span class="px-2 py-0.5 text-xs font-bold bg-purple-100 text-purple-700 rounded mr-2 mt-0.5">MANAGER</span>
+            <span class="text-gray-700">Department oversight and approvals</span>
+          </li>
+          <li class="flex items-start">
+            <span class="px-2 py-0.5 text-xs font-bold bg-green-100 text-green-700 rounded mr-2 mt-0.5">EMPLOYEE</span>
+            <span class="text-gray-700">Basic access to assigned modules</span>
+          </li>
+          <li class="flex items-start">
+            <span class="px-2 py-0.5 text-xs font-bold bg-gray-100 text-gray-700 rounded mr-2 mt-0.5">VIEWER</span>
+            <span class="text-gray-700">Read-only access to data</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Custom Permissions -->
+      <div class="bg-purple-50 rounded-xl border border-purple-200 p-6">
+        <div class="flex items-center mb-4">
+          <div class="h-10 w-10 rounded-lg bg-purple-600 flex items-center justify-center">
+            <i class="fas fa-shield-alt text-white"></i>
+          </div>
+          <h3 class="ml-3 text-lg font-semibold text-gray-900">Custom Permissions</h3>
+        </div>
+        <p class="text-sm text-gray-700 mb-4">
+          After changing the role, you can further customize permissions for specific modules.
+        </p>
+        <a href="{% url 'accounts:manage_permissions' user_company.user.id %}"
+           class="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
+          <i class="fas fa-cog mr-2"></i>Manage Permissions
+        </a>
+      </div>
+
+      <!-- Warning -->
+      <div class="bg-yellow-50 rounded-xl border border-yellow-200 p-6">
+        <div class="flex items-center mb-4">
+          <div class="h-10 w-10 rounded-lg bg-yellow-600 flex items-center justify-center">
+            <i class="fas fa-exclamation-triangle text-white"></i>
+          </div>
+          <h3 class="ml-3 text-lg font-semibold text-gray-900">Important</h3>
+        </div>
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li class="flex items-start">
+            <i class="fas fa-exclamation-circle text-yellow-600 mt-1 mr-2"></i>
+            <span>Changing roles will reset permissions to role defaults</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fas fa-exclamation-circle text-yellow-600 mt-1 mr-2"></i>
+            <span>The user will be notified of the role change</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fas fa-exclamation-circle text-yellow-600 mt-1 mr-2"></i>
+            <span>Changes take effect immediately</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Form submission with AJAX
+document.getElementById('changeRoleForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const form = e.target;
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalText = submitBtn.innerHTML;
+  
+  // Disable button and show loading state
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Updating...';
+  
+  fetch(window.location.href, {
+    method: 'POST',
+    body: new FormData(form),
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Role updated successfully!');
+      window.location.href = '{% url "accounts:team_dashboard" %}';
+    } else {
+      alert('Error: Failed to update role');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('An error occurred. Please try again.');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
+  });
+});
+</script>
+{% endblock %}

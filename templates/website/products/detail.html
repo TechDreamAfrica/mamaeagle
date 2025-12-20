@@ -1,0 +1,492 @@
+{% extends 'website/base.html' %}
+
+{% block title %}{{ product.name }} - Mama Eagle Plumbing Solutions{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-r from-primary to-primary-dark text-white overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute inset-0 bg-repeat opacity-20" style="background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><rect width="60" height="60" fill="%23ffffff" fill-opacity="0.1"/><path d="M30 0L60 30L30 60L0 30z" fill="%23ffffff" fill-opacity="0.05"/></svg>');"></div>
+    </div>
+    <div class="relative max-w-7xl mx-auto px-4 py-16">
+        <div class="text-center">
+            <h1 class="text-5xl md:text-6xl font-bold mb-6">{{ product.name }}</h1>
+            <p class="text-xl text-blue-100 max-w-3xl mx-auto">
+                High-quality plumbing solutions for professionals and property owners.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Breadcrumb -->
+<nav class="bg-gray-50 py-4" aria-label="Breadcrumb">
+    <div class="max-w-7xl mx-auto px-4">
+        <ol class="flex space-x-2 text-sm">
+            <li><a href="{% url 'website:home' %}" class="text-primary hover:text-primary-dark transition duration-300">Home</a></li>
+            <li class="text-gray-400">/</li>
+            <li><a href="{% url 'website:product_list' %}" class="text-primary hover:text-primary-dark transition duration-300">Products</a></li>
+            {% if product.category %}
+            <li class="text-gray-400">/</li>
+            <li><a href="{% url 'website:product_list' %}?category={{ product.category.slug }}" class="text-primary hover:text-primary-dark transition duration-300">{{ product.category.name }}</a></li>
+            {% endif %}
+            <li class="text-gray-400">/</li>
+            <li class="text-gray-700 font-medium">{{ product.name }}</li>
+        </ol>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="grid lg:grid-cols-2 gap-12">
+        <!-- Product Images -->
+        <div class="space-y-6">
+            {% if product.images.all %}
+                <div id="mainImageContainer" class="relative bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <img id="mainImage" src="{{ product.images.first.image.url }}" 
+                         alt="{{ product.name }}" 
+                         class="w-full h-96 object-cover">
+                    
+                    <!-- Image zoom overlay -->
+                    <div id="zoomOverlay" class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 hover:opacity-100 transition duration-300 cursor-pointer">
+                        <div class="text-white text-center">
+                            <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+                            </svg>
+                            <span class="text-sm font-medium">Click to Zoom</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Thumbnail images -->
+                {% if product.images.count > 1 %}
+                <div class="grid grid-cols-5 gap-3">
+                    {% for image in product.images.all %}
+                    <div class="relative">
+                        <img src="{{ image.image.url }}" 
+                             alt="{{ product.name }}" 
+                             class="w-full h-20 object-cover rounded-lg cursor-pointer border-2 border-transparent hover:border-primary transition duration-300 thumbnail-image"
+                             onclick="changeMainImage(this)">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="w-full h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center shadow-lg">
+                    <div class="text-center text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <p class="text-lg font-medium">No Image Available</p>
+                        <span class="text-6xl text-gray-400 mb-4 block">🔧</span>
+                        <span class="text-gray-500">No Image Available</span>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Product Information -->
+        <div class="space-y-6">
+            <div>
+                <div class="flex items-center space-x-2 mb-2">
+                    <span class="bg-primary text-white px-2 py-1 text-xs rounded">{{ product.category.name }}</span>
+                    {% if product.brand %}
+                        <span class="bg-gray-200 text-gray-700 px-2 py-1 text-xs rounded">{{ product.brand }}</span>
+                    {% endif %}
+                    {% if not product.in_stock %}
+                        <span class="bg-red-500 text-white px-2 py-1 text-xs rounded">Out of Stock</span>
+                    {% elif product.stock_quantity < 10 %}
+                        <span class="bg-orange-500 text-white px-2 py-1 text-xs rounded">Low Stock</span>
+                    {% endif %}
+                </div>
+                
+                <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ product.name }}</h1>
+                
+                <div class="flex items-center space-x-4 mb-4">
+                    {% if product.is_on_sale %}
+                        <span class="text-3xl font-bold text-red-600">GHS {{ product.price }}</span>
+                        <span class="text-xl text-gray-500 line-through">GHS {{ product.compare_at_price }}</span>
+                        <span class="bg-red-500 text-white px-2 py-1 text-sm rounded font-bold">
+                            {{ product.sale_percentage }}% OFF
+                        </span>
+                    {% else %}
+                        <span class="text-3xl font-bold text-primary">GHS {{ product.price }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="text-sm text-gray-600 mb-4">
+                    {% if product.in_stock %}
+                        <span class="text-green-600 font-semibold">✓ In Stock</span>
+                        <span class="ml-2">({{ product.stock_quantity }} available)</span>
+                    {% else %}
+                        <span class="text-red-600 font-semibold">✗ Out of Stock</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Short Description -->
+            {% if product.short_description %}
+            <div class="border-t border-b border-gray-200 py-4">
+                <p class="text-gray-700">{{ product.short_description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Add to Cart Form -->
+            {% if user.is_authenticated %}
+                <form id="addToCartForm" method="post" action="{% url 'website:add_to_cart' product.id %}" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <div class="flex items-center space-x-4">
+                        <label for="quantity" class="text-sm font-medium text-gray-700">Quantity:</label>
+                        <div class="flex items-center border border-gray-300 rounded-lg">
+                            <button type="button" onclick="decrementQuantity()" class="px-3 py-2 text-gray-600 hover:text-gray-800">-</button>
+                            <input type="number" id="quantity" name="quantity" value="1" min="1" 
+                                   max="{{ product.stock_quantity }}" 
+                                   class="w-16 text-center border-0 focus:ring-0">
+                            <button type="button" onclick="incrementQuantity()" class="px-3 py-2 text-gray-600 hover:text-gray-800">+</button>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+                        {% if product.in_stock %}
+                            <button type="submit" class="flex-1 bg-secondary text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-400 transition duration-300">
+                                🛒 Add to Cart
+                            </button>
+                            <button type="button" onclick="buyNow()" class="flex-1 bg-primary text-white py-3 px-6 rounded-lg font-semibold hover:bg-primary-dark transition duration-300">
+                                ⚡ Buy Now
+                            </button>
+                        {% else %}
+                            <button type="button" class="flex-1 bg-gray-300 text-gray-500 py-3 px-6 rounded-lg font-semibold cursor-not-allowed" disabled>
+                                Out of Stock
+                            </button>
+                        {% endif %}
+                    </div>
+                </form>
+            {% else %}
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p class="text-yellow-800">
+                        <a href="{% url 'website:customer_login' %}?next={{ request.path }}" class="font-semibold underline">Login</a> 
+                        or 
+                        <a href="{% url 'website:customer_register' %}?next={{ request.path }}" class="font-semibold underline">Register</a> 
+                        to purchase this product.
+                    </p>
+                </div>
+            {% endif %}
+
+            <!-- Product Features -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-gray-900">Product Features</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div class="flex items-center">
+                        <span class="text-green-500 mr-2">✓</span>
+                        <span>Professional Grade Quality</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-green-500 mr-2">✓</span>
+                        <span>Corrosion Resistant</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-green-500 mr-2">✓</span>
+                        <span>ISO Certified</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-green-500 mr-2">✓</span>
+                        <span>Easy Installation</span>
+                    </div>
+                    {% if product.warranty_period %}
+                    <div class="flex items-center">
+                        <span class="text-green-500 mr-2">✓</span>
+                        <span>{{ product.warranty_period }} Warranty</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Shipping Info -->
+            <div class="bg-light-blue rounded-lg p-4">
+                <h3 class="font-semibold text-gray-900 mb-2">🚚 Shipping Information</h3>
+                <ul class="text-sm text-gray-700 space-y-1">
+                    <li>• Free delivery for orders above GHS 500</li>
+                    <li>• Same-day delivery in Accra (orders before 2 PM)</li>
+                    <li>• Nationwide delivery within 2-3 business days</li>
+                    <li>• Professional installation available</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Tabs -->
+    <div class="mt-12">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <button class="tab-button active py-2 px-1 border-b-2 border-primary font-medium text-sm text-primary" 
+                        onclick="showTab('description')">Description</button>
+                <button class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" 
+                        onclick="showTab('specifications')">Specifications</button>
+                <button class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" 
+                        onclick="showTab('installation')">Installation Guide</button>
+                <button class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" 
+                        onclick="showTab('reviews')">Reviews</button>
+            </nav>
+        </div>
+
+        <div class="py-6">
+            <!-- Description Tab -->
+            <div id="description-tab" class="tab-content">
+                <div class="prose max-w-none">
+                    {% if product.description %}
+                        {{ product.description|linebreaks }}
+                    {% else %}
+                        <p class="text-gray-600">This high-quality plumbing product is designed to meet professional standards and provide reliable performance for years to come.</p>
+                        
+                        <h4 class="text-lg font-semibold mt-6 mb-3">Key Benefits</h4>
+                        <ul class="list-disc pl-6 space-y-2">
+                            <li>Durable construction ensures long-lasting performance</li>
+                            <li>Compliant with international plumbing standards</li>
+                            <li>Easy to install and maintain</li>
+                            <li>Suitable for both residential and commercial applications</li>
+                            <li>Backed by manufacturer warranty</li>
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Specifications Tab -->
+            <div id="specifications-tab" class="tab-content hidden">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Technical Specifications</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between py-2 border-b border-gray-200">
+                                <span class="font-medium">Product Code</span>
+                                <span>{{ product.sku|default:"N/A" }}</span>
+                            </div>
+                            <div class="flex justify-between py-2 border-b border-gray-200">
+                                <span class="font-medium">Category</span>
+                                <span>{{ product.category.name }}</span>
+                            </div>
+                            {% if product.brand %}
+                            <div class="flex justify-between py-2 border-b border-gray-200">
+                                <span class="font-medium">Brand</span>
+                                <span>{{ product.brand }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="flex justify-between py-2 border-b border-gray-200">
+                                <span class="font-medium">Weight</span>
+                                <span>{{ product.weight|default:"N/A" }} kg</span>
+                            </div>
+                            {% if product.dimensions %}
+                            <div class="flex justify-between py-2 border-b border-gray-200">
+                                <span class="font-medium">Dimensions</span>
+                                <span>{{ product.dimensions }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Material & Compliance</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between py-2 border-b border-gray-200">
+                                <span class="font-medium">Material</span>
+                                <span>Premium Grade</span>
+                            </div>
+                            <div class="flex justify-between py-2 border-b border-gray-200">
+                                <span class="font-medium">Standard</span>
+                                <span>ISO Certified</span>
+                            </div>
+                            <div class="flex justify-between py-2 border-b border-gray-200">
+                                <span class="font-medium">Pressure Rating</span>
+                                <span>Professional Grade</span>
+                            </div>
+                            <div class="flex justify-between py-2 border-b border-gray-200">
+                                <span class="font-medium">Temperature Range</span>
+                                <span>-10°C to 60°C</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Installation Tab -->
+            <div id="installation-tab" class="tab-content hidden">
+                <div class="space-y-6">
+                    <h4 class="text-lg font-semibold">Installation Guidelines</h4>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p class="text-yellow-800">
+                            <strong>Professional Installation Recommended:</strong> 
+                            For optimal performance and warranty coverage, we recommend professional installation by a certified plumber.
+                        </p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h5 class="font-semibold mb-3">Required Tools</h5>
+                            <ul class="list-disc pl-6 space-y-1 text-sm">
+                                <li>Pipe wrench</li>
+                                <li>Adjustable spanner</li>
+                                <li>Pipe cutter</li>
+                                <li>Thread sealant</li>
+                                <li>Level</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 class="font-semibold mb-3">Safety Precautions</h5>
+                            <ul class="list-disc pl-6 space-y-1 text-sm">
+                                <li>Turn off water supply before installation</li>
+                                <li>Wear appropriate safety gear</li>
+                                <li>Check local plumbing codes</li>
+                                <li>Test for leaks after installation</li>
+                                <li>Follow manufacturer guidelines</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h5 class="font-semibold mb-3">Need Professional Help?</h5>
+                        <p class="text-sm text-gray-600 mb-3">Our certified plumbers are available for professional installation services.</p>
+                        <a href="{% url 'website:contact' %}" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition duration-300">
+                            Request Installation Quote
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Tab -->
+            <div id="reviews-tab" class="tab-content hidden">
+                <div class="space-y-6">
+                    <h4 class="text-lg font-semibold">Customer Reviews</h4>
+                    
+                    <div class="text-center py-8 text-gray-500">
+                        <p>No reviews yet. Be the first to review this product!</p>
+                        {% if user.is_authenticated %}
+                            <button class="mt-4 bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition duration-300">
+                                Write a Review
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="mt-16">
+        <h2 class="text-2xl font-bold text-center mb-8">Related Products</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for related_product in related_products %}
+            <div class="bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition duration-300 overflow-hidden">
+                <a href="{{ related_product.get_absolute_url }}">
+                    {% if related_product.images.first %}
+                        <img src="{{ related_product.images.first.image.url }}" alt="{{ related_product.name }}" class="w-full h-48 object-cover">
+                    {% else %}
+                        <div class="w-full h-48 bg-gray-100 flex items-center justify-center">
+                            <span class="text-3xl text-gray-400">🔧</span>
+                        </div>
+                    {% endif %}
+                </a>
+                <div class="p-4">
+                    <h3 class="font-semibold mb-2 hover:text-primary transition duration-300">
+                        <a href="{{ related_product.get_absolute_url }}">{{ related_product.name }}</a>
+                    </h3>
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold text-primary">GHS {{ related_product.price }}</span>
+                        <a href="{{ related_product.get_absolute_url }}" class="text-sm text-primary hover:underline">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function changeMainImage(thumbnail) {
+    const mainImage = document.getElementById('mainImage');
+    mainImage.src = thumbnail.src;
+    
+    // Update thumbnail borders
+    document.querySelectorAll('.thumbnail-image').forEach(img => {
+        img.classList.remove('border-primary');
+        img.classList.add('border-transparent');
+    });
+    thumbnail.classList.remove('border-transparent');
+    thumbnail.classList.add('border-primary');
+}
+
+function showTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active', 'border-primary', 'text-primary');
+        button.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabName + '-tab').classList.remove('hidden');
+    
+    // Add active class to clicked button
+    event.target.classList.remove('border-transparent', 'text-gray-500');
+    event.target.classList.add('active', 'border-primary', 'text-primary');
+}
+
+function incrementQuantity() {
+    const quantityInput = document.getElementById('quantity');
+    const maxQuantity = parseInt(quantityInput.max);
+    let currentValue = parseInt(quantityInput.value);
+    
+    if (currentValue < maxQuantity) {
+        quantityInput.value = currentValue + 1;
+    }
+}
+
+function decrementQuantity() {
+    const quantityInput = document.getElementById('quantity');
+    let currentValue = parseInt(quantityInput.value);
+    
+    if (currentValue > 1) {
+        quantityInput.value = currentValue - 1;
+    }
+}
+
+function buyNow() {
+    // Add to cart first, then redirect to checkout
+    const form = document.getElementById('addToCartForm');
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '{% url "website:cart_view" %}';
+        } else {
+            alert('Error adding product to cart. Please try again.');
+        }
+    })
+    .catch(error => {
+        alert('An error occurred. Please try again.');
+    });
+}
+
+// Initialize first thumbnail as active
+document.addEventListener('DOMContentLoaded', function() {
+    const firstThumbnail = document.querySelector('.thumbnail-image');
+    if (firstThumbnail) {
+        firstThumbnail.classList.remove('border-transparent');
+        firstThumbnail.classList.add('border-primary');
+    }
+});
+</script>
+{% endblock %}

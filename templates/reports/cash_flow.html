@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cash Flow Statement - DreamBiz Accounting{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print { display: none; }
+        body { background: white; }
+        .print-section { page-break-inside: avoid; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8 no-print">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Cash Flow Statement</h1>
+            <p class="text-gray-600 mt-1">{{ period_name }}</p>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="window.print()" class="px-4 py-2 bg-dreambiz-600 text-white rounded-lg hover:bg-dreambiz-700 transition">
+                <i class="fas fa-print mr-2"></i>Print
+            </button>
+            <a href="{% url 'reports:reports_main' %}" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                <i class="fas fa-arrow-left mr-2"></i>Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Period Selector -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6 no-print">
+        <form method="get" class="flex items-center space-x-4">
+            <label class="text-sm font-medium text-gray-700">Period:</label>
+            <select name="period" onchange="this.form.submit()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dreambiz-500 focus:border-transparent">
+                <option value="current-month" {% if current_period == 'current-month' %}selected{% endif %}>Current Month</option>
+                <option value="current-quarter" {% if current_period == 'current-quarter' %}selected{% endif %}>Current Quarter</option>
+                <option value="current-year" {% if current_period == 'current-year' %}selected{% endif %}>Current Year</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Operating Activities</p>
+                    <p class="text-2xl font-bold {% if net_operating >= 0 %}text-green-600{% else %}text-red-600{% endif %} mt-1">
+                        GH{{ net_operating|floatformat:2 }}
+                    </p>
+                </div>
+                <div class="p-3 bg-blue-100 rounded-full">
+                    <i class="fas fa-cash-register text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Investing Activities</p>
+                    <p class="text-2xl font-bold {% if net_investing >= 0 %}text-green-600{% else %}text-red-600{% endif %} mt-1">
+                        GH{{ net_investing|floatformat:2 }}
+                    </p>
+                </div>
+                <div class="p-3 bg-purple-100 rounded-full">
+                    <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Financing Activities</p>
+                    <p class="text-2xl font-bold {% if net_financing >= 0 %}text-green-600{% else %}text-red-600{% endif %} mt-1">
+                        GH{{ net_financing|floatformat:2 }}
+                    </p>
+                </div>
+                <div class="p-3 bg-indigo-100 rounded-full">
+                    <i class="fas fa-university text-indigo-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Net Change in Cash</p>
+                    <p class="text-2xl font-bold {% if net_change_in_cash >= 0 %}text-green-600{% else %}text-red-600{% endif %} mt-1">
+                        GH{{ net_change_in_cash|floatformat:2 }}
+                    </p>
+                </div>
+                <div class="p-3 {% if net_change_in_cash >= 0 %}bg-green-100{% else %}bg-red-100{% endif %} rounded-full">
+                    <i class="fas fa-wallet {% if net_change_in_cash >= 0 %}text-green-600{% else %}text-red-600{% endif %} text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cash Flow Statement -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden print-section">
+        <div class="p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Cash Flow Details</h2>
+
+            <!-- Operating Activities -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b-2 border-dreambiz-500">
+                    Cash Flows from Operating Activities
+                </h3>
+                <div class="space-y-3 ml-4">
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-gray-700">Cash received from customers</span>
+                        <span class="font-semibold text-green-600">GH{{ cash_from_customers|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-gray-700">Cash paid for expenses</span>
+                        <span class="font-semibold text-red-600">(GH{{ cash_paid_expenses|floatformat:2 }})</span>
+                    </div>
+                    <div class="flex justify-between items-center py-3 border-t-2 border-gray-200 mt-2">
+                        <span class="font-bold text-gray-900">Net cash from operating activities</span>
+                        <span class="font-bold {% if net_operating >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                            GH{{ net_operating|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Investing Activities -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b-2 border-dreambiz-500">
+                    Cash Flows from Investing Activities
+                </h3>
+                <div class="space-y-3 ml-4">
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-gray-700">Proceeds from asset sales</span>
+                        <span class="font-semibold text-green-600">GH{{ investing_inflows|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-gray-700">Purchase of fixed assets</span>
+                        <span class="font-semibold text-red-600">(GH{{ investing_outflows|floatformat:2 }})</span>
+                    </div>
+                    <div class="flex justify-between items-center py-3 border-t-2 border-gray-200 mt-2">
+                        <span class="font-bold text-gray-900">Net cash from investing activities</span>
+                        <span class="font-bold {% if net_investing >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                            GH{{ net_investing|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financing Activities -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b-2 border-dreambiz-500">
+                    Cash Flows from Financing Activities
+                </h3>
+                <div class="space-y-3 ml-4">
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-gray-700">Proceeds from loans/equity</span>
+                        <span class="font-semibold text-green-600">GH{{ financing_inflows|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-gray-700">Repayment of loans/distributions</span>
+                        <span class="font-semibold text-red-600">(GH{{ financing_outflows|floatformat:2 }})</span>
+                    </div>
+                    <div class="flex justify-between items-center py-3 border-t-2 border-gray-200 mt-2">
+                        <span class="font-bold text-gray-900">Net cash from financing activities</span>
+                        <span class="font-bold {% if net_financing >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                            GH{{ net_financing|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="bg-gray-50 rounded-lg p-6 mt-8">
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center py-2">
+                        <span class="font-semibold text-gray-900">Net increase (decrease) in cash</span>
+                        <span class="font-bold {% if net_change_in_cash >= 0 %}text-green-600{% else %}text-red-600{% endif %} text-lg">
+                            GH{{ net_change_in_cash|floatformat:2 }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-t border-gray-300">
+                        <span class="text-gray-700">Cash at beginning of period</span>
+                        <span class="font-semibold text-gray-900">GH{{ beginning_cash|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-3 border-t-2 border-gray-400">
+                        <span class="text-xl font-bold text-gray-900">Cash at end of period</span>
+                        <span class="text-xl font-bold text-dreambiz-600">GH{{ ending_cash|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Header (hidden on screen) -->
+    <div class="hidden print:block text-center mb-8">
+        <h1 class="text-2xl font-bold">{{ user.company.name|default:"DreamBiz Accounting" }}</h1>
+        <h2 class="text-xl font-semibold mt-2">Cash Flow Statement</h2>
+        <p class="text-gray-600 mt-1">{{ period_name }}</p>
+        <p class="text-sm text-gray-500 mt-2">Generated on {% now "F d, Y" %}</p>
+    </div>
+</div>
+{% endblock %}

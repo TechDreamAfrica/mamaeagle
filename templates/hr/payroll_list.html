@@ -1,0 +1,954 @@
+{% extends 'base.html' %} {% block title %}Payroll - DreamBiz Accounting{%
+endblock %} {% block content %}
+<div class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="py-6">
+        <div class="md:flex md:items-center md:justify-between">
+          <div class="flex-1 min-w-0">
+            <h2
+              class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate"
+            >
+              Payroll Management
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+              Manage payroll processing and employee compensation
+            </p>
+          </div>
+          <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+            <button
+              type="button"
+              class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              <i class="fas fa-download mr-2"></i>
+              Export Report
+            </button>
+            <button
+              type="button"
+              class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+            >
+              <i class="fas fa-calculator mr-2"></i>
+              Tax Calculator
+            </button>
+            <button
+              type="button"
+              class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+              @click="startPayrollRun = true"
+            >
+              <i class="fas fa-play mr-2"></i>
+              Run Payroll
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+    x-data="payrollManagement()"
+  >
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center"
+              >
+                <i class="fas fa-dollar-sign text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Current Payroll
+                </dt>
+                <dd
+                  class="text-lg font-medium text-gray-900"
+                  x-text="formatCurrency(payrollSummary.currentTotal)"
+                ></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center"
+              >
+                <i class="fas fa-users text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Employees
+                </dt>
+                <dd
+                  class="text-lg font-medium text-gray-900"
+                  x-text="payrollSummary.employeeCount"
+                ></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center"
+              >
+                <i class="fas fa-percentage text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Tax Liability
+                </dt>
+                <dd
+                  class="text-lg font-medium text-gray-900"
+                  x-text="formatCurrency(payrollSummary.taxLiability)"
+                ></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div
+                class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center"
+              >
+                <i class="fas fa-calendar-alt text-white text-sm"></i>
+              </div>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dl>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  Next Pay Date
+                </dt>
+                <dd
+                  class="text-lg font-medium text-gray-900"
+                  x-text="payrollSummary.nextPayDate"
+                ></dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white shadow rounded-lg">
+      <div class="border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+          <button
+            @click="activeTab = 'current'"
+            :class="activeTab === 'current' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+          >
+            Current Payroll
+          </button>
+          <button
+            @click="activeTab = 'history'"
+            :class="activeTab === 'history' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+          >
+            Payroll History
+          </button>
+          <button
+            @click="activeTab = 'taxes'"
+            :class="activeTab === 'taxes' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+          >
+            Tax Reports
+          </button>
+          <button
+            @click="activeTab = 'settings'"
+            :class="activeTab === 'settings' ? 'border-dreambiz-500 text-dreambiz-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+          >
+            Settings
+          </button>
+        </nav>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="p-6">
+        <!-- Current Payroll Tab -->
+        <div x-show="activeTab === 'current'" x-cloak>
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-medium text-gray-900">
+              Current Pay Period
+            </h3>
+            <div class="flex items-center space-x-4">
+              <span class="text-sm text-gray-500"
+                >Pay Period: <span x-text="currentPayPeriod"></span
+              ></span>
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                :class="payrollStatus === 'Draft' ? 'bg-yellow-100 text-yellow-800' : 
+                           payrollStatus === 'Approved' ? 'bg-green-100 text-green-800' : 
+                           'bg-blue-100 text-blue-800'"
+                x-text="payrollStatus"
+              >
+              </span>
+            </div>
+          </div>
+
+          <!-- Employee Payroll Table -->
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    <input
+                      type="checkbox"
+                      class="rounded border-gray-300 text-dreambiz-600 focus:ring-dreambiz-500"
+                    />
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Employee
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Hours
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Gross Pay
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Deductions
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Net Pay
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Status
+                  </th>
+                  <th scope="col" class="relative px-6 py-3">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <template
+                  x-for="payroll in currentPayrollItems"
+                  :key="payroll.id"
+                >
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        class="rounded border-gray-300 text-dreambiz-600 focus:ring-dreambiz-500"
+                      />
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 h-8 w-8">
+                          <img
+                            class="h-8 w-8 rounded-full"
+                            :src="payroll.employee.avatar"
+                            :alt="payroll.employee.name"
+                          />
+                        </div>
+                        <div class="ml-4">
+                          <div
+                            class="text-sm font-medium text-gray-900"
+                            x-text="payroll.employee.name"
+                          ></div>
+                          <div
+                            class="text-sm text-gray-500"
+                            x-text="payroll.employee.department"
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                    >
+                      <div>
+                        <div>
+                          Regular: <span x-text="payroll.hours.regular"></span>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                          Overtime:
+                          <span x-text="payroll.hours.overtime"></span>
+                        </div>
+                      </div>
+                    </td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      x-text="formatCurrency(payroll.grossPay)"
+                    ></td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      x-text="formatCurrency(payroll.deductions)"
+                    ></td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+                      x-text="formatCurrency(payroll.netPay)"
+                    ></td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                        :class="payroll.status === 'Approved' ? 'bg-green-100 text-green-800' : 
+                                   payroll.status === 'Draft' ? 'bg-yellow-100 text-yellow-800' : 
+                                   'bg-red-100 text-red-800'"
+                        x-text="payroll.status"
+                      >
+                      </span>
+                    </td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                    >
+                      <div class="flex space-x-2">
+                        <button
+                          @click="viewPayStub(payroll)"
+                          class="text-dreambiz-600 hover:text-dreambiz-900"
+                        >
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button
+                          @click="editPayroll(payroll)"
+                          class="text-blue-600 hover:text-blue-900"
+                        >
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button
+                          @click="generatePayStub(payroll)"
+                          class="text-green-600 hover:text-green-900"
+                        >
+                          <i class="fas fa-file-pdf"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Payroll Actions -->
+          <div class="mt-6 flex justify-between items-center">
+            <div class="flex space-x-3">
+              <button
+                type="button"
+                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+              >
+                <i class="fas fa-check mr-2"></i>
+                Approve Selected
+              </button>
+              <button
+                type="button"
+                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+              >
+                <i class="fas fa-download mr-2"></i>
+                Export Pay Stubs
+              </button>
+            </div>
+            <div class="text-sm text-gray-500">
+              Total Net Pay:
+              <span
+                class="font-medium text-gray-900"
+                x-text="formatCurrency(totalNetPay)"
+              ></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payroll History Tab -->
+        <div x-show="activeTab === 'history'" x-cloak>
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-medium text-gray-900">Payroll History</h3>
+            <div class="flex space-x-3">
+              <select
+                class="block py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+              >
+                <option>Last 6 months</option>
+                <option>Current year</option>
+                <option>Last year</option>
+                <option>All time</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Pay Period
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Employees
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Gross Pay
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Net Pay
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Tax Liability
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Status
+                  </th>
+                  <th scope="col" class="relative px-6 py-3">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <template x-for="history in payrollHistory" :key="history.id">
+                  <tr class="hover:bg-gray-50">
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      x-text="history.payPeriod"
+                    ></td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      x-text="history.employeeCount"
+                    ></td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      x-text="formatCurrency(history.grossPay)"
+                    ></td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      x-text="formatCurrency(history.netPay)"
+                    ></td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      x-text="formatCurrency(history.taxLiability)"
+                    ></td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
+                      >
+                        Completed
+                      </span>
+                    </td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                    >
+                      <div class="flex space-x-2">
+                        <button
+                          @click="viewPayrollDetails(history)"
+                          class="text-dreambiz-600 hover:text-dreambiz-900"
+                        >
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button
+                          @click="downloadPayrollReport(history)"
+                          class="text-blue-600 hover:text-blue-900"
+                        >
+                          <i class="fas fa-download"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tax Reports Tab -->
+        <div x-show="activeTab === 'taxes'" x-cloak>
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
+                Tax Summary
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                  <div
+                    class="text-2xl font-bold text-blue-600"
+                    x-text="formatCurrency(taxSummary.federalTax)"
+                  ></div>
+                  <div class="text-sm text-blue-600">Federal Tax Withheld</div>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                  <div
+                    class="text-2xl font-bold text-green-600"
+                    x-text="formatCurrency(taxSummary.stateTax)"
+                  ></div>
+                  <div class="text-sm text-green-600">State Tax Withheld</div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg">
+                  <div
+                    class="text-2xl font-bold text-purple-600"
+                    x-text="formatCurrency(taxSummary.fica)"
+                  ></div>
+                  <div class="text-sm text-purple-600">FICA Tax Withheld</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="text-lg font-medium text-gray-900 mb-4">
+                Tax Forms & Reports
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <template x-for="form in taxForms" :key="form.id">
+                  <div
+                    class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <h5
+                          class="text-sm font-medium text-gray-900"
+                          x-text="form.name"
+                        ></h5>
+                        <p
+                          class="text-xs text-gray-500"
+                          x-text="form.description"
+                        ></p>
+                      </div>
+                      <div class="flex space-x-2">
+                        <button
+                          @click="generateTaxForm(form)"
+                          class="text-dreambiz-600 hover:text-dreambiz-900"
+                        >
+                          <i class="fas fa-download"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="mt-2">
+                      <span
+                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                        :class="form.status === 'Filed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'"
+                        x-text="form.status"
+                      >
+                      </span>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div x-show="activeTab === 'settings'" x-cloak>
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
+                Payroll Settings
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Pay Frequency</label
+                  >
+                  <select
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                  >
+                    <option>Bi-weekly</option>
+                    <option>Weekly</option>
+                    <option>Semi-monthly</option>
+                    <option>Monthly</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Overtime Threshold</label
+                  >
+                  <input
+                    type="number"
+                    value="40"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >State Tax Rate (%)</label
+                  >
+                  <input
+                    type="number"
+                    value="6.25"
+                    step="0.01"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Company EIN</label
+                  >
+                  <input
+                    type="text"
+                    value="12-3456789"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="text-lg font-medium text-gray-900 mb-4">
+                Direct Deposit Settings
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Bank Name</label
+                  >
+                  <input
+                    type="text"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Routing Number</label
+                  >
+                  <input
+                    type="text"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <button
+                type="button"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+              >
+                Save Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start Payroll Run Modal -->
+    <div
+      x-show="startPayrollRun"
+      x-cloak
+      class="fixed inset-0 z-50 overflow-y-auto"
+      @keydown.escape.window="startPayrollRun = false"
+    >
+      <div
+        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div
+          x-show="startPayrollRun"
+          x-transition:enter="ease-out duration-300"
+          x-transition:enter-start="opacity-0"
+          x-transition:enter-end="opacity-100"
+          x-transition:leave="ease-in duration-200"
+          x-transition:leave-start="opacity-100"
+          x-transition:leave-end="opacity-0"
+          class="fixed inset-0 transition-opacity"
+          @click="startPayrollRun = false"
+        >
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          >&#8203;</span
+        >
+
+        <div
+          x-show="startPayrollRun"
+          x-transition:enter="ease-out duration-300"
+          x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+          x-transition:leave="ease-in duration-200"
+          x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+          x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+        >
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              Start New Payroll Run
+            </h3>
+
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Pay Period</label
+                >
+                <select
+                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                >
+                  <option>Dec 1 - Dec 15, 2024</option>
+                  <option>Dec 16 - Dec 31, 2024</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Pay Date</label
+                >
+                <input
+                  type="date"
+                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-dreambiz-500 focus:border-dreambiz-500 sm:text-sm"
+                />
+              </div>
+
+              <div>
+                <label class="flex items-center">
+                  <input
+                    type="checkbox"
+                    class="rounded border-gray-300 text-dreambiz-600 focus:ring-dreambiz-500"
+                  />
+                  <span class="ml-2 text-sm text-gray-700"
+                    >Include all active employees</span
+                  >
+                </label>
+              </div>
+
+              <div>
+                <label class="flex items-center">
+                  <input
+                    type="checkbox"
+                    class="rounded border-gray-300 text-dreambiz-600 focus:ring-dreambiz-500"
+                  />
+                  <span class="ml-2 text-sm text-gray-700"
+                    >Auto-approve time entries</span
+                  >
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button
+              type="button"
+              @click="startPayrollRun = false"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-dreambiz-600 text-base font-medium text-white hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              Start Payroll Run
+            </button>
+            <button
+              type="button"
+              @click="startPayrollRun = false"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function payrollManagement() {
+    return {
+      activeTab: "current",
+      startPayrollRun: false,
+      currentPayPeriod: "Nov 16 - Nov 30, 2024",
+      payrollStatus: "Draft",
+
+      payrollSummary: {
+        currentTotal: 125450.32,
+        employeeCount: 24,
+        taxLiability: 38765.45,
+        nextPayDate: "Dec 15, 2024",
+      },
+
+      currentPayrollItems: [
+        {
+          id: 1,
+          employee: {
+            name: "John Doe",
+            department: "Engineering",
+            avatar:
+              "https://ui-avatars.com/api/?name=John+Doe&background=3b82f6&color=fff",
+          },
+          hours: { regular: 80, overtime: 5 },
+          grossPay: 4230.77,
+          deductions: 1268.23,
+          netPay: 2962.54,
+          status: "Draft",
+        },
+        {
+          id: 2,
+          employee: {
+            name: "Jane Smith",
+            department: "Sales",
+            avatar:
+              "https://ui-avatars.com/api/?name=Jane+Smith&background=10b981&color=fff",
+          },
+          hours: { regular: 80, overtime: 0 },
+          grossPay: 2884.62,
+          deductions: 865.39,
+          netPay: 2019.23,
+          status: "Approved",
+        },
+        {
+          id: 3,
+          employee: {
+            name: "Mike Johnson",
+            department: "Marketing",
+            avatar:
+              "https://ui-avatars.com/api/?name=Mike+Johnson&background=f59e0b&color=fff",
+          },
+          hours: { regular: 80, overtime: 2 },
+          grossPay: 2692.31,
+          deductions: 807.69,
+          netPay: 1884.62,
+          status: "Draft",
+        },
+      ],
+
+      payrollHistory: [
+        {
+          id: 1,
+          payPeriod: "Nov 1 - Nov 15, 2024",
+          employeeCount: 24,
+          grossPay: 123450.0,
+          netPay: 87234.5,
+          taxLiability: 36215.5,
+        },
+        {
+          id: 2,
+          payPeriod: "Oct 16 - Oct 31, 2024",
+          employeeCount: 23,
+          grossPay: 118750.0,
+          netPay: 84125.0,
+          taxLiability: 34625.0,
+        },
+        {
+          id: 3,
+          payPeriod: "Oct 1 - Oct 15, 2024",
+          employeeCount: 23,
+          grossPay: 120450.0,
+          netPay: 85315.0,
+          taxLiability: 35135.0,
+        },
+      ],
+
+      taxSummary: {
+        federalTax: 18425.67,
+        stateTax: 7832.45,
+        fica: 9834.23,
+      },
+
+      taxForms: [
+        {
+          id: 1,
+          name: "Form 941",
+          description: "Quarterly Federal Tax Return",
+          status: "Pending",
+        },
+        {
+          id: 2,
+          name: "W-2 Forms",
+          description: "Annual Wage Statements",
+          status: "Not Started",
+        },
+        {
+          id: 3,
+          name: "State Quarterly Report",
+          description: "State Tax Quarterly Filing",
+          status: "Filed",
+        },
+        {
+          id: 4,
+          name: "FUTA Report",
+          description: "Federal Unemployment Tax",
+          status: "Pending",
+        },
+      ],
+
+      get totalNetPay() {
+        return this.currentPayrollItems.reduce(
+          (sum, item) => sum + item.netPay,
+          0
+        );
+      },
+
+      formatCurrency(amount) {
+        return new Intl.NumberFormat('en-GH', {
+          style: "currency",
+          currency: "GHS",
+        }).format(amount);
+      },
+
+      viewPayStub(payroll) {
+        alert("Viewing pay stub for " + payroll.employee.name);
+      },
+
+      editPayroll(payroll) {
+        alert("Editing payroll for " + payroll.employee.name);
+      },
+
+      generatePayStub(payroll) {
+        alert("Generating pay stub PDF for " + payroll.employee.name);
+      },
+
+      viewPayrollDetails(history) {
+        alert("Viewing details for pay period: " + history.payPeriod);
+      },
+
+      downloadPayrollReport(history) {
+        alert("Downloading payroll report for: " + history.payPeriod);
+      },
+
+      generateTaxForm(form) {
+        alert("Generating " + form.name);
+      },
+    };
+  }
+</script>
+{% endblock %}

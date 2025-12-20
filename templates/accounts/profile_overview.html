@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - DreamBiz Accounting{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px 10px 0 0;
+    }
+    
+    .avatar-large {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .avatar-placeholder-large {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: white;
+        color: #667eea;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        border: 4px solid white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #4a5568;
+    }
+    
+    .info-value {
+        color: #2d3748;
+    }
+    
+    .quick-action-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    
+    .quick-action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        text-decoration: none;
+    }
+    
+    .quick-action-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="d-flex align-items-center">
+            <div class="me-4">
+                {% if user.avatar %}
+                    <img src="{{ user.avatar.url }}" alt="Avatar" class="avatar-large">
+                {% else %}
+                    <div class="avatar-placeholder-large">
+                        {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="flex-grow-1">
+                <h1 class="mb-2">{{ user.get_full_name }}</h1>
+                <p class="mb-1"><i class="fas fa-briefcase me-2"></i>{{ user.role|title }}</p>
+                <p class="mb-1"><i class="fas fa-envelope me-2"></i>{{ user.email }}</p>
+                {% if user.phone_number %}
+                <p class="mb-0"><i class="fas fa-phone me-2"></i>{{ user.phone_number }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <span class="badge bg-success fs-6">
+                    <i class="fas fa-check-circle me-1"></i> Active
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-md-3 mb-3">
+            <a href="{% url 'accounts:profile_edit' %}" class="quick-action-card">
+                <div class="quick-action-icon" style="background: #dbeafe; color: #2563eb;">
+                    <i class="fas fa-user-edit"></i>
+                </div>
+                <h5>Edit Profile</h5>
+                <p class="text-muted small mb-0">Update your personal information</p>
+            </a>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <a href="{% url 'accounts:change_password' %}" class="quick-action-card">
+                <div class="quick-action-icon" style="background: #fef3c7; color: #d97706;">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h5>Security</h5>
+                <p class="text-muted small mb-0">Change your password</p>
+            </a>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <a href="{% url 'accounts:notification_preferences' %}" class="quick-action-card">
+                <div class="quick-action-icon" style="background: #d1fae5; color: #059669;">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h5>Notifications</h5>
+                <p class="text-muted small mb-0">Manage notification settings</p>
+            </a>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <a href="{% url 'accounts:user_preferences' %}" class="quick-action-card">
+                <div class="quick-action-icon" style="background: #e9d5ff; color: #9333ea;">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <h5>Preferences</h5>
+                <p class="text-muted small mb-0">Customize your experience</p>
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Personal Information -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <h4 class="mb-3">Personal Information</h4>
+                
+                <div class="info-row">
+                    <span class="info-label">Username</span>
+                    <span class="info-value">{{ user.username }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">Full Name</span>
+                    <span class="info-value">{{ user.get_full_name }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">{{ user.email }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">Phone</span>
+                    <span class="info-value">{{ user.phone_number|default:"Not set" }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">Department</span>
+                    <span class="info-value">{{ user.department|default:"Not assigned" }}</span>
+                </div>
+                
+                {% if user.date_of_birth %}
+                <div class="info-row">
+                    <span class="info-label">Date of Birth</span>
+                    <span class="info-value">{{ user.date_of_birth|date:"F d, Y" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Account Settings -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <h4 class="mb-3">Account Settings</h4>
+                
+                <div class="info-row">
+                    <span class="info-label">Role</span>
+                    <span class="info-value">
+                        <span class="badge bg-primary">{{ user.role|title }}</span>
+                    </span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">Account Status</span>
+                    <span class="info-value">
+                        {% if user.is_active_employee %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">AI Insights</span>
+                    <span class="info-value">
+                        {% if user.ai_insights_enabled %}
+                            <span class="badge bg-success"><i class="fas fa-check"></i> Enabled</span>
+                        {% else %}
+                            <span class="badge bg-secondary"><i class="fas fa-times"></i> Disabled</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">Email Notifications</span>
+                    <span class="info-value">
+                        {% if notification_prefs.email_notifications %}
+                            <span class="badge bg-success"><i class="fas fa-check"></i> On</span>
+                        {% else %}
+                            <span class="badge bg-secondary"><i class="fas fa-times"></i> Off</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">Member Since</span>
+                    <span class="info-value">{{ user.created_at|date:"F d, Y" }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">Last Updated</span>
+                    <span class="info-value">{{ user.updated_at|date:"F d, Y" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Information -->
+    {% if user.employee_id or user.hire_date %}
+    <div class="row">
+        <div class="col-12">
+            <div class="info-card">
+                <h4 class="mb-3">Employment Information</h4>
+                <div class="row">
+                    {% if user.employee_id %}
+                    <div class="col-md-4">
+                        <div class="info-row">
+                            <span class="info-label">Employee ID</span>
+                            <span class="info-value">{{ user.employee_id }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.hire_date %}
+                    <div class="col-md-4">
+                        <div class="info-row">
+                            <span class="info-label">Hire Date</span>
+                            <span class="info-value">{{ user.hire_date|date:"F d, Y" }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

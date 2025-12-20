@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Journal Entries - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Journal Entries</h1>
+            <p class="text-gray-600">View and manage your accounting journal entries</p>
+        </div>
+        <div>
+            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                + New Entry
+            </button>
+        </div>
+    </div>
+
+    <!-- Journal Entries List -->
+    <div class="space-y-4">
+        {% for entry in entries %}
+        <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+            <!-- Entry Header -->
+            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-4">
+                        <h3 class="text-lg font-semibold text-gray-900">{{ entry.entry_number }}</h3>
+                        <span class="px-3 py-1 text-xs font-semibold rounded-full
+                            {% if entry.status == 'posted' %}bg-green-100 text-green-800
+                            {% elif entry.status == 'draft' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ entry.get_status_display }}
+                        </span>
+                        <span class="text-sm text-gray-600">{{ entry.get_entry_type_display }}</span>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        {{ entry.entry_date|date:"M d, Y" }}
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">{{ entry.description }}</p>
+            </div>
+
+            <!-- Entry Lines -->
+            <div class="px-6 py-4">
+                <table class="w-full">
+                    <thead class="border-b border-gray-200">
+                        <tr>
+                            <th class="text-left py-2 text-xs font-medium text-gray-500 uppercase">Account</th>
+                            <th class="text-left py-2 text-xs font-medium text-gray-500 uppercase">Description</th>
+                            <th class="text-right py-2 text-xs font-medium text-gray-500 uppercase">Debit</th>
+                            <th class="text-right py-2 text-xs font-medium text-gray-500 uppercase">Credit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line in entry.lines.all %}
+                        <tr class="border-b border-gray-100">
+                            <td class="py-2 text-sm text-gray-900">{{ line.account.account_name }}</td>
+                            <td class="py-2 text-sm text-gray-600">{{ line.description }}</td>
+                            <td class="py-2 text-sm text-right font-mono">
+                                {% if line.debit > 0 %}GH{{ line.debit|floatformat:2 }}{% else %}-{% endif %}
+                            </td>
+                            <td class="py-2 text-sm text-right font-mono">
+                                {% if line.credit > 0 %}GH{{ line.credit|floatformat:2 }}{% else %}-{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="font-semibold bg-gray-50">
+                            <td colspan="2" class="py-2 text-sm text-right">Total:</td>
+                            <td class="py-2 text-sm text-right font-mono border-t-2 border-gray-300">
+                                GH{{ entry.lines.all|sum_debits|floatformat:2 }}
+                            </td>
+                            <td class="py-2 text-sm text-right font-mono border-t-2 border-gray-300">
+                                GH{{ entry.lines.all|sum_credits|floatformat:2 }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Entry Footer -->
+            {% if entry.posted_by %}
+            <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 text-xs text-gray-600">
+                Posted by {{ entry.posted_by.get_full_name }} on {{ entry.posted_date|date:"M d, Y H:i" }}
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="bg-white shadow-lg rounded-lg p-12 text-center">
+            <div class="text-6xl mb-4">📝</div>
+            <p class="text-lg font-semibold text-gray-900 mb-2">No journal entries yet</p>
+            <p class="text-sm text-gray-600">Create your first journal entry to record transactions</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

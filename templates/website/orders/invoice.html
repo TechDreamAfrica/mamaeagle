@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - {{ order.order_number }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 20px;
+        }
+        
+        .company-info h1 {
+            color: #2563eb;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .company-info p {
+            color: #6b7280;
+            margin: 2px 0;
+        }
+        
+        .invoice-details {
+            text-align: right;
+        }
+        
+        .invoice-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        
+        .customer-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .detail-section h3 {
+            color: #374151;
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .detail-section p {
+            margin: 5px 0;
+            color: #6b7280;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        .items-table th,
+        .items-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .items-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        
+        .items-table td {
+            color: #6b7280;
+        }
+        
+        .item-name {
+            font-weight: 500;
+            color: #1f2937;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .totals {
+            margin-left: auto;
+            width: 300px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .total-row.final {
+            font-weight: bold;
+            font-size: 18px;
+            color: #1f2937;
+            border-bottom: 2px solid #2563eb;
+            margin-top: 10px;
+            padding-top: 15px;
+        }
+        
+        .invoice-footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 20px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-processing { background: #dbeafe; color: #1d4ed8; }
+        .status-shipped { background: #e0e7ff; color: #5b21b6; }
+        .status-delivered { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #dc2626; }
+        
+        @media print {
+            body { padding: 0; background: white; }
+            .invoice-container { box-shadow: none; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="company-info">
+                <h1>{{ company_name }}</h1>
+                <p>{{ company_address }}</p>
+                <p>Phone: {{ company_phone }}</p>
+                <p>Email: {{ company_email }}</p>
+            </div>
+            <div class="invoice-details">
+                <div class="invoice-number">Invoice #{{ order.order_number }}</div>
+                <p>Date: {{ order.created_at|date:"F d, Y" }}</p>
+                <p>Time: {{ order.created_at|time:"g:i A" }}</p>
+                <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+            </div>
+        </div>
+        
+        <!-- Customer Details -->
+        <div class="customer-details">
+            <div class="detail-section">
+                <h3>Bill To</h3>
+                <p><strong>{{ order.customer_name }}</strong></p>
+                <p>{{ order.customer_email }}</p>
+                <p>{{ order.customer_phone }}</p>
+                <p>{{ order.billing_address }}</p>
+                <p>{{ order.billing_city }}, {{ order.billing_state }}</p>
+                <p>{{ order.billing_postal_code }}</p>
+                <p>{{ order.billing_country }}</p>
+            </div>
+            <div class="detail-section">
+                <h3>Ship To</h3>
+                <p><strong>{{ order.customer_name }}</strong></p>
+                <p>{{ order.shipping_address }}</p>
+                <p>{{ order.shipping_city }}, {{ order.shipping_state }}</p>
+                <p>{{ order.shipping_postal_code }}</p>
+                <p>{{ order.shipping_country }}</p>
+            </div>
+        </div>
+        
+        <!-- Order Items -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td class="item-name">{{ item.product.name }}</td>
+                    <td>{{ item.product.category.name|default:"General" }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>GHS {{ item.unit_price }}</td>
+                    <td class="text-right">GHS {{ item.get_total_price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Totals -->
+        <div class="totals">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>GHS {{ order.subtotal }}</span>
+            </div>
+            <div class="total-row">
+                <span>Shipping:</span>
+                <span>GHS {{ order.shipping_cost }}</span>
+            </div>
+            {% if order.tax_amount %}
+            <div class="total-row">
+                <span>Tax:</span>
+                <span>GHS {{ order.tax_amount }}</span>
+            </div>
+            {% endif %}
+            <div class="total-row final">
+                <span>Total Amount:</span>
+                <span>GHS {{ order.total_amount }}</span>
+            </div>
+        </div>
+        
+        <!-- Payment Details -->
+        <div style="margin-top: 30px;">
+            <h3 style="margin-bottom: 10px; color: #374151;">Payment Information</h3>
+            <p><strong>Payment Method:</strong> {{ order.payment_method|title }}</p>
+            {% if order.payment_reference %}
+            <p><strong>Payment Reference:</strong> {{ order.payment_reference }}</p>
+            {% endif %}
+            {% if order.notes %}
+            <p><strong>Order Notes:</strong> {{ order.notes }}</p>
+            {% endif %}
+        </div>
+        
+        <!-- Footer -->
+        <div class="invoice-footer">
+            <p>Thank you for your business!</p>
+            <p>For any inquiries regarding this invoice, please contact us at {{ company_email }}</p>
+        </div>
+    </div>
+    
+    <script>
+        // Auto print on load for better UX
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        }
+    </script>
+</body>
+</html>

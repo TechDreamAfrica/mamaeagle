@@ -1,0 +1,542 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Monthly Financial Statements - {{ month_name }} {{ year }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .statement-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .statement-section {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2d3748;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .account-line {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .account-line.subtotal {
+        font-weight: 600;
+        background: #f7fafc;
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+    }
+    
+    .account-line.total {
+        font-weight: 700;
+        background: #edf2f7;
+        padding: 1rem;
+        margin-top: 0.5rem;
+        font-size: 1.1rem;
+        border: 2px solid #667eea;
+    }
+    
+    .amount {
+        font-family: 'Courier New', monospace;
+        text-align: right;
+    }
+    
+    .positive {
+        color: #48bb78;
+    }
+    
+    .negative {
+        color: #f56565;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2d3748;
+    }
+    
+    .metric-label {
+        font-size: 0.875rem;
+        color: #718096;
+        margin-top: 0.5rem;
+    }
+    
+    .change-indicator {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    
+    .change-positive {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+    
+    .change-negative {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+    
+    .export-buttons {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .category-group {
+        margin-left: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .category-header {
+        font-weight: 600;
+        color: #4a5568;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    @media print {
+        .no-print {
+            display: none;
+        }
+        
+        .statement-section {
+            page-break-inside: avoid;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="statement-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-2">Monthly Financial Statements</h1>
+                <h3>{{ month_name }} {{ year }}</h3>
+                <p class="mb-0">Prepared in accordance with {{ accounting_standard }}</p>
+            </div>
+            <div class="no-print">
+                <div class="export-buttons">
+                    <a href="?year={{ year }}&month={{ month }}&standard={{ accounting_standard }}&export=pdf" class="btn btn-light">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </a>
+                    <a href="?year={{ year }}&month={{ month }}&standard={{ accounting_standard }}&export=excel" class="btn btn-light">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </a>
+                    <a href="?year={{ year }}&month={{ month }}&standard={{ accounting_standard }}&export=csv" class="btn btn-light">
+                        <i class="fas fa-file-csv"></i> CSV
+                    </a>
+                    <button onclick="window.print()" class="btn btn-light">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Period Selector -->
+    <div class="statement-section no-print">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Month</label>
+                <select name="month" class="form-select">
+                    {% for m in "123456789abc" %}
+                    <option value="{{ forloop.counter }}" {% if forloop.counter == month %}selected{% endif %}>
+                        {{ forloop.counter|date:"F" }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Year</label>
+                <input type="number" name="year" value="{{ year }}" class="form-control" min="2000" max="2100">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Accounting Standard</label>
+                <select name="standard" class="form-select">
+                    <option value="GAAP" {% if accounting_standard == "GAAP" %}selected{% endif %}>GAAP</option>
+                    <option value="IFRS" {% if accounting_standard == "IFRS" %}selected{% endif %}>IFRS</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">Generate Report</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value">GH{{ statements.income_statement.revenue.gross_revenue|floatformat:2 }}</div>
+                <div class="metric-label">Total Revenue
+                    {% if mom_changes.revenue_change %}
+                    <span class="change-indicator {% if mom_changes.revenue_change >= 0 %}change-positive{% else %}change-negative{% endif %}">
+                        {{ mom_changes.revenue_change|floatformat:1 }}%
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value">GH{{ statements.income_statement.gross_profit|floatformat:2 }}</div>
+                <div class="metric-label">Gross Profit
+                    {% if mom_changes.gross_profit_change %}
+                    <span class="change-indicator {% if mom_changes.gross_profit_change >= 0 %}change-positive{% else %}change-negative{% endif %}">
+                        {{ mom_changes.gross_profit_change|floatformat:1 }}%
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value">GH{{ statements.income_statement.operating_income|floatformat:2 }}</div>
+                <div class="metric-label">Operating Income
+                    {% if mom_changes.operating_income_change %}
+                    <span class="change-indicator {% if mom_changes.operating_income_change >= 0 %}change-positive{% else %}change-negative{% endif %}">
+                        {{ mom_changes.operating_income_change|floatformat:1 }}%
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-value">GH{{ statements.income_statement.net_income|floatformat:2 }}</div>
+                <div class="metric-label">Net Income
+                    {% if mom_changes.net_income_change %}
+                    <span class="change-indicator {% if mom_changes.net_income_change >= 0 %}change-positive{% else %}change-negative{% endif %}">
+                        {{ mom_changes.net_income_change|floatformat:1 }}%
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Income Statement -->
+    <div class="statement-section">
+        <h2 class="section-title">Income Statement</h2>
+        
+        <!-- Revenue -->
+        <h4 class="mt-4">Revenue</h4>
+        {% for item in statements.income_statement.revenue.items %}
+        <div class="account-line">
+            <span>{{ item.account_name }} ({{ item.account_code }})</span>
+            <span class="amount">GH{{ item.amount|floatformat:2 }}</span>
+        </div>
+        {% endfor %}
+        <div class="account-line subtotal">
+            <span>Total Revenue</span>
+            <span class="amount">GH{{ statements.income_statement.revenue.gross_revenue|floatformat:2 }}</span>
+        </div>
+        
+        <!-- Cost of Goods Sold -->
+        <h4 class="mt-4">Cost of Goods Sold</h4>
+        {% for item in statements.income_statement.cost_of_goods_sold.items %}
+        <div class="account-line">
+            <span>{{ item.account_name }} ({{ item.account_code }})</span>
+            <span class="amount">GH{{ item.amount|floatformat:2 }}</span>
+        </div>
+        {% endfor %}
+        <div class="account-line subtotal">
+            <span>Total Cost of Goods Sold</span>
+            <span class="amount">GH{{ statements.income_statement.cost_of_goods_sold.total_cogs|floatformat:2 }}</span>
+        </div>
+        
+        <div class="account-line total">
+            <span>Gross Profit</span>
+            <span class="amount">GH{{ statements.income_statement.gross_profit|floatformat:2 }}</span>
+        </div>
+        <div class="text-muted small mt-1">
+            Gross Profit Margin: {{ statements.income_statement.gross_profit_margin|floatformat:1 }}%
+        </div>
+        
+        <!-- Operating Expenses -->
+        <h4 class="mt-4">Operating Expenses</h4>
+        {% for category, items in statements.income_statement.operating_expenses.by_category.items %}
+        {% if items %}
+        <div class="category-header">{{ category }}</div>
+        <div class="category-group">
+            {% for item in items %}
+            <div class="account-line">
+                <span>{{ item.account_name }} ({{ item.account_code }})</span>
+                <span class="amount">GH{{ item.amount|floatformat:2 }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+        <div class="account-line subtotal">
+            <span>Total Operating Expenses</span>
+            <span class="amount">GH{{ statements.income_statement.operating_expenses.total|floatformat:2 }}</span>
+        </div>
+        
+        <div class="account-line total">
+            <span>Operating Income</span>
+            <span class="amount">GH{{ statements.income_statement.operating_income|floatformat:2 }}</span>
+        </div>
+        <div class="text-muted small mt-1">
+            Operating Margin: {{ statements.income_statement.operating_margin|floatformat:1 }}%
+        </div>
+        
+        <!-- Other Income/Expenses -->
+        <h4 class="mt-4">Other Income and Expenses</h4>
+        <div class="account-line">
+            <span>Other Income</span>
+            <span class="amount">GH{{ statements.income_statement.other_income|floatformat:2 }}</span>
+        </div>
+        <div class="account-line">
+            <span>Other Expenses</span>
+            <span class="amount">GH{{ statements.income_statement.other_expenses|floatformat:2 }}</span>
+        </div>
+        
+        <div class="account-line subtotal">
+            <span>Income Before Tax</span>
+            <span class="amount">GH{{ statements.income_statement.income_before_tax|floatformat:2 }}</span>
+        </div>
+        
+        <div class="account-line">
+            <span>Income Tax Expense</span>
+            <span class="amount">GH{{ statements.income_statement.tax_expense|floatformat:2 }}</span>
+        </div>
+        
+        <div class="account-line total">
+            <span>Net Income</span>
+            <span class="amount {% if statements.income_statement.net_income >= 0 %}positive{% else %}negative{% endif %}">
+                GH{{ statements.income_statement.net_income|floatformat:2 }}
+            </span>
+        </div>
+        <div class="text-muted small mt-1">
+            Net Profit Margin: {{ statements.income_statement.net_profit_margin|floatformat:1 }}%
+        </div>
+    </div>
+    
+    <!-- Balance Sheet -->
+    <div class="statement-section">
+        <h2 class="section-title">Balance Sheet</h2>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h4 class="mt-3">Assets</h4>
+                
+                <h5 class="mt-3">Current Assets</h5>
+                {% for item in statements.balance_sheet.assets.current_assets.items %}
+                <div class="account-line">
+                    <span>{{ item.account_name }}</span>
+                    <span class="amount">GH{{ item.amount|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+                <div class="account-line subtotal">
+                    <span>Total Current Assets</span>
+                    <span class="amount">GH{{ statements.balance_sheet.assets.current_assets.total|floatformat:2 }}</span>
+                </div>
+                
+                <h5 class="mt-3">Non-Current Assets</h5>
+                {% for item in statements.balance_sheet.assets.non_current_assets.items %}
+                <div class="account-line">
+                    <span>{{ item.account_name }}</span>
+                    <span class="amount">GH{{ item.amount|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+                <div class="account-line subtotal">
+                    <span>Total Non-Current Assets</span>
+                    <span class="amount">GH{{ statements.balance_sheet.assets.non_current_assets.total|floatformat:2 }}</span>
+                </div>
+                
+                <div class="account-line total">
+                    <span>Total Assets</span>
+                    <span class="amount">GH{{ statements.balance_sheet.assets.total_assets|floatformat:2 }}</span>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <h4 class="mt-3">Liabilities & Equity</h4>
+                
+                <h5 class="mt-3">Current Liabilities</h5>
+                {% for item in statements.balance_sheet.liabilities.current_liabilities.items %}
+                <div class="account-line">
+                    <span>{{ item.account_name }}</span>
+                    <span class="amount">GH{{ item.amount|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+                <div class="account-line subtotal">
+                    <span>Total Current Liabilities</span>
+                    <span class="amount">GH{{ statements.balance_sheet.liabilities.current_liabilities.total|floatformat:2 }}</span>
+                </div>
+                
+                <h5 class="mt-3">Non-Current Liabilities</h5>
+                {% for item in statements.balance_sheet.liabilities.non_current_liabilities.items %}
+                <div class="account-line">
+                    <span>{{ item.account_name }}</span>
+                    <span class="amount">GH{{ item.amount|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+                <div class="account-line subtotal">
+                    <span>Total Non-Current Liabilities</span>
+                    <span class="amount">GH{{ statements.balance_sheet.liabilities.non_current_liabilities.total|floatformat:2 }}</span>
+                </div>
+                
+                <div class="account-line subtotal">
+                    <span>Total Liabilities</span>
+                    <span class="amount">GH{{ statements.balance_sheet.liabilities.total_liabilities|floatformat:2 }}</span>
+                </div>
+                
+                <h5 class="mt-3">Equity</h5>
+                {% for item in statements.balance_sheet.equity.items %}
+                <div class="account-line">
+                    <span>{{ item.account_name }}</span>
+                    <span class="amount">GH{{ item.amount|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+                <div class="account-line subtotal">
+                    <span>Total Equity</span>
+                    <span class="amount">GH{{ statements.balance_sheet.equity.total_equity|floatformat:2 }}</span>
+                </div>
+                
+                <div class="account-line total">
+                    <span>Total Liabilities & Equity</span>
+                    <span class="amount">GH{{ statements.balance_sheet.total_liabilities_and_equity|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Financial Ratios -->
+        <div class="mt-4">
+            <h5>Key Ratios</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="account-line">
+                        <span>Working Capital</span>
+                        <span class="amount">GH{{ statements.balance_sheet.ratios.working_capital|floatformat:2 }}</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="account-line">
+                        <span>Current Ratio</span>
+                        <span class="amount">{{ statements.balance_sheet.ratios.current_ratio|floatformat:2 }}</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="account-line">
+                        <span>Debt-to-Equity</span>
+                        <span class="amount">{{ statements.balance_sheet.ratios.debt_to_equity_ratio|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cash Flow Statement -->
+    <div class="statement-section">
+        <h2 class="section-title">Cash Flow Statement</h2>
+        
+        <h4 class="mt-3">Operating Activities</h4>
+        <div class="account-line">
+            <span>Net Income</span>
+            <span class="amount">GH{{ statements.cash_flow_statement.operating_activities.items.net_income|floatformat:2 }}</span>
+        </div>
+        <div class="account-line subtotal">
+            <span>Net Cash from Operating Activities</span>
+            <span class="amount">GH{{ statements.cash_flow_statement.operating_activities.net_cash_from_operating|floatformat:2 }}</span>
+        </div>
+        
+        <h4 class="mt-3">Investing Activities</h4>
+        <div class="account-line subtotal">
+            <span>Net Cash from Investing Activities</span>
+            <span class="amount">GH{{ statements.cash_flow_statement.investing_activities.net_cash_from_investing|floatformat:2 }}</span>
+        </div>
+        
+        <h4 class="mt-3">Financing Activities</h4>
+        <div class="account-line subtotal">
+            <span>Net Cash from Financing Activities</span>
+            <span class="amount">GH{{ statements.cash_flow_statement.financing_activities.net_cash_from_financing|floatformat:2 }}</span>
+        </div>
+        
+        <div class="account-line total mt-4">
+            <span>Net Change in Cash</span>
+            <span class="amount">GH{{ statements.cash_flow_statement.net_change_in_cash|floatformat:2 }}</span>
+        </div>
+        
+        <div class="mt-3">
+            <div class="account-line">
+                <span>Cash, Beginning of Period</span>
+                <span class="amount">GH{{ statements.cash_flow_statement.cash_beginning_of_period|floatformat:2 }}</span>
+            </div>
+            <div class="account-line total">
+                <span>Cash, End of Period</span>
+                <span class="amount">GH{{ statements.cash_flow_statement.cash_end_of_period|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statement of Changes in Equity -->
+    <div class="statement-section">
+        <h2 class="section-title">Statement of Changes in Equity</h2>
+        
+        <div class="account-line">
+            <span>Opening Balance</span>
+            <span class="amount">GH{{ statements.statement_of_changes_in_equity.opening_balance|floatformat:2 }}</span>
+        </div>
+        <div class="account-line">
+            <span>Net Income</span>
+            <span class="amount positive">GH{{ statements.statement_of_changes_in_equity.net_income|floatformat:2 }}</span>
+        </div>
+        <div class="account-line">
+            <span>Dividends Paid</span>
+            <span class="amount negative">(GH{{ statements.statement_of_changes_in_equity.dividends_paid|floatformat:2 }})</span>
+        </div>
+        <div class="account-line">
+            <span>Capital Contributions</span>
+            <span class="amount positive">GH{{ statements.statement_of_changes_in_equity.capital_contributions|floatformat:2 }}</span>
+        </div>
+        <div class="account-line">
+            <span>Other Comprehensive Income</span>
+            <span class="amount">GH{{ statements.statement_of_changes_in_equity.other_comprehensive_income|floatformat:2 }}</span>
+        </div>
+        <div class="account-line total">
+            <span>Closing Balance</span>
+            <span class="amount">GH{{ statements.statement_of_changes_in_equity.closing_balance|floatformat:2 }}</span>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="text-center text-muted mt-4 mb-4">
+        <p>This is a system-generated report. For official use, please have it reviewed by a certified accountant.</p>
+        <p>Generated on {{ "now"|date:"F d, Y at h:i A" }}</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,396 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ opportunity.name }} - Opportunity Details - DreamBiz{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            {{ opportunity.name }}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Opportunity tracking and management
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'sales:opportunity_list' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 transition-colors duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Opportunities
+          </a>
+          <a
+            href="{% url 'sales:opportunity_update' opportunity.pk %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 transition-colors duration-200"
+          >
+            <i class="fas fa-edit mr-2"></i>
+            Edit Opportunity
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Opportunity Information -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Key Metrics Card -->
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <p class="text-blue-100 text-sm font-medium">Amount</p>
+              <p class="text-3xl font-bold mt-1">GH{{ opportunity.amount|floatformat:2 }}</p>
+            </div>
+            <div>
+              <p class="text-blue-100 text-sm font-medium">Probability</p>
+              <p class="text-3xl font-bold mt-1">{{ opportunity.probability }}%</p>
+            </div>
+            <div>
+              <p class="text-blue-100 text-sm font-medium">Weighted Value</p>
+              <p class="text-3xl font-bold mt-1">GH{{ opportunity.weighted_amount|floatformat:2 }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Basic Information Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-info-circle mr-2 text-dreambiz-600"></i>
+              Opportunity Details
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Stage</dt>
+                <dd class="mt-1">
+                  {% if opportunity.stage == 'qualification' %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                      <i class="fas fa-search mr-1"></i> {{ opportunity.get_stage_display }}
+                    </span>
+                  {% elif opportunity.stage == 'needs_analysis' %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                      <i class="fas fa-clipboard-list mr-1"></i> {{ opportunity.get_stage_display }}
+                    </span>
+                  {% elif opportunity.stage == 'proposal' %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                      <i class="fas fa-file-alt mr-1"></i> {{ opportunity.get_stage_display }}
+                    </span>
+                  {% elif opportunity.stage == 'negotiation' %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                      <i class="fas fa-handshake mr-1"></i> {{ opportunity.get_stage_display }}
+                    </span>
+                  {% elif opportunity.stage == 'closed_won' %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      <i class="fas fa-check-circle mr-1"></i> {{ opportunity.get_stage_display }}
+                    </span>
+                  {% elif opportunity.stage == 'closed_lost' %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                      <i class="fas fa-times-circle mr-1"></i> {{ opportunity.get_stage_display }}
+                    </span>
+                  {% endif %}
+                </dd>
+              </div>
+              {% if opportunity.sales_rep %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Sales Representative</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <i class="fas fa-user-tie mr-1 text-dreambiz-600"></i>
+                  {{ opportunity.sales_rep.full_name }}
+                </dd>
+              </div>
+              {% endif %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Expected Close Date</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <i class="fas fa-calendar mr-1 text-dreambiz-600"></i>
+                  {{ opportunity.expected_close_date|date:"M d, Y" }}
+                </dd>
+              </div>
+              {% if opportunity.actual_close_date %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Actual Close Date</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <i class="fas fa-calendar-check mr-1 text-green-600"></i>
+                  {{ opportunity.actual_close_date|date:"M d, Y" }}
+                </dd>
+              </div>
+              {% endif %}
+              {% if opportunity.territory %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Territory</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ opportunity.territory.name }}</dd>
+              </div>
+              {% endif %}
+            </dl>
+          </div>
+        </div>
+
+        <!-- Customer Information Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-building mr-2 text-dreambiz-600"></i>
+              Customer Information
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+              {% if opportunity.customer_name %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Contact Name</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ opportunity.customer_name }}</dd>
+              </div>
+              {% endif %}
+              {% if opportunity.customer_company %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Company</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ opportunity.customer_company }}</dd>
+              </div>
+              {% endif %}
+              {% if opportunity.customer_email %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <a href="mailto:{{ opportunity.customer_email }}" class="text-dreambiz-600 hover:text-dreambiz-700">
+                    <i class="fas fa-envelope mr-1"></i>{{ opportunity.customer_email }}
+                  </a>
+                </dd>
+              </div>
+              {% endif %}
+              {% if opportunity.customer_phone %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Phone</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <a href="tel:{{ opportunity.customer_phone }}" class="text-dreambiz-600 hover:text-dreambiz-700">
+                    <i class="fas fa-phone mr-1"></i>{{ opportunity.customer_phone }}
+                  </a>
+                </dd>
+              </div>
+              {% endif %}
+              {% if opportunity.lead %}
+              <div class="col-span-2">
+                <dt class="text-sm font-medium text-gray-500">Converted From Lead</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <a href="{% url 'sales:lead_detail' opportunity.lead.pk %}" class="text-dreambiz-600 hover:text-dreambiz-700">
+                    <i class="fas fa-link mr-1"></i>{{ opportunity.lead.full_name }}
+                  </a>
+                </dd>
+              </div>
+              {% endif %}
+            </dl>
+          </div>
+        </div>
+
+        {% if opportunity.description %}
+        <!-- Description Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-align-left mr-2 text-dreambiz-600"></i>
+              Description
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ opportunity.description }}</p>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Financial Details Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-dollar-sign mr-2 text-dreambiz-600"></i>
+              Financial Details
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Opportunity Amount</dt>
+                <dd class="mt-1 text-sm text-gray-900 font-semibold">GH{{ opportunity.amount|floatformat:2 }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Cost of Sale</dt>
+                <dd class="mt-1 text-sm text-gray-900">GH{{ opportunity.cost_of_sale|floatformat:2 }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Margin</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ opportunity.margin }}%</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Weighted Amount</dt>
+                <dd class="mt-1 text-sm text-gray-900 font-semibold text-green-600">
+                  GH{{ opportunity.weighted_amount|floatformat:2 }}
+                  <span class="text-xs text-gray-500">({{ opportunity.probability }}% probability)</span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <!-- Activities Timeline -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-history mr-2 text-dreambiz-600"></i>
+              Activity Timeline
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            {% if activities %}
+              <div class="flow-root">
+                <ul class="-mb-8">
+                  {% for activity in activities %}
+                  <li>
+                    <div class="relative pb-8">
+                      {% if not forloop.last %}
+                      <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                      {% endif %}
+                      <div class="relative flex items-start space-x-3">
+                        <div class="relative">
+                          <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center ring-8 ring-white">
+                            <i class="fas fa-{{ activity.get_activity_type_icon }} text-blue-600"></i>
+                          </div>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <div>
+                            <div class="text-sm">
+                              <span class="font-medium text-gray-900">{{ activity.subject }}</span>
+                            </div>
+                            <p class="mt-0.5 text-sm text-gray-500">
+                              {{ activity.activity_date|date:"M d, Y g:i A" }}
+                              {% if activity.sales_rep %}
+                                by {{ activity.sales_rep.full_name }}
+                              {% endif %}
+                            </p>
+                          </div>
+                          {% if activity.description %}
+                          <div class="mt-2 text-sm text-gray-700">
+                            <p>{{ activity.description }}</p>
+                          </div>
+                          {% endif %}
+                          {% if activity.outcome %}
+                          <div class="mt-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              {{ activity.outcome }}
+                            </span>
+                          </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% else %}
+              <p class="text-sm text-gray-500 text-center py-4">No activities recorded yet</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="lg:col-span-1 space-y-6">
+        <!-- Next Steps Card -->
+        {% if opportunity.next_step %}
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-tasks mr-2 text-dreambiz-600"></i>
+              Next Steps
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <p class="text-sm text-gray-700">{{ opportunity.next_step }}</p>
+            {% if opportunity.next_step_date %}
+            <p class="mt-2 text-xs text-gray-500">
+              <i class="fas fa-calendar mr-1"></i>
+              Due: {{ opportunity.next_step_date|date:"M d, Y" }}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Stats Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-chart-line mr-2 text-dreambiz-600"></i>
+              Quick Stats
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6 space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-500">Created</span>
+              <span class="text-sm font-medium text-gray-900">{{ opportunity.created_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-500">Last Updated</span>
+              <span class="text-sm font-medium text-gray-900">{{ opportunity.updated_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-500">Age</span>
+              <span class="text-sm font-medium text-gray-900">{{ opportunity.created_at|timesince }}</span>
+            </div>
+            {% if opportunity.churn_risk > 0 %}
+            <div class="pt-4 border-t border-gray-200">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-gray-500">Churn Risk</span>
+                <span class="text-sm font-medium {% if opportunity.churn_risk > 0.7 %}text-red-600{% elif opportunity.churn_risk > 0.4 %}text-yellow-600{% else %}text-green-600{% endif %}">
+                  {{ opportunity.churn_risk|floatformat:0|add:"0" }}%
+                </span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="{% if opportunity.churn_risk > 0.7 %}bg-red-600{% elif opportunity.churn_risk > 0.4 %}bg-yellow-600{% else %}bg-green-600{% endif %} h-2 rounded-full" style="width: {{ opportunity.churn_risk|floatformat:0|add:"0" }}%"></div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-bolt mr-2 text-dreambiz-600"></i>
+              Quick Actions
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6 space-y-3">
+            <a href="{% url 'sales:activity_create' %}?opportunity={{ opportunity.id }}" 
+               class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-dreambiz-600 hover:bg-dreambiz-700">
+              <i class="fas fa-plus mr-2"></i>
+              Log Activity
+            </a>
+            <a href="{% url 'sales:opportunity_update' opportunity.pk %}" 
+               class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+              <i class="fas fa-edit mr-2"></i>
+              Update Details
+            </a>
+            {% if opportunity.stage not in 'closed_won,closed_lost' %}
+            <button onclick="if(confirm('Mark this opportunity as won?')) { /* Add close won logic */ }"
+                    class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+              <i class="fas fa-check mr-2"></i>
+              Close as Won
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

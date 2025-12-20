@@ -1,0 +1,459 @@
+{% extends 'base.html' %} {% load static %} {% block title %}{{ lead.full_name
+}} - Lead Details - DreamBiz{% endblock %} {% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            {{ lead.full_name }} {% if lead.company %}
+            <span class="text-gray-600">- {{ lead.company }}</span>
+            {% endif %}
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Lead details and activity tracking
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'sales:lead_list' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 transition-colors duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Leads
+          </a>
+          <a
+            href="{% url 'sales:lead_update' lead.pk %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500 transition-colors duration-200"
+          >
+            <i class="fas fa-edit mr-2"></i>
+            Edit Lead
+          </a>
+          <a
+            href="{% url 'sales:convert_lead' lead.pk %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+          >
+            <i class="fas fa-exchange-alt mr-2"></i>
+            Convert to Opportunity
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Lead Information -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Basic Information Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-user mr-2 text-dreambiz-600"></i>
+              Contact Information
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Full Name</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ lead.full_name }}</dd>
+              </div>
+              {% if lead.title %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Title</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ lead.title }}</dd>
+              </div>
+              {% endif %} {% if lead.company %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Company</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ lead.company }}</dd>
+              </div>
+              {% endif %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <a
+                    href="mailto:{{ lead.email }}"
+                    class="text-dreambiz-600 hover:text-dreambiz-700"
+                  >
+                    <i class="fas fa-envelope mr-1"></i>{{ lead.email }}
+                  </a>
+                </dd>
+              </div>
+              {% if lead.phone %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Phone</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <a
+                    href="tel:{{ lead.phone }}"
+                    class="text-dreambiz-600 hover:text-dreambiz-700"
+                  >
+                    <i class="fas fa-phone mr-1"></i>{{ lead.phone }}
+                  </a>
+                </dd>
+              </div>
+              {% endif %} {% if lead.website %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Website</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <a
+                    href="{{ lead.website }}"
+                    target="_blank"
+                    class="text-dreambiz-600 hover:text-dreambiz-700"
+                  >
+                    <i class="fas fa-external-link-alt mr-1"></i>{{ lead.website
+                    }}
+                  </a>
+                </dd>
+              </div>
+              {% endif %}
+            </dl>
+          </div>
+        </div>
+
+        <!-- Lead Details Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-chart-line mr-2 text-dreambiz-600"></i>
+              Lead Details
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Status</dt>
+                <dd class="mt-1">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if lead.status == 'new' %}bg-blue-100 text-blue-800 {% elif lead.status == 'contacted' %}bg-yellow-100 text-yellow-800 {% elif lead.status == 'qualified' %}bg-green-100 text-green-800 {% elif lead.status == 'proposal' %}bg-purple-100 text-purple-800 {% elif lead.status == 'negotiation' %}bg-orange-100 text-orange-800 {% elif lead.status == 'won' %}bg-green-100 text-green-800 {% elif lead.status == 'lost' %}bg-red-100 text-red-800 {% else %}bg-gray-100 text-gray-800{% endif %}"
+                  >
+                    {{ lead.get_status_display }}
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Priority</dt>
+                <dd class="mt-1">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if lead.priority == 'urgent' %}bg-red-100 text-red-800 {% elif lead.priority == 'high' %}bg-orange-100 text-orange-800 {% elif lead.priority == 'medium' %}bg-yellow-100 text-yellow-800 {% else %}bg-gray-100 text-gray-800{% endif %}"
+                  >
+                    {{ lead.get_priority_display }}
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Source</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ lead.get_source_display }}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Lead Score</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ lead.lead_score }}/100
+                </dd>
+              </div>
+              {% if lead.estimated_value %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">
+                  Estimated Value
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  GH{{ lead.estimated_value|floatformat:2 }}
+                </dd>
+              </div>
+              {% endif %} {% if lead.probability %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Probability</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ lead.probability }}%
+                </dd>
+              </div>
+              {% endif %} {% if lead.assigned_to %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Assigned To</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ lead.assigned_to.full_name }}
+                </dd>
+              </div>
+              {% endif %} {% if lead.expected_close_date %}
+              <div>
+                <dt class="text-sm font-medium text-gray-500">
+                  Expected Close Date
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ lead.expected_close_date|date:"F j, Y" }}
+                </dd>
+              </div>
+              {% endif %}
+            </dl>
+          </div>
+        </div>
+
+        {% if lead.notes %}
+        <!-- Notes Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-sticky-note mr-2 text-dreambiz-600"></i>
+              Notes
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <p class="text-sm text-gray-900 whitespace-pre-line">
+              {{ lead.notes }}
+            </p>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Activities Section -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+              <h3 class="text-lg leading-6 font-medium text-gray-900">
+                <i class="fas fa-history mr-2 text-dreambiz-600"></i>
+                Recent Activities
+              </h3>
+              <a
+                href="{% url 'sales:activity_create' %}?lead={{ lead.pk }}"
+                class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-dreambiz-600 hover:bg-dreambiz-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dreambiz-500"
+              >
+                <i class="fas fa-plus mr-1"></i>
+                Add Activity
+              </a>
+            </div>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            {% if activities %}
+            <div class="flow-root">
+              <ul role="list" class="-mb-8">
+                {% for activity in activities %}
+                <li>
+                  <div class="relative pb-8">
+                    {% if not forloop.last %}
+                    <span
+                      class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                      aria-hidden="true"
+                    ></span>
+                    {% endif %}
+                    <div class="relative flex space-x-3">
+                      <div>
+                        <span
+                          class="h-8 w-8 rounded-full bg-dreambiz-500 flex items-center justify-center ring-8 ring-white"
+                        >
+                          {% if activity.activity_type == 'call' %}
+                          <i class="fas fa-phone text-white text-sm"></i>
+                          {% elif activity.activity_type == 'email' %}
+                          <i class="fas fa-envelope text-white text-sm"></i>
+                          {% elif activity.activity_type == 'meeting' %}
+                          <i class="fas fa-users text-white text-sm"></i>
+                          {% elif activity.activity_type == 'demo' %}
+                          <i class="fas fa-desktop text-white text-sm"></i>
+                          {% elif activity.activity_type == 'proposal' %}
+                          <i
+                            class="fas fa-file-contract text-white text-sm"
+                          ></i>
+                          {% elif activity.activity_type == 'follow_up' %}
+                          <i class="fas fa-redo text-white text-sm"></i>
+                          {% elif activity.activity_type == 'note' %}
+                          <i class="fas fa-sticky-note text-white text-sm"></i>
+                          {% elif activity.activity_type == 'task' %}
+                          <i class="fas fa-tasks text-white text-sm"></i>
+                          {% else %}
+                          <i class="fas fa-circle text-white text-sm"></i>
+                          {% endif %}
+                        </span>
+                      </div>
+                      <div
+                        class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4"
+                      >
+                        <div>
+                          <p class="text-sm text-gray-500">
+                            <span class="font-medium text-gray-900"
+                              >{{ activity.get_activity_type_display }}</span
+                            >
+                            - {{ activity.subject }}
+                          </p>
+                          {% if activity.description %}
+                          <p class="mt-1 text-sm text-gray-500">
+                            {{ activity.description|truncatewords:20 }}
+                          </p>
+                          {% endif %} {% if activity.outcome %}
+                          <p class="mt-1 text-sm text-gray-600">
+                            <strong>Outcome:</strong> {{
+                            activity.outcome|truncatewords:15 }}
+                          </p>
+                          {% endif %}
+                        </div>
+                        <div
+                          class="text-right text-sm whitespace-nowrap text-gray-500"
+                        >
+                          <time
+                            datetime="{{ activity.activity_date|date:'c' }}"
+                          >
+                            {{ activity.activity_date|date:"M j, Y g:i A" }}
+                          </time>
+                          {% if activity.sales_rep %}
+                          <p class="text-xs text-gray-400">
+                            by {{ activity.sales_rep.full_name }}
+                          </p>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% else %}
+            <div class="text-center py-6">
+              <i class="fas fa-history text-gray-400 text-3xl mb-3"></i>
+              <p class="text-gray-500">No activities recorded yet</p>
+              <a
+                href="{% url 'sales:activity_create' %}?lead={{ lead.pk }}"
+                class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-dreambiz-600 hover:bg-dreambiz-700"
+              >
+                <i class="fas fa-plus mr-2"></i>
+                Add First Activity
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-6">
+        <!-- Quick Actions -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-bolt mr-2 text-dreambiz-600"></i>
+              Quick Actions
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <div class="space-y-3">
+              <a
+                href="mailto:{{ lead.email }}"
+                class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
+                <i class="fas fa-envelope mr-3 text-gray-500"></i>
+                Send Email
+              </a>
+              {% if lead.phone %}
+              <a
+                href="tel:{{ lead.phone }}"
+                class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
+                <i class="fas fa-phone mr-3 text-gray-500"></i>
+                Call Lead
+              </a>
+              {% endif %}
+              <a
+                href="{% url 'sales:activity_create' %}?lead={{ lead.pk }}"
+                class="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
+                <i class="fas fa-plus mr-3 text-gray-500"></i>
+                Log Activity
+              </a>
+              <a
+                href="{% url 'sales:convert_lead' lead.pk %}"
+                class="w-full flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors duration-200"
+              >
+                <i class="fas fa-exchange-alt mr-3"></i>
+                Convert to Opportunity
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lead Timeline -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-calendar-alt mr-2 text-dreambiz-600"></i>
+              Lead Timeline
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <dl class="space-y-3">
+              <div>
+                <dt
+                  class="text-xs font-medium text-gray-500 uppercase tracking-wide"
+                >
+                  Created
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ lead.created_at|date:"F j, Y g:i A" }}
+                </dd>
+              </div>
+              {% if lead.updated_at != lead.created_at %}
+              <div>
+                <dt
+                  class="text-xs font-medium text-gray-500 uppercase tracking-wide"
+                >
+                  Last Updated
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ lead.updated_at|date:"F j, Y g:i A" }}
+                </dd>
+              </div>
+              {% endif %} {% if lead.expected_close_date %}
+              <div>
+                <dt
+                  class="text-xs font-medium text-gray-500 uppercase tracking-wide"
+                >
+                  Expected Close
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ lead.expected_close_date|date:"F j, Y" }}
+                </dd>
+              </div>
+              {% endif %}
+            </dl>
+          </div>
+        </div>
+
+        <!-- Related Opportunities -->
+        {% if opportunities %}
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              <i class="fas fa-target mr-2 text-dreambiz-600"></i>
+              Related Opportunities
+            </h3>
+          </div>
+          <div class="px-4 py-5 sm:p-6">
+            <div class="space-y-3">
+              {% for opportunity in opportunities %}
+              <div class="border border-gray-200 rounded-lg p-3">
+                <h4 class="text-sm font-medium text-gray-900">
+                  {{ opportunity.name }}
+                </h4>
+                <p class="text-sm text-gray-500">
+                  GH{{ opportunity.amount|floatformat:2 }} - {{
+                  opportunity.get_stage_display }}
+                </p>
+                <a
+                  href="{% url 'sales:opportunity_detail' opportunity.pk %}"
+                  class="text-xs text-dreambiz-600 hover:text-dreambiz-700"
+                >
+                  View Details →
+                </a>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

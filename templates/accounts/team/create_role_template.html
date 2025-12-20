@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Role Template - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Create Role Template</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Define a custom role template with specific permissions
+        </p>
+      </div>
+      <a href="{% url 'accounts:role_templates' %}" 
+         class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i>
+        Back to Templates
+      </a>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <form method="post" class="bg-white rounded-lg shadow-sm border border-gray-200">
+    {% csrf_token %}
+    
+    <!-- Basic Information -->
+    <div class="p-6 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
+      
+      <div class="space-y-4">
+        <div>
+          <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            Template Name *
+          </label>
+          {{ form.name }}
+          {% if form.name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          {{ form.description }}
+          {% if form.description.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="flex items-center">
+          {{ form.is_default }}
+          <label for="{{ form.is_default.id_for_label }}" class="ml-2 text-sm text-gray-700">
+            Set as default template for new team members
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Permissions -->
+    <div class="p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Permissions</h2>
+      <p class="text-sm text-gray-600 mb-6">
+        Select the permissions that members with this role should have
+      </p>
+
+      <div class="space-y-6">
+        <!-- Dashboard -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <div class="flex items-center mb-3">
+            <div class="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+              <i class="fas fa-tachometer-alt text-blue-600"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900">Dashboard</h3>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 ml-11">
+            <label class="flex items-center">
+              <input type="checkbox" name="permission_dashboard_view" class="rounded border-gray-300 text-blue-600">
+              <span class="ml-2 text-sm">View</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Invoicing -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <div class="flex items-center mb-3">
+            <div class="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+              <i class="fas fa-file-invoice text-green-600"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900">Invoicing</h3>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 ml-11">
+            <label class="flex items-center">
+              <input type="checkbox" name="permission_invoicing_view" class="rounded border-gray-300 text-blue-600">
+              <span class="ml-2 text-sm">View</span>
+            </label>
+            <label class="flex items-center">
+              <input type="checkbox" name="permission_invoicing_create" class="rounded border-gray-300 text-blue-600">
+              <span class="ml-2 text-sm">Create</span>
+            </label>
+            <label class="flex items-center">
+              <input type="checkbox" name="permission_invoicing_edit" class="rounded border-gray-300 text-blue-600">
+              <span class="ml-2 text-sm">Edit</span>
+            </label>
+            <label class="flex items-center">
+              <input type="checkbox" name="permission_invoicing_delete" class="rounded border-gray-300 text-blue-600">
+              <span class="ml-2 text-sm">Delete</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Expenses -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <div class="flex items-center mb-3">
+            <div class="h-8 w-8 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+              <i class="fas fa-receipt text-red-600"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900">Expenses</h3>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 ml-11">
+            <label class="flex items-center">
+              <input type="checkbox" name="permission_expenses_view" class="rounded border-gray-300 text-blue-600">
+              <span class="ml-2 text-sm">View</span>
+            </label>
+            <label class="flex items-center">
+              <input type="checkbox" name="permission_expenses_create" class="rounded border-gray-300 text-blue-600">
+              <span class="ml-2 text-sm">Create</span>
+            </label>
+            <label class="flex items-center">
+              <input type="checkbox" name="permission_expenses_edit" class="rounded border-gray-300 text-blue-600">
+              <span class="ml-2 text-sm">Edit</span>
+            </label>
+            <label class="flex items-center">
+              <input type="checkbox" name="permission_expenses_delete" class="rounded border-gray-300 text-blue-600">
+              <span class="ml-2 text-sm">Delete</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Add more modules as needed -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+          <p class="text-sm text-gray-600">
+            More permission modules coming soon...
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+      <a href="{% url 'accounts:role_templates' %}" 
+         class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+        Cancel
+      </a>
+      <button type="submit" 
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+        <i class="fas fa-save mr-2"></i>
+        Create Template
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

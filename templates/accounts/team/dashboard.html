@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Team Management - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Team Management</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          Manage your team members, send invitations, and control permissions
+        </p>
+      </div>
+      <div class="flex space-x-3">
+        <a href="{% url 'accounts:assign_user_branches' %}" 
+           class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-sm transition-colors">
+          <i class="fas fa-map-marker-alt mr-2"></i>
+          Assign Branches
+        </a>
+        <a href="{% url 'accounts:invite_user' %}" 
+           class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors">
+          <i class="fas fa-user-plus mr-2"></i>
+          Invite Team Member
+        </a>
+        <a href="{% url 'accounts:role_templates' %}" 
+           class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors">
+          <i class="fas fa-user-tag mr-2"></i>
+          Manage Roles
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Members</p>
+          <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.total_members }}</p>
+        </div>
+        <div class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-users text-blue-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Active Members</p>
+          <p class="text-3xl font-bold text-green-600 mt-2">{{ stats.active_members }}</p>
+        </div>
+        <div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-user-check text-green-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Branches</p>
+          <p class="text-3xl font-bold text-indigo-600 mt-2">{{ stats.total_branches }}</p>
+        </div>
+        <div class="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-building text-indigo-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Members with Branches</p>
+          <p class="text-3xl font-bold text-teal-600 mt-2">{{ stats.members_with_branches }}</p>
+        </div>
+        <div class="h-12 w-12 bg-teal-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-map-marker-alt text-teal-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Pending Invitations</p>
+          <p class="text-3xl font-bold text-orange-600 mt-2">{{ stats.pending_invitations }}</p>
+        </div>
+        <div class="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-envelope text-orange-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Administrators</p>
+          <p class="text-3xl font-bold text-purple-600 mt-2">{{ stats.admins }}</p>
+        </div>
+        <div class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-user-shield text-purple-600 text-xl"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        {{ filter_form.search.label_tag }}
+        {{ filter_form.search }}
+      </div>
+      <div>
+        {{ filter_form.role.label_tag }}
+        {{ filter_form.role }}
+      </div>
+      <div>
+        {{ filter_form.department.label_tag }}
+        {{ filter_form.department }}
+      </div>
+      <div>
+        {{ filter_form.status.label_tag }}
+        {{ filter_form.status }}
+      </div>
+      <div class="md:col-span-4 flex justify-end space-x-2">
+        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">
+          <i class="fas fa-filter mr-2"></i>Apply Filters
+        </button>
+        <a href="{% url 'accounts:team_dashboard' %}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium">
+          <i class="fas fa-times mr-2"></i>Clear
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Team Members Table -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Team Members</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for user_company in team_members %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div class="h-10 w-10 flex-shrink-0">
+                  {% if user_company.user.avatar %}
+                    <img class="h-10 w-10 rounded-full object-cover" src="{{ user_company.user.avatar.url }}" alt="{{ user_company.user.get_full_name }}">
+                  {% else %}
+                    <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">
+                      {{ user_company.user.first_name.0|default:user_company.user.username.0|upper }}
+                    </div>
+                  {% endif %}
+                </div>
+                <div class="ml-4">
+                  <div class="text-sm font-medium text-gray-900">{{ user_company.user.get_full_name }}</div>
+                  <div class="text-sm text-gray-500">{{ user_company.user.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                {% if user_company.user.role == 'admin' %}bg-red-100 text-red-800
+                {% elif user_company.user.role == 'accountant' %}bg-blue-100 text-blue-800
+                {% elif user_company.user.role == 'manager' %}bg-purple-100 text-purple-800
+                {% else %}bg-green-100 text-green-800{% endif %}">
+                {{ user_company.user.get_role_display }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ user_company.user.department|default:"—" }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {% if user_company.user.is_active_employee %}
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                  <i class="fas fa-check-circle mr-1"></i>Active
+                </span>
+              {% else %}
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                  <i class="fas fa-times-circle mr-1"></i>Inactive
+                </span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ user_company.created_at|date:"M d, Y" }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <div class="flex items-center justify-end space-x-2">
+                <a href="{% url 'accounts:user_branch_assignments' user_company.user.id %}" 
+                   class="text-green-600 hover:text-green-900" title="Branch Assignments">
+                  <i class="fas fa-map-marker-alt"></i>
+                </a>
+                <a href="{% url 'accounts:change_user_role' user_company.user.id %}" 
+                   class="text-blue-600 hover:text-blue-900" title="Change Role">
+                  <i class="fas fa-user-edit"></i>
+                </a>
+                <a href="{% url 'accounts:manage_permissions' user_company.user.id %}" 
+                   class="text-purple-600 hover:text-purple-900" title="Manage Permissions">
+                  <i class="fas fa-key"></i>
+                </a>
+                {% if user_company.user != request.user %}
+                  {% if user_company.user.is_active_employee %}
+                    <form method="post" action="{% url 'accounts:deactivate_user' user_company.user.id %}" class="inline">
+                      {% csrf_token %}
+                      <button type="submit" class="text-red-600 hover:text-red-900" title="Deactivate"
+                              onclick="return confirm('Are you sure you want to deactivate this user?')">
+                        <i class="fas fa-ban"></i>
+                      </button>
+                    </form>
+                  {% else %}
+                    <form method="post" action="{% url 'accounts:activate_user' user_company.user.id %}" class="inline">
+                      {% csrf_token %}
+                      <button type="submit" class="text-green-600 hover:text-green-900" title="Activate">
+                        <i class="fas fa-check-circle"></i>
+                      </button>
+                    </form>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+              <i class="fas fa-users text-4xl text-gray-300 mb-3"></i>
+              <p class="text-lg font-medium">No team members found</p>
+              <p class="text-sm">Invite your first team member to get started</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pending Invitations -->
+  {% if pending_invitations %}
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Pending Invitations</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invited By</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sent</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expires</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for invitation in pending_invitations %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              {{ invitation.email }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                {{ invitation.get_role_display }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ invitation.invited_by.get_full_name }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ invitation.created_at|date:"M d, Y" }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ invitation.expires_at|date:"M d, Y" }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <form method="post" action="{% url 'accounts:cancel_invitation' invitation.id %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="text-red-600 hover:text-red-900"
+                        onclick="return confirm('Are you sure you want to cancel this invitation?')">
+                  <i class="fas fa-times-circle mr-1"></i>Cancel
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
