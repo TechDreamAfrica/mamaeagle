@@ -1,6 +1,7 @@
 """
 Context processors for website
 """
+from django.db.models import Sum
 from .models import Cart
 
 
@@ -10,7 +11,7 @@ def cart_context(request):
     if request.user.is_authenticated:
         try:
             cart = Cart.objects.get(user=request.user)
-            cart_count = cart.items.count()
+            cart_count = cart.items.aggregate(total=Sum('quantity'))['total'] or 0
         except Cart.DoesNotExist:
             cart_count = 0
     else:

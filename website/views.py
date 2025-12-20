@@ -16,7 +16,6 @@ from functools import wraps
 from .models import Product, ProductCategory, Cart, CartItem, Order, OrderItem, Newsletter, ContactMessage
 from .forms import ContactForm, NewsletterForm, CheckoutForm, CustomerRegistrationForm, CustomerLoginForm, CustomerProfileForm
 from invoicing.models import Product as InvoiceProduct
-from accounts.models import UserBranch
 import json
 
 
@@ -223,13 +222,32 @@ def add_to_cart(request, product_id):
     if request.method == 'POST':
         product = get_object_or_404(Product, id=product_id, is_active=True)
         
+        # Validate stock availability
+        if not product.in_stock:
+            return JsonResponse({
+                'success': False,
+                'message': 'Product is out of stock'
+            })
+        
         # Handle both JSON and form data
         if request.content_type == 'application/json':
-            import json
             data = json.loads(request.body)
             quantity = int(data.get('quantity', 1))
         else:
             quantity = int(request.POST.get('quantity', 1))
+        
+        # Validate quantity
+        if quantity < 1:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid quantity'
+            })
+            
+        if product.track_inventory and quantity > product.stock_quantity:
+            return JsonResponse({
+                'success': False,
+                'message': f'Only {product.stock_quantity} items available in stock'
+            })
         
         # Get or create cart for authenticated user
         cart, created = Cart.objects.get_or_create(user=request.user)
@@ -242,20 +260,29 @@ def add_to_cart(request, product_id):
         )
         
         if not created:
-            cart_item.quantity += quantity
+            # Check total quantity doesn't exceed stock
+            new_quantity = cart_item.quantity + quantity
+            if product.track_inventory and new_quantity > product.stock_quantity:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Cannot add {quantity} more. Only {product.stock_quantity - cart_item.quantity} available.'
+                })
+            cart_item.quantity = new_quantity
             cart_item.save()
         
         # Update cart item count in session for header display
-        request.session['cart_count'] = cart.items.count()
+        cart_count = cart.items.aggregate(total=Sum('quantity'))['total'] or 0
+        request.session['cart_count'] = cart_count
         
         messages.success(request, f'{product.name} added to cart!')
         return JsonResponse({
             'success': True, 
-            'cart_items': cart.items.count(),
+            'cart_items': cart_count,
+            'cart_total': float(cart.total_amount),
             'message': f'{product.name} added to cart!'
         })
     
-    return JsonResponse({'success': False})
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
 
 @customer_login_required
@@ -718,20 +745,15 @@ def download_invoice(request, order_number):
     return response
 
 
-def sync_product_to_invoice_app(website_product, user_branch=None):
+def sync_product_to_invoice_app(website_product):
     """
     Sync website product to invoice app for real-time inventory tracking
     This creates or updates the corresponding product in the invoicing app
     """
     try:
-        # Get user's current branch or default company
-        if user_branch and hasattr(user_branch, 'branch') and hasattr(user_branch.branch, 'company'):
-            company = user_branch.branch.company
-        else:
-            # Fallback to first available company for the user
-            from accounts.models import Company
-            user_companies = Company.objects.filter(users=user_branch.user if user_branch else None)
-            company = user_companies.first()
+        # Get the first available company for sync (since website doesn't require branch assignment)
+        from accounts.models import Company
+        company = Company.objects.filter(is_active=True).first()
         
         if not company:
             return None
@@ -741,7 +763,7 @@ def sync_product_to_invoice_app(website_product, user_branch=None):
             company=company,
             sku=website_product.sku or f"WEB-{website_product.id}",
             defaults={
-                'user': user_branch.user if user_branch else company.users.first(),
+                'user': company.users.first(),
                 'name': website_product.name,
                 'description': website_product.description or website_product.short_description,
                 'unit_price': website_product.price,
@@ -831,14 +853,11 @@ def sync_products_to_invoice(request):
         return JsonResponse({'success': False, 'message': 'Permission denied'})
         
     try:
-        # Get user's branch
-        user_branch = UserBranch.objects.filter(user=request.user).first()
-        
         products = Product.objects.filter(is_active=True)
         synced_count = 0
         
         for product in products:
-            if sync_product_to_invoice_app(product, user_branch):
+            if sync_product_to_invoice_app(product):
                 synced_count += 1
                 
         return JsonResponse({
@@ -946,8 +965,7 @@ def get_products_for_invoice_autocomplete(request):
                 invoice_product = InvoiceProduct.objects.get(sku=sku)
         except InvoiceProduct.DoesNotExist:
             # Create invoice product if it doesn't exist
-            user_branch = UserBranch.objects.filter(user=request.user).first()
-            invoice_product = sync_product_to_invoice_app(product, user_branch)
+            invoice_product = sync_product_to_invoice_app(product)
         
         if invoice_product:
             results.append({
