@@ -27,6 +27,16 @@ urlpatterns = [
     path('companies/switch/<int:company_id>/', company_views.switch_company, name='switch_company'),
     path('companies/switcher/', company_views.company_switcher, name='company_switcher'),
     
+    # Company User Management URLs
+    path('companies/<int:company_id>/users/', company_views.company_users, name='company_users'),
+    path('companies/<int:company_id>/users/assign/', company_views.assign_user_to_company, name='assign_user_to_company'),
+    path('companies/<int:company_id>/users/create/', company_views.create_user_for_company, name='create_user_for_company'),
+    path('companies/<int:company_id>/users/<int:user_company_id>/update-role/', company_views.update_user_role_in_company, name='update_user_role'),
+    path('companies/<int:company_id>/users/<int:user_company_id>/remove/', company_views.remove_user_from_company, name='remove_user_from_company'),
+    
+    # User Management URLs (Super Admin only)
+    path('users/', company_views.user_list, name='user_list'),
+    
     # Team Management URLs
     path('team/', team_views.team_dashboard, name='team_dashboard'),
     path('team/invite/', team_views.invite_user, name='invite_user'),

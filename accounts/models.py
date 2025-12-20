@@ -55,10 +55,10 @@ class User(AbstractUser):
     Enhanced for Mama Eagle Enterprise with branch assignment
     """
     ROLE_CHOICES = [
+        ('super_admin', 'Super Administrator'),
         ('admin', 'Administrator'),
-        ('branch_manager', 'Branch Manager'),
+        ('manager', 'Company Manager'),
         ('accountant', 'Accountant'),
-        ('manager', 'Manager'),
         ('employee', 'Employee'),
         ('client', 'Client'),
     ]
@@ -78,9 +78,9 @@ class User(AbstractUser):
     hire_date = models.DateField(blank=True, null=True)
     salary = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     
-    # Branch assignment - users can be assigned to specific branches
-    current_branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name='current_users')
-    can_access_all_branches = models.BooleanField(default=False, help_text="Admin privilege to access all branches")
+    # Company assignment - users can be assigned to companies
+    is_super_admin = models.BooleanField(default=False, help_text="Super admin can access all companies")
+    managed_companies = models.ManyToManyField('Company', through='UserCompany', related_name='assigned_users', through_fields=('user', 'company'))
     
     # AI preferences
     ai_insights_enabled = models.BooleanField(default=True)
@@ -95,18 +95,17 @@ class User(AbstractUser):
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}".strip() or self.username
     
-    def get_accessible_branches(self):
+    def get_accessible_companies(self):
         """
-        Get branches the user can access
+        Get companies the user can access
         """
-        if self.can_access_all_branches or self.role == 'admin':
-            return Branch.objects.filter(is_active=True)
-        elif self.current_branch:
-            # Users assigned to branches through UserBranch model
-            return Branch.objects.filter(
-                id__in=self.branch_assignments.filter(is_active=True).values_list('branch_id', flat=True)
+        if self.is_super_admin or self.role == 'super_admin':
+            from accounts.models import Company
+            return Company.objects.all()
+        else:
+            return self.managed_companies.filter(
+                usercompany__is_active=True
             )
-        return Branch.objects.none()
     
     @property
     def company(self):
@@ -116,6 +115,32 @@ class User(AbstractUser):
         from accounts.models import UserCompany
         user_company = UserCompany.objects.filter(user=self, is_active=True).first()
         return user_company.company if user_company else None
+    
+    def can_manage_company(self, company):
+        """
+        Check if user can manage the given company
+        """
+        if self.is_super_admin or self.role == 'super_admin':
+            return True
+        
+        user_company = UserCompany.objects.filter(
+            user=self, company=company, is_active=True
+        ).first()
+        
+        return user_company and user_company.role in ['manager', 'admin']
+    
+    def get_companies_as_manager(self):
+        """
+        Get companies where user is a manager
+        """
+        if self.is_super_admin:
+            from accounts.models import Company
+            return Company.objects.all()
+        
+        return self.managed_companies.filter(
+            usercompany__is_active=True,
+            usercompany__role__in=['manager', 'admin']
+        )
 
 
 class Company(models.Model):
@@ -164,43 +189,41 @@ class Company(models.Model):
 
 class UserCompany(models.Model):
     """
-    Many-to-many relationship between Users and Companies
-    Supports unlimited users per company - removed subscription limits
+    Many-to-many relationship between Users and Companies with role-based access
+    Supports company-based user management
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    role = models.CharField(max_length=50, default='employee')
-    is_active = models.BooleanField(default=True)
-    permissions = models.JSONField(default=list)
+    COMPANY_ROLE_CHOICES = [
+        ('admin', 'Company Administrator'),
+        ('manager', 'Company Manager'),
+        ('accountant', 'Accountant'),
+        ('employee', 'Employee'),
+        ('viewer', 'Viewer'),
+    ]
     
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.company.name}"
-
-    class Meta:
-        unique_together = ['user', 'company']
-
-
-class UserBranch(models.Model):
-    """
-    Many-to-many relationship between Users and Branches
-    Allows users to be assigned to multiple branches
-    """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='branch_assignments')
-    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='user_assignments')
-    role = models.CharField(max_length=50, default='employee')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='company_assignments')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='user_assignments')
+    role = models.CharField(max_length=50, choices=COMPANY_ROLE_CHOICES, default='employee')
     is_active = models.BooleanField(default=True)
-    permissions = models.JSONField(default=list)
-    assigned_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='branch_assignments_made')
+    permissions = models.JSONField(default=list, help_text="Specific permissions within the company")
+    assigned_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, 
+        related_name='company_assignments_made'
+    )
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.branch.name}"
+        return f"{self.user.username} - {self.company.name} ({self.role})"
 
     class Meta:
-        unique_together = ['user', 'branch']
-        verbose_name = "User Branch Assignment"
-        verbose_name_plural = "User Branch Assignments"
+        unique_together = ['user', 'company']
+        verbose_name = "User Company Assignment"
+        verbose_name_plural = "User Company Assignments"
+    
+    def can_manage_users(self):
+        """Check if this user can manage other users in this company"""
+        return self.role in ['admin', 'manager']
+
+
+

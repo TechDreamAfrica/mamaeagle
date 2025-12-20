@@ -1,0 +1,177 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n widget_tweaks %}
+
+{% block title %}Update Role - {{ user_company.user.get_full_name }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+<li class="breadcrumb-item"><a href="{% url 'accounts:company_list' %}">Companies</a></li>
+<li class="breadcrumb-item"><a href="{% url 'accounts:company_detail' company.id %}">{{ company.name }}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'accounts:company_users' company.id %}">Users</a></li>
+<li class="breadcrumb-item active">Update Role</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Update User Role</h1>
+        <a href="{% url 'accounts:company_users' company.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Users
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Update Role for {{ user_company.user.get_full_name|default:user_company.user.username }}</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="updateRoleForm">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.role.id_for_label }}" class="font-weight-bold">
+                                        New Role <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.role|add_class:"form-control" }}
+                                    {% if form.role.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.role.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Current role: <strong>{{ user_company.get_role_display }}</strong>
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">User Information</label>
+                                    <div class="card bg-light">
+                                        <div class="card-body py-2">
+                                            <div class="d-flex align-items-center">
+                                                {% if user_company.user.profile_image %}
+                                                <img src="{{ user_company.user.profile_image.url }}" alt="Avatar" class="rounded-circle mr-3" width="40" height="40">
+                                                {% else %}
+                                                <div class="bg-gray-300 rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 40px; height: 40px;">
+                                                    <i class="fas fa-user text-gray-600"></i>
+                                                </div>
+                                                {% endif %}
+                                                <div>
+                                                    <div class="font-weight-bold">{{ user_company.user.get_full_name|default:user_company.user.username }}</div>
+                                                    <div class="text-muted small">{{ user_company.user.email }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if form.notes %}
+                        <div class="form-group">
+                            <label for="{{ form.notes.id_for_label }}" class="font-weight-bold">Notes</label>
+                            {{ form.notes|add_class:"form-control" }}
+                            {% if form.notes.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.notes.errors }}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Add a note about this role change (optional).
+                            </small>
+                        </div>
+                        {% endif %}
+
+                        <div class="form-group mb-0">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Role
+                            </button>
+                            <a href="{% url 'accounts:company_users' company.id %}" class="btn btn-outline-secondary ml-2">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Company Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if company.logo %}
+                        <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="rounded" style="max-width: 100px; max-height: 100px;">
+                        {% else %}
+                        <div class="bg-primary text-white rounded d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem;">
+                            {{ company.name|first|upper }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <h5 class="text-center mb-3">{{ company.name }}</h5>
+                    
+                    {% if company.description %}
+                    <p class="text-muted small">{{ company.description }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card shadow mt-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Assignment Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Assigned By</div>
+                            <div class="text-gray-800">{{ user_company.assigned_by.get_full_name|default:user_company.assigned_by.username }}</div>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Date Assigned</div>
+                            <div class="text-gray-800">{{ user_company.created_at|date:"M d, Y g:i A" }}</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Current Role</div>
+                            <div class="text-gray-800">
+                                {% if user_company.role == 'ADMIN' %}
+                                <span class="badge badge-danger">Admin</span>
+                                {% elif user_company.role == 'MANAGER' %}
+                                <span class="badge badge-warning">Manager</span>
+                                {% elif user_company.role == 'ACCOUNTANT' %}
+                                <span class="badge badge-info">Accountant</span>
+                                {% elif user_company.role == 'SALES' %}
+                                <span class="badge badge-success">Sales</span>
+                                {% else %}
+                                <span class="badge badge-secondary">{{ user_company.get_role_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Add select2 styling to role dropdown
+    $('#{{ form.role.id_for_label }}').select2({
+        minimumResultsForSearch: Infinity
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,354 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Dashboard - AccuFlow Admin{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 mb-0">Dashboard</h1>
+        <p class="text-muted">Welcome to the AccuFlow administration panel</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card stats-card">
+            <div class="card-body d-flex align-items-center">
+                <div class="stats-icon bg-primary bg-opacity-10 text-primary me-3">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div>
+                    <h6 class="card-title text-muted mb-1">Total Users</h6>
+                    <h4 class="mb-0">{{ stats.users_count }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card stats-card">
+            <div class="card-body d-flex align-items-center">
+                <div class="stats-icon bg-success bg-opacity-10 text-success me-3">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div>
+                    <h6 class="card-title text-muted mb-1">Companies</h6>
+                    <h4 class="mb-0">{{ stats.companies_count }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card stats-card">
+            <div class="card-body d-flex align-items-center">
+                <div class="stats-icon bg-warning bg-opacity-10 text-warning me-3">
+                    <i class="bi bi-cart"></i>
+                </div>
+                <div>
+                    <h6 class="card-title text-muted mb-1">Total Orders</h6>
+                    <h4 class="mb-0">{{ stats.orders_count }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card stats-card">
+            <div class="card-body d-flex align-items-center">
+                <div class="stats-icon bg-info bg-opacity-10 text-info me-3">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <div>
+                    <h6 class="card-title text-muted mb-1">Invoices</h6>
+                    <h4 class="mb-0">{{ stats.invoices_count }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Second Row of Statistics -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card stats-card">
+            <div class="card-body d-flex align-items-center">
+                <div class="stats-icon bg-secondary bg-opacity-10 text-secondary me-3">
+                    <i class="bi bi-box"></i>
+                </div>
+                <div>
+                    <h6 class="card-title text-muted mb-1">Website Products</h6>
+                    <h4 class="mb-0">{{ stats.website_products_count }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card stats-card">
+            <div class="card-body d-flex align-items-center">
+                <div class="stats-icon bg-danger bg-opacity-10 text-danger me-3">
+                    <i class="bi bi-boxes"></i>
+                </div>
+                <div>
+                    <h6 class="card-title text-muted mb-1">Inventory Products</h6>
+                    <h4 class="mb-0">{{ stats.inventory_products_count }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card stats-card">
+            <div class="card-body d-flex align-items-center">
+                <div class="stats-icon bg-dark bg-opacity-10 text-dark me-3">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div>
+                    <h6 class="card-title text-muted mb-1">Customers</h6>
+                    <h4 class="mb-0">{{ stats.customers_count }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card stats-card">
+            <div class="card-body d-flex align-items-center">
+                <div class="stats-icon bg-primary bg-opacity-10 text-primary me-3">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <h6 class="card-title text-muted mb-1">Employees</h6>
+                    <h4 class="mb-0">{{ stats.employees_count }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-xl-2 col-md-4 col-sm-6">
+                        <a href="{% url 'admin_panel:user_create' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-person-plus d-block mb-2 fs-4"></i>
+                            Add User
+                        </a>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-sm-6">
+                        <a href="{% url 'admin_panel:company_create' %}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-building-add d-block mb-2 fs-4"></i>
+                            Add Company
+                        </a>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-sm-6">
+                        <a href="{% url 'admin_panel:website_product_create' %}" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
+                            Add Product
+                        </a>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-sm-6">
+                        <a href="{% url 'admin_panel:customer_create' %}" class="btn btn-outline-info w-100">
+                            <i class="bi bi-person-badge-fill d-block mb-2 fs-4"></i>
+                            Add Customer
+                        </a>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-sm-6">
+                        <a href="#" class="btn btn-outline-secondary w-100" onclick="alert('Employee management coming soon!')">
+                            <i class="bi bi-person-workspace d-block mb-2 fs-4"></i>
+                            Add Employee
+                        </a>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-sm-6">
+                        <a href="{% url 'admin_panel:supplier_create' %}" class="btn btn-outline-dark w-100">
+                            <i class="bi bi-truck d-block mb-2 fs-4"></i>
+                            Add Supplier
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row g-4">
+    <!-- Recent Orders -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Orders</h5>
+                <a href="{% url 'admin_panel:order_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td><a href="{% url 'admin_panel:order_detail' order.pk %}" class="text-decoration-none">#{{ order.id }}</a></td>
+                                    <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+                                    <td>${{ order.total|floatformat:2 }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ order.status|default:'secondary' }}">
+                                            {{ order.get_status_display|default:order.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center p-4 text-muted">
+                        <i class="bi bi-cart-x fs-1 d-block mb-2"></i>
+                        No recent orders
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Users</h5>
+                <a href="{% url 'admin_panel:user_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_users %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Joined</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in recent_users %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'admin_panel:user_detail' user.pk %}" class="text-decoration-none">
+                                            {{ user.get_full_name|default:user.username }}
+                                        </a>
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% if user.is_superuser %}
+                                            <span class="badge bg-danger">Super Admin</span>
+                                        {% elif user.is_staff %}
+                                            <span class="badge bg-warning">Staff</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">User</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center p-4 text-muted">
+                        <i class="bi bi-people fs-1 d-block mb-2"></i>
+                        No recent users
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Items -->
+<div class="row g-4 mt-2">
+    <!-- Pending Orders -->
+    {% if stats.pending_orders > 0 %}
+    <div class="col-lg-4">
+        <div class="card border-warning">
+            <div class="card-header bg-warning bg-opacity-10">
+                <h6 class="card-title mb-0 text-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Pending Orders
+                </h6>
+            </div>
+            <div class="card-body">
+                <h4 class="text-warning">{{ stats.pending_orders }}</h4>
+                <p class="text-muted mb-0">Orders require attention</p>
+                <a href="{% url 'admin_panel:order_list' %}?status=pending" class="btn btn-sm btn-warning mt-2">
+                    View Pending Orders
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Draft Invoices -->
+    {% if stats.draft_invoices > 0 %}
+    <div class="col-lg-4">
+        <div class="card border-info">
+            <div class="card-header bg-info bg-opacity-10">
+                <h6 class="card-title mb-0 text-info">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    Draft Invoices
+                </h6>
+            </div>
+            <div class="card-body">
+                <h4 class="text-info">{{ stats.draft_invoices }}</h4>
+                <p class="text-muted mb-0">Invoices need completion</p>
+                <a href="#" class="btn btn-sm btn-info mt-2" onclick="alert('Invoice management coming soon!')">
+                    View Draft Invoices
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pending Leave Requests -->
+    {% if pending_leaves %}
+    <div class="col-lg-4">
+        <div class="card border-primary">
+            <div class="card-header bg-primary bg-opacity-10">
+                <h6 class="card-title mb-0 text-primary">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    Pending Leave Requests
+                </h6>
+            </div>
+            <div class="card-body">
+                <h4 class="text-primary">{{ pending_leaves|length }}</h4>
+                <p class="text-muted mb-0">Leave requests to review</p>
+                <a href="#" class="btn btn-sm btn-primary mt-2" onclick="alert('HR management coming soon!')">
+                    Review Requests
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

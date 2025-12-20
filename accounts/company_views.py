@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 
 from .models import Company, UserCompany
-from .forms import CompanyCreationForm
+from .forms import CompanyCreationForm, UserCompanyAssignmentForm, CreateUserForCompanyForm, UserRoleUpdateForm
 
 
 @login_required
@@ -83,15 +83,12 @@ def switch_company(request, company_id):
 @login_required
 def create_company(request):
     """
-    Create a new company - unlimited companies for Mama Eagle Enterprise
+    Create a new company with proper role-based management
     """
-    # For Mama Eagle Enterprise, we allow unlimited companies
-    company_limit = 999  # Very high limit, effectively unlimited
-    owned_companies = UserCompany.objects.filter(
-        user=request.user,
-        role='owner',
-        is_active=True
-    ).count()
+    # Check if user can create companies
+    if not (request.user.is_super_admin or request.user.role in ['super_admin', 'admin']):
+        messages.error(request, 'You do not have permission to create companies.')
+        return redirect('dashboard:home')
     
     if request.method == 'POST':
         form = CompanyCreationForm(request.POST)
@@ -103,20 +100,27 @@ def create_company(request):
             # Get the selected user from the form
             assigned_user = form.cleaned_data['assign_to_user']
             
-            # Add selected user as owner
+            # Add selected user as company manager or admin based on their role
+            company_role = 'admin' if assigned_user.role in ['admin', 'super_admin'] else 'manager'
+            
             UserCompany.objects.create(
                 user=assigned_user,
                 company=company,
-                role='owner'
+                role=company_role,
+                assigned_by=request.user,
+                is_active=True
             )
             
-            messages.success(request, f'Company "{company.name}" created successfully and assigned to {assigned_user.get_full_name() or assigned_user.username}!')
+            messages.success(
+                request, 
+                f'Company "{company.name}" created successfully and assigned to {assigned_user.get_full_name() or assigned_user.username} as {company_role}!'
+            )
             
             # Switch to new company via session only if assigning to current user
             if assigned_user == request.user:
                 request.session['active_company_id'] = company.id
             
-            return redirect('dashboard:home')
+            return redirect('accounts:manage_company_users', company_id=company.id)
     else:
         # Initialize form with current user as default selection
         form = CompanyCreationForm(initial={'assign_to_user': request.user})
@@ -217,6 +221,7 @@ def company_detail(request, company_id):
         'company': company,
         'user_company': user_company,
         'team_members': team_members,
+        'can_manage_company': request.user.is_super_admin or request.user.can_manage_company(company),
     }
 
     return render(request, 'accounts/company_detail.html', context)
@@ -257,3 +262,175 @@ def company_delete(request, company_id):
     }
 
     return render(request, 'accounts/company_confirm_delete.html', context)
+
+
+@login_required
+def company_users(request, company_id):
+    """List all users in a company."""
+    company = get_object_or_404(Company, id=company_id)
+    
+    # Check permissions
+    if not request.user.is_super_admin and not request.user.can_manage_company(company):
+        messages.error(request, 'You do not have permission to view users for this company.')
+        return redirect('accounts:company_list')
+    
+    users = UserCompany.objects.filter(company=company).select_related('user')
+    
+    context = {
+        'company': company,
+        'users': users,
+    }
+    
+    return render(request, 'accounts/company_users.html', context)
+
+
+@login_required
+def assign_user_to_company(request, company_id):
+    """Assign a user to a company with a role."""
+    company = get_object_or_404(Company, id=company_id)
+    
+    # Check permissions
+    if not request.user.is_super_admin and not request.user.can_manage_company(company):
+        messages.error(request, 'You do not have permission to assign users to this company.')
+        return redirect('accounts:company_list')
+    
+    if request.method == 'POST':
+        form = UserCompanyAssignmentForm(request.POST, company=company, manager=request.user)
+        if form.is_valid():
+            user_company = form.save(commit=False)
+            user_company.company = company
+            user_company.assigned_by = request.user
+            user_company.save()
+            
+            messages.success(request, f'User "{user_company.user.get_full_name() or user_company.user.username}" has been assigned to "{company.name}" as {user_company.role}.')
+            return redirect('accounts:company_users', company_id=company.id)
+    else:
+        form = UserCompanyAssignmentForm(company=company, manager=request.user)
+    
+    context = {
+        'form': form,
+        'company': company,
+    }
+    
+    return render(request, 'accounts/assign_user_to_company.html', context)
+
+
+@login_required
+def create_user_for_company(request, company_id):
+    """Create a new user and assign them to a company."""
+    company = get_object_or_404(Company, id=company_id)
+    
+    # Check permissions
+    if not request.user.is_super_admin and not request.user.can_manage_company(company):
+        messages.error(request, 'You do not have permission to create users for this company.')
+        return redirect('accounts:company_list')
+    
+    if request.method == 'POST':
+        form = CreateUserForCompanyForm(request.POST, company=company, manager=request.user)
+        if form.is_valid():
+            user, user_company = form.save(company=company, assigned_by=request.user)
+            
+            messages.success(request, f'User "{user.get_full_name() or user.username}" has been created and assigned to "{company.name}" as {user_company.role}.')
+            return redirect('accounts:company_users', company_id=company.id)
+    else:
+        form = CreateUserForCompanyForm(company=company, manager=request.user)
+    
+    context = {
+        'form': form,
+        'company': company,
+    }
+    
+    return render(request, 'accounts/create_user_for_company.html', context)
+
+
+@login_required
+def update_user_role_in_company(request, company_id, user_company_id):
+    """Update a user's role in a company."""
+    company = get_object_or_404(Company, id=company_id)
+    user_company = get_object_or_404(UserCompany, id=user_company_id, company=company)
+    
+    # Check permissions
+    if not request.user.is_super_admin and not request.user.can_manage_company(company):
+        messages.error(request, 'You do not have permission to update user roles in this company.')
+        return redirect('accounts:company_list')
+    
+    # Prevent managers from updating their own role or other managers' roles
+    if not request.user.is_super_admin:
+        if user_company.user == request.user:
+            messages.error(request, 'You cannot update your own role.')
+            return redirect('accounts:company_users', company_id=company.id)
+        
+        if user_company.role in ['MANAGER', 'ADMIN'] and not request.user.is_super_admin:
+            messages.error(request, 'You do not have permission to update this user\'s role.')
+            return redirect('accounts:company_users', company_id=company.id)
+    
+    if request.method == 'POST':
+        form = UserRoleUpdateForm(request.POST, instance=user_company, manager=request.user)
+        if form.is_valid():
+            form.save()
+            
+            messages.success(request, f'Role for "{user_company.user.get_full_name() or user_company.user.username}" has been updated to {user_company.role}.')
+            return redirect('accounts:company_users', company_id=company.id)
+    else:
+        form = UserRoleUpdateForm(instance=user_company, manager=request.user)
+    
+    context = {
+        'form': form,
+        'company': company,
+        'user_company': user_company,
+    }
+    
+    return render(request, 'accounts/update_user_role.html', context)
+
+
+@login_required
+def remove_user_from_company(request, company_id, user_company_id):
+    """Remove a user from a company."""
+    company = get_object_or_404(Company, id=company_id)
+    user_company = get_object_or_404(UserCompany, id=user_company_id, company=company)
+    
+    # Check permissions
+    if not request.user.is_super_admin and not request.user.can_manage_company(company):
+        messages.error(request, 'You do not have permission to remove users from this company.')
+        return redirect('accounts:company_list')
+    
+    # Prevent managers from removing themselves or other managers
+    if not request.user.is_super_admin:
+        if user_company.user == request.user:
+            messages.error(request, 'You cannot remove yourself from the company.')
+            return redirect('accounts:company_users', company_id=company.id)
+        
+        if user_company.role in ['MANAGER', 'ADMIN']:
+            messages.error(request, 'You do not have permission to remove this user.')
+            return redirect('accounts:company_users', company_id=company.id)
+    
+    if request.method == 'POST':
+        user_name = user_company.user.get_full_name() or user_company.user.username
+        user_company.delete()
+        
+        messages.success(request, f'"{user_name}" has been removed from "{company.name}".')
+        return redirect('accounts:company_users', company_id=company.id)
+    
+    context = {
+        'company': company,
+        'user_company': user_company,
+    }
+    
+    return render(request, 'accounts/remove_user_from_company.html', context)
+
+
+@login_required
+def user_list(request):
+    """List all users with their company assignments."""
+    # Only super admin can view all users
+    if not request.user.is_super_admin:
+        messages.error(request, 'You do not have permission to view all users.')
+        return redirect('dashboard:index')
+    
+    users = User.objects.all().prefetch_related('usercompany_set__company')
+    
+    context = {
+        'users': users,
+    }
+    
+    return render(request, 'accounts/user_list.html', context)

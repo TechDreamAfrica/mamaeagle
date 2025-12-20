@@ -1,0 +1,236 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Order #{{ object.id }} - AccuFlow Admin{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'admin_panel:order_list' %}">Orders</a></li>
+<li class="breadcrumb-item active">Order #{{ object.id }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Order #{{ object.id }}</h1>
+        <p class="text-muted">Order details and management</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'admin_panel:order_update' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>Edit Order
+        </a>
+        <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+            <span class="visually-hidden">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" onclick="alert('Invoice generation coming soon'); return false;">
+                <i class="bi bi-file-earmark-pdf me-2"></i>Generate Invoice
+            </a></li>
+            <li><a class="dropdown-item" href="#" onclick="alert('Email customer coming soon'); return false;">
+                <i class="bi bi-envelope me-2"></i>Email Customer
+            </a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="{% url 'admin_panel:order_delete' object.pk %}">
+                <i class="bi bi-trash me-2"></i>Delete Order
+            </a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Order Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Order Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Order Date</label>
+                        <p class="mb-0">{{ object.created_at|date:"F d, Y g:i A" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Order Status</label>
+                        <p class="mb-0">
+                            {% if object.status %}
+                                <span class="badge bg-primary">{{ object.get_status_display|default:object.status|title }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Pending</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Customer</label>
+                        <p class="mb-0">
+                            {% if object.customer %}
+                                <a href="{% url 'admin_panel:customer_detail' object.customer.pk %}" class="text-decoration-none">
+                                    {{ object.customer.name|default:"Unknown Customer" }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">No customer assigned</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Total Amount</label>
+                        <p class="mb-0 fw-bold text-primary">
+                            ${{ object.total|default:"0.00"|floatformat:2 }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Order Items</h5>
+            </div>
+            <div class="card-body">
+                {% if object.orderitem_set.exists %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in object.orderitem_set.all %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                                 style="width: 32px; height: 32px;">
+                                                <i class="bi bi-box text-primary text-sm"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">{{ item.product.name|default:"Unknown Product" }}</h6>
+                                                {% if item.product.sku %}
+                                                    <small class="text-muted">SKU: {{ item.product.sku }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ item.quantity|default:"1" }}</td>
+                                    <td>${{ item.price|default:"0.00"|floatformat:2 }}</td>
+                                    <td class="fw-bold">
+                                        {% widthratio item.quantity 1 item.price as item_total %}
+                                        ${{ item_total|floatformat:2 }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-box fs-1 d-block mb-3"></i>
+                        <h6>No items in this order</h6>
+                        <p>This order doesn't contain any items yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Order Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Order Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <strong>Order ID:</strong>
+                    </div>
+                    <div class="col-6">
+                        #{{ object.id }}
+                    </div>
+                    <div class="col-6">
+                        <strong>Created:</strong>
+                    </div>
+                    <div class="col-6">
+                        {{ object.created_at|date:"M d, Y" }}
+                    </div>
+                    <div class="col-6">
+                        <strong>Updated:</strong>
+                    </div>
+                    <div class="col-6">
+                        {{ object.updated_at|date:"M d, Y" }}
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row g-2">
+                    <div class="col-8">
+                        <strong>Total Amount:</strong>
+                    </div>
+                    <div class="col-4 text-end">
+                        <strong class="text-primary">${{ object.total|default:"0.00"|floatformat:2 }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Information -->
+        {% if object.customer %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Customer Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-12">
+                        <strong>{{ object.customer.name|default:"Unknown Customer" }}</strong>
+                    </div>
+                    {% if object.customer.email %}
+                    <div class="col-12">
+                        <small class="text-muted">
+                            <i class="bi bi-envelope me-1"></i>{{ object.customer.email }}
+                        </small>
+                    </div>
+                    {% endif %}
+                    {% if object.customer.phone %}
+                    <div class="col-12">
+                        <small class="text-muted">
+                            <i class="bi bi-telephone me-1"></i>{{ object.customer.phone }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'admin_panel:customer_detail' object.customer.pk %}" class="btn btn-sm btn-outline-primary w-100">
+                        View Customer Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="alert('Print order coming soon'); return false;">
+                        <i class="bi bi-printer me-2"></i>Print Order
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="alert('Mark as shipped coming soon'); return false;">
+                        <i class="bi bi-truck me-2"></i>Mark as Shipped
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm" onclick="alert('Request refund coming soon'); return false;">
+                        <i class="bi bi-arrow-counterclockwise me-2"></i>Request Refund
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

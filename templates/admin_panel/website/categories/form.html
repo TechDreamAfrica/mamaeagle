@@ -1,0 +1,185 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}{{ object|yesno:"Edit,Add New" }} Category - AccuFlow Admin{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item">Website</li>
+<li class="breadcrumb-item"><a href="{% url 'admin_panel:website_category_list' %}">Categories</a></li>
+<li class="breadcrumb-item active">{{ object|yesno:"Edit,Add" }} Category</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-tag me-2"></i>
+                    {{ object|yesno:"Edit Category,Add New Category" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <h6>Please correct the following errors:</h6>
+                            {{ form.errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">Category Name *</label>
+                                {{ form.name.as_widget }}
+                                {% if form.name.help_text %}
+                                    <div class="form-text">{{ form.name.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.slug.id_for_label }}" class="form-label">Slug *</label>
+                                {{ form.slug.as_widget }}
+                                {% if form.slug.help_text %}
+                                    <div class="form-text">{{ form.slug.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                        {{ form.description.as_widget }}
+                        {% if form.description.help_text %}
+                            <div class="form-text">{{ form.description.help_text }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.parent.id_for_label }}" class="form-label">Parent Category</label>
+                                {{ form.parent.as_widget }}
+                                {% if form.parent.help_text %}
+                                    <div class="form-text">{{ form.parent.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.sort_order.id_for_label }}" class="form-label">Sort Order</label>
+                                {{ form.sort_order.as_widget }}
+                                {% if form.sort_order.help_text %}
+                                    <div class="form-text">{{ form.sort_order.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.is_active.as_widget }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                Category is Active
+                            </label>
+                        </div>
+                        {% if form.is_active.help_text %}
+                            <div class="form-text">{{ form.is_active.help_text }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'admin_panel:website_category_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>{{ object|yesno:"Update Category,Create Category" }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Category Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6>Tips for creating categories:</h6>
+                    <ul class="mb-0">
+                        <li>Use clear, descriptive category names</li>
+                        <li>Create URL-friendly slugs</li>
+                        <li>Add helpful descriptions for SEO</li>
+                        <li>Use parent categories for organization</li>
+                        <li>Set sort orders for custom arrangement</li>
+                        <li>Keep category structures logical</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {% if object %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Category Info</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <strong>Created:</strong>
+                    </div>
+                    <div class="col-6">
+                        {{ object.created_at|date:"M d, Y" }}
+                    </div>
+                    <div class="col-6">
+                        <strong>Updated:</strong>
+                    </div>
+                    <div class="col-6">
+                        {{ object.updated_at|date:"M d, Y" }}
+                    </div>
+                    <div class="col-6">
+                        <strong>Products:</strong>
+                    </div>
+                    <div class="col-6">
+                        {{ object.products.count }} items
+                    </div>
+                    <div class="col-6">
+                        <strong>Status:</strong>
+                    </div>
+                    <div class="col-6">
+                        {% if object.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    textarea.form-control {
+        min-height: 80px;
+    }
+</style>
+{% endblock %}

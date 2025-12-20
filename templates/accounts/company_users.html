@@ -1,0 +1,139 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}Users - {{ company.name }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+<li class="breadcrumb-item"><a href="{% url 'accounts:company_list' %}">Companies</a></li>
+<li class="breadcrumb-item"><a href="{% url 'accounts:company_detail' company.id %}">{{ company.name }}</a></li>
+<li class="breadcrumb-item active">Users</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ company.name }} - Users</h1>
+        <div>
+            <a href="{% url 'accounts:assign_user_to_company' company.id %}" class="btn btn-outline-primary btn-sm mr-2">
+                <i class="fas fa-user-plus"></i> Assign User
+            </a>
+            <a href="{% url 'accounts:create_user_for_company' company.id %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Create User
+            </a>
+        </div>
+    </div>
+
+    {% if users %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Company Users</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Assigned By</th>
+                            <th>Date Assigned</th>
+                            <th width="150">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_company in users %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if user_company.user.profile_image %}
+                                    <img src="{{ user_company.user.profile_image.url }}" alt="Avatar" class="rounded-circle mr-2" width="32" height="32">
+                                    {% else %}
+                                    <div class="bg-gray-200 rounded-circle d-flex align-items-center justify-content-center mr-2" style="width: 32px; height: 32px;">
+                                        <i class="fas fa-user text-gray-600"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="font-weight-bold">{{ user_company.user.get_full_name|default:user_company.user.username }}</div>
+                                        {% if user_company.user.is_active %}
+                                        <small class="text-success">Active</small>
+                                        {% else %}
+                                        <small class="text-danger">Inactive</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ user_company.user.email }}</td>
+                            <td>
+                                {% if user_company.role == 'ADMIN' %}
+                                <span class="badge badge-danger">Admin</span>
+                                {% elif user_company.role == 'MANAGER' %}
+                                <span class="badge badge-warning">Manager</span>
+                                {% elif user_company.role == 'ACCOUNTANT' %}
+                                <span class="badge badge-info">Accountant</span>
+                                {% elif user_company.role == 'SALES' %}
+                                <span class="badge badge-success">Sales</span>
+                                {% else %}
+                                <span class="badge badge-secondary">{{ user_company.role }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user_company.assigned_by.get_full_name|default:user_company.assigned_by.username }}</td>
+                            <td>{{ user_company.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                                        Actions
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="{% url 'accounts:update_user_role' company.id user_company.id %}">
+                                            <i class="fas fa-edit"></i> Update Role
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" href="{% url 'accounts:remove_user_from_company' company.id user_company.id %}">
+                                            <i class="fas fa-trash"></i> Remove from Company
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card shadow">
+        <div class="card-body text-center">
+            <i class="fas fa-users text-gray-300 mb-3" style="font-size: 3rem;"></i>
+            <h5 class="text-gray-500">No users assigned to this company</h5>
+            <p class="text-gray-400">Start by assigning existing users or creating new users for this company.</p>
+            <div class="mt-3">
+                <a href="{% url 'accounts:assign_user_to_company' company.id %}" class="btn btn-outline-primary mr-2">
+                    <i class="fas fa-user-plus"></i> Assign User
+                </a>
+                <a href="{% url 'accounts:create_user_for_company' company.id %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create User
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#dataTable').DataTable({
+        "pageLength": 25,
+        "order": [[ 4, "desc" ]],
+        "columnDefs": [
+            { "orderable": false, "targets": -1 }
+        ]
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Companies - AccuFlow Admin{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">Companies</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Companies</h1>
+        <p class="text-muted">Manage company information and settings</p>
+    </div>
+    <a href="{% url 'admin_panel:company_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>Add Company
+    </a>
+</div>
+
+<!-- Search and Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-8">
+                <input type="text" class="form-control" name="search" placeholder="Search companies..." 
+                       value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary flex-grow-1">
+                        <i class="bi bi-search me-1"></i>Search
+                    </button>
+                    <a href="{% url 'admin_panel:company_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Companies Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">All Companies ({{ companies.count }} total)</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if companies %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Contact Info</th>
+                            <th>Location</th>
+                            <th>Currency</th>
+                            <th>Users</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for company in companies %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="bi bi-building text-success"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ company.name }}</h6>
+                                        <small class="text-muted">ID: {{ company.id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ company.email|default:'-' }}</div>
+                                <small class="text-muted">{{ company.phone|default:'-' }}</small>
+                            </td>
+                            <td>
+                                <div>{{ company.city|default:'-' }}</div>
+                                <small class="text-muted">{{ company.country|default:'-' }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ company.currency|default:'USD' }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ company.usercompany_set.count }} user{{ company.usercompany_set.count|pluralize }}</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group">
+                                    <a href="{% url 'admin_panel:company_detail' company.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'admin_panel:company_update' company.pk %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'admin_panel:company_delete' company.pk %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center p-5 text-muted">
+                <i class="bi bi-building fs-1 d-block mb-3"></i>
+                <h5>No companies found</h5>
+                {% if request.GET.search %}
+                    <p>Try adjusting your search criteria</p>
+                    <a href="{% url 'admin_panel:company_list' %}" class="btn btn-outline-primary">Clear Search</a>
+                {% else %}
+                    <p>Get started by adding your first company</p>
+                    <a href="{% url 'admin_panel:company_create' %}" class="btn btn-primary">Add Company</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

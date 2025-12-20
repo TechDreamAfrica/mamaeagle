@@ -12,6 +12,9 @@ from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Admin Panel - Comprehensive system administration
+    path('admin-panel/', include('admin_panel.urls', namespace='admin_panel')),
 
     # Main e-commerce website
     path('', include('website.urls', namespace='website')),

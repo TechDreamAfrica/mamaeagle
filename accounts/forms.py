@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm, SetPasswordForm
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from .models import Company
+from .models import Company, UserCompany
 
 User = get_user_model()
 
@@ -430,5 +430,174 @@ class CompanyCreationForm(forms.ModelForm):
         user = self.cleaned_data.get('assign_to_user')
         if not user:
             raise ValidationError('Please select a user to assign to this company.')
+        return user
+
+
+class UserCompanyAssignmentForm(forms.ModelForm):
+    """
+    Form for assigning users to companies with specific roles
+    """
+    class Meta:
+        model = UserCompany
+        fields = ['user', 'company', 'role', 'permissions']
+        widgets = {
+            'user': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+            }),
+            'company': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+            }),
+            'role': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+            }),
+            'permissions': forms.Textarea(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+                'rows': 3,
+                'placeholder': 'Additional permissions (optional)',
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.request_user = kwargs.pop('request_user', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filter companies based on user permissions
+        if self.request_user:
+            if self.request_user.is_super_admin:
+                # Super admin can assign users to any company
+                self.fields['company'].queryset = Company.objects.all()
+            else:
+                # Company managers can only assign users to companies they manage
+                self.fields['company'].queryset = self.request_user.get_companies_as_manager()
+            
+            # Filter users appropriately
+            self.fields['user'].queryset = User.objects.filter(is_active=True).order_by('first_name', 'last_name')
+        
+        # Improve user display
+        self.fields['user'].label_from_instance = lambda obj: (
+            f"{obj.get_full_name()} ({obj.username})" if obj.get_full_name() 
+            else f"{obj.username} ({obj.email})"
+        )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        user = cleaned_data.get('user')
+        company = cleaned_data.get('company')
+        
+        if user and company:
+            # Check if user is already assigned to this company
+            if UserCompany.objects.filter(user=user, company=company, is_active=True).exists():
+                raise ValidationError('This user is already assigned to this company.')
+            
+            # Check if request user has permission to assign to this company
+            if self.request_user and not self.request_user.can_manage_company(company):
+                raise ValidationError('You do not have permission to assign users to this company.')
+        
+        return cleaned_data
+
+
+class UserRoleUpdateForm(forms.ModelForm):
+    """
+    Form for updating user roles within a company
+    """
+    class Meta:
+        model = UserCompany
+        fields = ['role', 'permissions', 'is_active']
+        widgets = {
+            'role': forms.Select(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+            }),
+            'permissions': forms.Textarea(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+                'rows': 3,
+                'placeholder': 'Additional permissions (optional)',
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50',
+            }),
+        }
+
+
+class CreateUserForCompanyForm(forms.ModelForm):
+    """
+    Form for creating a new user and assigning them to a company
+    """
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={
+            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+            'placeholder': 'Password',
+        })
+    )
+    password2 = forms.CharField(
+        label='Password Confirmation',
+        widget=forms.PasswordInput(attrs={
+            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+            'placeholder': 'Confirm Password',
+        })
+    )
+    company_role = forms.ChoiceField(
+        choices=UserCompany.COMPANY_ROLE_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+        }),
+        initial='employee'
+    )
+    
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'phone_number']
+        widgets = {
+            'username': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+                'placeholder': 'Username',
+            }),
+            'first_name': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+                'placeholder': 'First Name',
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+                'placeholder': 'Last Name',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+                'placeholder': 'Email Address',
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+                'placeholder': 'Phone Number',
+            }),
+        }
+    
+    def clean_password2(self):
+        password1 = self.cleaned_data.get("password1")
+        password2 = self.cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise ValidationError("Passwords don't match")
+        return password2
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise ValidationError("A user with this email already exists.")
+        return email
+    
+    def save(self, commit=True, company=None, assigned_by=None):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])
+        if commit:
+            user.save()
+            
+            # Create company assignment if company is provided
+            if company:
+                UserCompany.objects.create(
+                    user=user,
+                    company=company,
+                    role=self.cleaned_data['company_role'],
+                    assigned_by=assigned_by,
+                    is_active=True
+                )
+        
         return user
 

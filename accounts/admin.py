@@ -1,61 +1,32 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
-from .models import User, Company, UserCompany, Branch, UserBranch
+from .models import User, Company, UserCompany
 from .team_models import UserInvitation, TeamMember, RoleTemplate
 
 
-@admin.register(Branch)
-class BranchAdmin(admin.ModelAdmin):
-    list_display = ['name', 'code', 'manager_name', 'city', 'country', 'is_active', 'is_head_office', 'created_at']
-    list_filter = ['is_active', 'is_head_office', 'country', 'created_at']
-    search_fields = ['name', 'code', 'manager_name', 'city', 'email']
-    list_editable = ['is_active']
-    readonly_fields = ['created_at', 'updated_at']
-    
-    fieldsets = (
-        ('Basic Information', {
-            'fields': ('name', 'code', 'description', 'manager_name', 'is_active', 'is_head_office')
-        }),
-        ('Address', {
-            'fields': ('address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country')
-        }),
-        ('Contact Information', {
-            'fields': ('phone', 'email')
-        }),
-        ('Settings', {
-            'fields': ('settings',),
-            'classes': ('collapse',)
-        }),
-        ('Audit', {
-            'fields': ('created_by', 'created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
-
-
-class UserBranchInline(admin.TabularInline):
-    model = UserBranch
+class UserCompanyInline(admin.TabularInline):
+    model = UserCompany
     fk_name = 'user'
     extra = 0
-    fields = ['branch', 'role', 'is_active', 'assigned_by']
-    readonly_fields = ['assigned_by']
+    fields = ['company', 'role', 'assigned_by', 'created_at']
+    readonly_fields = ['assigned_by', 'created_at']
 
 
 @admin.register(User)
 class CustomUserAdmin(BaseUserAdmin):
-    list_display = ['username', 'email', 'full_name', 'role', 'current_branch', 'department', 'is_active_employee', 'hire_date']
-    list_filter = ['role', 'current_branch', 'department', 'is_active', 'is_active_employee', 'hire_date', 'date_joined']
+    list_display = ['username', 'email', 'full_name', 'is_super_admin', 'department', 'is_active', 'hire_date']
+    list_filter = ['is_super_admin', 'department', 'is_active', 'hire_date', 'date_joined']
     search_fields = ['username', 'email', 'first_name', 'last_name', 'employee_id']
     readonly_fields = ['date_joined', 'last_login', 'created_at', 'updated_at']
-    inlines = [UserBranchInline]
+    inlines = [UserCompanyInline]
     
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Employee Information', {
             'fields': ('employee_id', 'hire_date', 'department', 'salary', 'phone_number', 'date_of_birth')
         }),
-        ('Role & Branch Assignment', {
-            'fields': ('role', 'current_branch', 'can_access_all_branches', 'is_active_employee')
+        ('Company Management', {
+            'fields': ('is_super_admin',)
         }),
         ('Profile', {
             'fields': ('avatar',),
@@ -76,12 +47,12 @@ class CustomUserAdmin(BaseUserAdmin):
     full_name.short_description = 'Full Name'
 
 
-@admin.register(UserBranch)
-class UserBranchAdmin(admin.ModelAdmin):
-    list_display = ['user', 'branch', 'role', 'is_active', 'assigned_by', 'created_at']
-    list_filter = ['role', 'is_active', 'branch', 'created_at']
-    search_fields = ['user__username', 'user__email', 'branch__name']
-    readonly_fields = ['created_at', 'updated_at']
+@admin.register(UserCompany)
+class UserCompanyAdmin(admin.ModelAdmin):
+    list_display = ['user', 'company', 'role', 'assigned_by', 'created_at']
+    list_filter = ['role', 'company', 'created_at']
+    search_fields = ['user__username', 'user__email', 'company__name']
+    readonly_fields = ['created_at']
 
 
 @admin.register(Company)
@@ -111,29 +82,6 @@ class CompanyAdmin(admin.ModelAdmin):
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
-
-
-@admin.register(UserCompany)
-class UserCompanyAdmin(admin.ModelAdmin):
-    list_display = ['user', 'company', 'role', 'is_active', 'created_at']
-    list_filter = ['role', 'is_active', 'created_at']
-    search_fields = ['user__username', 'user__email', 'company__name']
-    autocomplete_fields = ['user', 'company']
-    readonly_fields = ['created_at']
-    
-    fieldsets = (
-        ('Assignment', {
-            'fields': ('user', 'company', 'role', 'is_active')
-        }),
-        ('Permissions', {
-            'fields': ('permissions',),
-            'classes': ('collapse',)
-        }),
-        ('Timestamps', {
-            'fields': ('created_at',),
             'classes': ('collapse',)
         }),
     )

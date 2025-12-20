@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'accounts',
+    'admin_panel',  # Administrative interface
     'dashboard',
     'invoicing',
     'expenses',

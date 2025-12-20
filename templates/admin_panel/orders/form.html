@@ -1,0 +1,206 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}{{ object|yesno:"Edit,Create" }} Order - AccuFlow Admin{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'admin_panel:order_list' %}">Orders</a></li>
+<li class="breadcrumb-item active">{{ object|yesno:"Edit,Create" }} Order</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-cart me-2"></i>
+                    {{ object|yesno:"Edit Order,Create New Order" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <h6>Please correct the following errors:</h6>
+                            {{ form.errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.customer.id_for_label }}" class="form-label">Customer</label>
+                                {{ form.customer.as_widget }}
+                                {% if form.customer.help_text %}
+                                    <div class="form-text">{{ form.customer.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.status.id_for_label }}" class="form-label">Order Status</label>
+                                {{ form.status.as_widget }}
+                                {% if form.status.help_text %}
+                                    <div class="form-text">{{ form.status.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.total.id_for_label }}" class="form-label">Total Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.total.as_widget }}
+                                </div>
+                                {% if form.total.help_text %}
+                                    <div class="form-text">{{ form.total.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.payment_status.id_for_label }}" class="form-label">Payment Status</label>
+                                {{ form.payment_status.as_widget }}
+                                {% if form.payment_status.help_text %}
+                                    <div class="form-text">{{ form.payment_status.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if form.notes %}
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">Order Notes</label>
+                        {{ form.notes.as_widget }}
+                        {% if form.notes.help_text %}
+                            <div class="form-text">{{ form.notes.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if form.shipping_address %}
+                    <div class="mb-3">
+                        <label for="{{ form.shipping_address.id_for_label }}" class="form-label">Shipping Address</label>
+                        {{ form.shipping_address.as_widget }}
+                        {% if form.shipping_address.help_text %}
+                            <div class="form-text">{{ form.shipping_address.help_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'admin_panel:order_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>{{ object|yesno:"Update Order,Create Order" }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Order Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6>Tips for managing orders:</h6>
+                    <ul class="mb-0">
+                        <li>Ensure customer information is correct</li>
+                        <li>Set appropriate order status</li>
+                        <li>Verify total amount is accurate</li>
+                        <li>Update payment status as needed</li>
+                        <li>Add notes for special instructions</li>
+                        <li>Confirm shipping address details</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {% if object %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Order Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <strong>Order ID:</strong>
+                    </div>
+                    <div class="col-6">
+                        #{{ object.id }}
+                    </div>
+                    <div class="col-6">
+                        <strong>Created:</strong>
+                    </div>
+                    <div class="col-6">
+                        {{ object.created_at|date:"M d, Y" }}
+                    </div>
+                    <div class="col-6">
+                        <strong>Updated:</strong>
+                    </div>
+                    <div class="col-6">
+                        {{ object.updated_at|date:"M d, Y" }}
+                    </div>
+                    <div class="col-6">
+                        <strong>Items:</strong>
+                    </div>
+                    <div class="col-6">
+                        {{ object.orderitem_set.count }} item{{ object.orderitem_set.count|pluralize }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Available Actions</h6>
+            </div>
+            <div class="card-body">
+                {% if object %}
+                <div class="d-grid gap-2">
+                    <a href="{% url 'admin_panel:order_detail' object.pk %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-eye me-2"></i>View Order Details
+                    </a>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="alert('Add items coming soon'); return false;">
+                        <i class="bi bi-plus-lg me-2"></i>Add Items
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="alert('Duplicate order coming soon'); return false;">
+                        <i class="bi bi-files me-2"></i>Duplicate Order
+                    </button>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">After creating the order, you'll be able to add items and manage order details.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    textarea.form-control {
+        min-height: 80px;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n widget_tweaks %}
+
+{% block title %}Assign User - {{ company.name }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+<li class="breadcrumb-item"><a href="{% url 'accounts:company_list' %}">Companies</a></li>
+<li class="breadcrumb-item"><a href="{% url 'accounts:company_detail' company.id %}">{{ company.name }}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'accounts:company_users' company.id %}">Users</a></li>
+<li class="breadcrumb-item active">Assign User</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Assign User to {{ company.name }}</h1>
+        <a href="{% url 'accounts:company_users' company.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Users
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Assign User</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="assignUserForm">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.user.id_for_label }}" class="font-weight-bold">
+                                        Select User <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.user|add_class:"form-control" }}
+                                    {% if form.user.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.user.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Choose a user to assign to this company.
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.role.id_for_label }}" class="font-weight-bold">
+                                        Role <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.role|add_class:"form-control" }}
+                                    {% if form.role.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.role.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Select the role for this user in the company.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if form.notes %}
+                        <div class="form-group">
+                            <label for="{{ form.notes.id_for_label }}" class="font-weight-bold">Notes</label>
+                            {{ form.notes|add_class:"form-control" }}
+                            {% if form.notes.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.notes.errors }}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Add any notes about this assignment (optional).
+                            </small>
+                        </div>
+                        {% endif %}
+
+                        <div class="form-group mb-0">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-user-plus"></i> Assign User
+                            </button>
+                            <a href="{% url 'accounts:company_users' company.id %}" class="btn btn-outline-secondary ml-2">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Company Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if company.logo %}
+                        <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="rounded" style="max-width: 100px; max-height: 100px;">
+                        {% else %}
+                        <div class="bg-primary text-white rounded d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem;">
+                            {{ company.name|first|upper }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <h5 class="text-center mb-3">{{ company.name }}</h5>
+                    
+                    {% if company.description %}
+                    <p class="text-muted small">{{ company.description }}</p>
+                    {% endif %}
+                    
+                    <div class="border-top pt-3">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Users</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ company.usercompany_set.count }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Created</div>
+                                <div class="h6 mb-0 text-gray-800">{{ company.created_date|date:"M Y" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Add select2 styling to dropdowns
+    $('#{{ form.user.id_for_label }}').select2({
+        placeholder: 'Select a user...',
+        allowClear: true
+    });
+    
+    $('#{{ form.role.id_for_label }}').select2({
+        placeholder: 'Select a role...',
+        minimumResultsForSearch: Infinity
+    });
+});
+</script>
+{% endblock %}

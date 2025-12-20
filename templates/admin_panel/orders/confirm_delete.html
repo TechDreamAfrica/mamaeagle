@@ -1,0 +1,182 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Delete Order #{{ object.id }} - AccuFlow Admin{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'admin_panel:order_list' %}">Orders</a></li>
+<li class="breadcrumb-item"><a href="{% url 'admin_panel:order_detail' object.pk %}">Order #{{ object.id }}</a></li>
+<li class="breadcrumb-item active">Delete</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-danger">
+            <div class="card-header bg-danger bg-opacity-10 border-danger">
+                <h5 class="card-title mb-0 text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Confirm Order Deletion
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <h6 class="alert-heading">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        Warning: This action cannot be undone!
+                    </h6>
+                    <p class="mb-0">You are about to permanently delete this order and all associated data. This action is irreversible.</p>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Order Information</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td class="fw-bold">Order ID:</td>
+                                <td>#{{ object.id }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Customer:</td>
+                                <td>
+                                    {% if object.customer %}
+                                        {{ object.customer.name|default:"Unknown Customer" }}
+                                    {% else %}
+                                        <span class="text-muted">No customer assigned</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Order Date:</td>
+                                <td>{{ object.created_at|date:"F d, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Total Amount:</td>
+                                <td class="fw-bold text-primary">${{ object.total|default:"0.00"|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Status:</td>
+                                <td>
+                                    {% if object.status %}
+                                        <span class="badge bg-primary">{{ object.get_status_display|default:object.status|title }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Order Items</h6>
+                        {% if object.orderitem_set.exists %}
+                            <div class="bg-light rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                {% for item in object.orderitem_set.all %}
+                                <div class="d-flex justify-content-between align-items-center {% if not forloop.last %}border-bottom pb-2 mb-2{% endif %}">
+                                    <div>
+                                        <small class="fw-bold">{{ item.product.name|default:"Unknown Product" }}</small>
+                                        <div class="text-muted" style="font-size: 0.75rem;">
+                                            Qty: {{ item.quantity|default:"1" }} × ${{ item.price|default:"0.00"|floatformat:2 }}
+                                        </div>
+                                    </div>
+                                    <small class="fw-bold">
+                                        {% widthratio item.quantity 1 item.price as item_total %}
+                                        ${{ item_total|floatformat:2 }}
+                                    </small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted py-3">
+                                <i class="bi bi-box"></i>
+                                <div>No items in this order</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="bg-light rounded p-3 mb-4">
+                    <h6 class="text-warning">
+                        <i class="bi bi-info-circle me-2"></i>
+                        What will be deleted:
+                    </h6>
+                    <ul class="mb-0">
+                        <li>Order record (#{{ object.id }})</li>
+                        <li>All order items ({{ object.orderitem_set.count }} item{{ object.orderitem_set.count|pluralize }})</li>
+                        <li>Order history and tracking information</li>
+                        <li>Any associated payment records</li>
+                        <li>Order notes and metadata</li>
+                    </ul>
+                </div>
+
+                <form method="post" class="d-flex justify-content-between align-items-center">
+                    {% csrf_token %}
+                    
+                    <a href="{% url 'admin_panel:order_detail' object.pk %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Cancel - Keep Order
+                    </a>
+                    
+                    <div class="text-end">
+                        <p class="text-muted mb-2 small">Type "DELETE" to confirm this action:</p>
+                        <div class="input-group mb-3" style="max-width: 200px;">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="confirmDelete" 
+                                   placeholder="DELETE" 
+                                   onkeyup="toggleDeleteButton()" 
+                                   autocomplete="off">
+                        </div>
+                        <button type="submit" 
+                                id="deleteButton" 
+                                class="btn btn-danger" 
+                                disabled>
+                            <i class="bi bi-trash me-2"></i>
+                            Yes, Delete Order Permanently
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleDeleteButton() {
+    const input = document.getElementById('confirmDelete');
+    const button = document.getElementById('deleteButton');
+    
+    if (input.value.trim().toLowerCase() === 'delete') {
+        button.disabled = false;
+        button.classList.remove('btn-danger');
+        button.classList.add('btn-danger');
+    } else {
+        button.disabled = true;
+    }
+}
+
+// Prevent accidental form submission
+document.querySelector('form').addEventListener('submit', function(e) {
+    const input = document.getElementById('confirmDelete');
+    if (input.value.trim().toLowerCase() !== 'delete') {
+        e.preventDefault();
+        alert('Please type "DELETE" to confirm this action.');
+        input.focus();
+    }
+});
+</script>
+
+<style>
+.table-borderless td {
+    padding: 0.25rem 0.5rem;
+    border: none;
+}
+
+.table-borderless td:first-child {
+    padding-left: 0;
+    width: 40%;
+}
+
+.card-header.bg-danger.bg-opacity-10 {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+}
+</style>
+{% endblock %}
