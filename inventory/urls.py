@@ -48,6 +48,10 @@ urlpatterns = [
     path('reports/stock/', views.stock_report, name='stock_report'),
     path('reports/low-stock/', views.low_stock_report, name='low_stock_report'),
     
+    # Dashboard and Stock Management URLs
+    path('stock-movements/', views.stock_movements_list, name='stock_movements'),
+    path('low-stock-alert/', views.low_stock_alert, name='low_stock_alert'),
+    
     # AJAX/API URLs
     path('api/product-info/<int:product_id>/', views.get_product_info, name='get_product_info'),
     path('api/check-sku/', views.check_sku_availability, name='check_sku_availability'),

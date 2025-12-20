@@ -137,6 +137,29 @@
                     </div>
                 </div>
 
+                <!-- Owner Assignment -->
+                <div class="space-y-4 pt-6 border-t border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-user-crown text-blue-600 mr-2"></i>
+                        Company Owner Assignment
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label for="{{ form.assign_to_user.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Assign Company To <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.assign_to_user }}
+                            {% if form.assign_to_user.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.assign_to_user.errors.0 }}</p>
+                            {% endif %}
+                            {% if form.assign_to_user.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ form.assign_to_user.help_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Information Box -->
                 <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
                     <div class="flex">

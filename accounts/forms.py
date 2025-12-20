@@ -359,6 +359,17 @@ class CompanyCreationForm(forms.ModelForm):
     """
     Form for creating a new company
     """
+    # Add field to select user to assign as company owner
+    assign_to_user = forms.ModelChoiceField(
+        queryset=User.objects.filter(is_active=True).order_by('first_name', 'last_name', 'username'),
+        empty_label="Select User to Assign as Owner",
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+        }),
+        help_text="Select which user will be the owner of this company"
+    )
+    
     class Meta:
         model = Company
         fields = ['name', 'email', 'phone', 'address_line_1', 'address_line_2', 'city', 'state', 'country', 'fiscal_year_start']
@@ -400,4 +411,24 @@ class CompanyCreationForm(forms.ModelForm):
                 'type': 'date',
             }),
         }
+    
+    def __init__(self, *args, **kwargs):
+        # Allow filtering users in the form initialization if needed
+        user_queryset = kwargs.pop('user_queryset', None)
+        super().__init__(*args, **kwargs)
+        
+        if user_queryset is not None:
+            self.fields['assign_to_user'].queryset = user_queryset
+        
+        # Set default to show full name and username for better user identification
+        self.fields['assign_to_user'].label_from_instance = lambda obj: (
+            f"{obj.get_full_name()} ({obj.username})" if obj.get_full_name() 
+            else f"{obj.username} ({obj.email})"
+        )
+    
+    def clean_assign_to_user(self):
+        user = self.cleaned_data.get('assign_to_user')
+        if not user:
+            raise ValidationError('Please select a user to assign to this company.')
+        return user
 

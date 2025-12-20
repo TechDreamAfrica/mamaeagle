@@ -235,8 +235,7 @@
                     </label>
                     {{ form.quantity }} {% if form.quantity.errors %}
                     <div class="mt-1 text-sm text-red-600">
-                      {% for error in form.quantity.errors %}{{ error }}{%
-                      endfor %}
+                      {% for error in form.quantity.errors %}{{ error }}{% endfor %}
                     </div>
                     {% endif %}
                   </div>
@@ -250,8 +249,7 @@
                     </label>
                     {{ form.unit_cost }} {% if form.unit_cost.errors %}
                     <div class="mt-1 text-sm text-red-600">
-                      {% for error in form.unit_cost.errors %}{{ error }}{%
-                      endfor %}
+                      {% for error in form.unit_cost.errors %}{{ error }}{% endfor %}
                     </div>
                     {% endif %}
                   </div>

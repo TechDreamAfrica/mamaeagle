@@ -169,6 +169,30 @@ class Product(models.Model):
         return self.current_stock <= self.reorder_point
     
     @property
+    def is_low_stock(self):
+        """Check if product is below minimum stock level."""
+        return self.current_stock <= self.minimum_stock_level
+    
+    def send_low_stock_alert(self):
+        """Send SMS alert for low stock to admin users."""
+        if self.is_low_stock:
+            from .utils import send_low_stock_sms
+            admin_users = User.objects.filter(
+                companies__company=self.company,
+                role__in=['admin', 'manager'],
+                is_active=True
+            ).distinct()
+            
+            for admin in admin_users:
+                if admin.phone_number:
+                    send_low_stock_sms(
+                        phone=admin.phone_number,
+                        product_name=self.name,
+                        current_stock=self.current_stock,
+                        minimum_stock=self.minimum_stock_level
+                    )
+    
+    @property
     def profit_margin(self):
         """Calculate profit margin percentage."""
         if self.cost_price == 0:

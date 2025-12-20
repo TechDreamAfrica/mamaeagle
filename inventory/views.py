@@ -10,6 +10,7 @@ from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
 from .forms import ProductForm
+from .utils import check_and_alert_low_stock
 
 from .models import (
     Category, Supplier, Product, ProductSupplier, Warehouse,
@@ -727,10 +728,10 @@ def category_data(request):
     # Get inventory value by category
     category_data = Category.objects.filter(
         is_active=True,
-        product__is_active=True
+        products__is_active=True
     ).annotate(
         category_value=Sum(
-            F('product__stocklevel__current_stock') * F('product__cost_price'),
+            F('products__stocklevel__current_stock') * F('products__cost_price'),
             default=0
         )
     ).values('name', 'category_value')
@@ -797,3 +798,63 @@ def movement_trends(request):
     return JsonResponse({
         'daily_movements': daily_movements
     })
+
+
+@login_required
+def low_stock_alert(request):
+    """
+    AJAX endpoint to trigger low stock alerts
+    """
+    if request.method == 'POST':
+        try:
+            alert_count = check_and_alert_low_stock()
+            return JsonResponse({
+                'success': True,
+                'alert_count': alert_count,
+                'message': f'Checked stock levels. Sent {alert_count} low stock alerts.'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+@login_required
+def stock_movements_list(request):
+    """
+    Display stock movement history
+    """
+    company = request.user.current_company if hasattr(request.user, 'current_company') else None
+    movements = StockMovement.objects.select_related('product', 'warehouse').order_by('-movement_date')
+    
+    if company:
+        movements = movements.filter(company=company)
+    
+    # Filter by product if specified
+    product_id = request.GET.get('product')
+    if product_id:
+        movements = movements.filter(product_id=product_id)
+    
+    # Filter by movement type if specified
+    movement_type = request.GET.get('type')
+    if movement_type:
+        movements = movements.filter(movement_type=movement_type)
+    
+    # Paginate results
+    from django.core.paginator import Paginator
+    paginator = Paginator(movements, 25)
+    page_number = request.GET.get('page')
+    movements = paginator.get_page(page_number)
+    
+    context = {
+        'movements': movements,
+        'products': Product.objects.filter(is_active=True),
+        'movement_types': StockMovement.MOVEMENT_TYPES,
+        'current_product': product_id,
+        'current_type': movement_type,
+    }
+    
+    return render(request, 'inventory/stock_movements.html', context)

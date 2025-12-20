@@ -85,6 +85,14 @@ def create_company(request):
     """
     Create a new company - unlimited companies for Mama Eagle Enterprise
     """
+    # For Mama Eagle Enterprise, we allow unlimited companies
+    company_limit = 999  # Very high limit, effectively unlimited
+    owned_companies = UserCompany.objects.filter(
+        user=request.user,
+        role='owner',
+        is_active=True
+    ).count()
+    
     if request.method == 'POST':
         form = CompanyCreationForm(request.POST)
         if form.is_valid():
@@ -92,21 +100,26 @@ def create_company(request):
             company.created_by = request.user
             company.save()
             
-            # Add user as owner
+            # Get the selected user from the form
+            assigned_user = form.cleaned_data['assign_to_user']
+            
+            # Add selected user as owner
             UserCompany.objects.create(
-                user=request.user,
+                user=assigned_user,
                 company=company,
                 role='owner'
             )
             
-            messages.success(request, f'Company "{company.name}" created successfully!')
+            messages.success(request, f'Company "{company.name}" created successfully and assigned to {assigned_user.get_full_name() or assigned_user.username}!')
             
-            # Switch to new company via session
-            request.session['active_company_id'] = company.id
+            # Switch to new company via session only if assigning to current user
+            if assigned_user == request.user:
+                request.session['active_company_id'] = company.id
             
             return redirect('dashboard:home')
     else:
-        form = CompanyCreationForm()
+        # Initialize form with current user as default selection
+        form = CompanyCreationForm(initial={'assign_to_user': request.user})
     
     context = {
         'form': form,
