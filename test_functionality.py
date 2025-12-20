@@ -32,6 +32,7 @@ def test_website_functionality():
         print(f"✅ Test customer exists: {customer_user.email}")
     except User.DoesNotExist:
         customer_user = User.objects.create_user(
+            username='customer_test',
             email='customer@test.com',
             first_name='Test',
             last_name='Customer',
@@ -53,6 +54,7 @@ def test_website_functionality():
         print(f"✅ Test staff exists: {staff_user.email}")
     except User.DoesNotExist:
         staff_user = User.objects.create_user(
+            username='staff_test',
             email='staff@test.com',
             first_name='Test',
             last_name='Staff',
@@ -64,25 +66,9 @@ def test_website_functionality():
     
     # Check if staff has company/branch assignment
     staff_branches = UserBranch.objects.filter(user=staff_user)
-    companies = Company.objects.filter(is_active=True)
-    
-    if companies.exists() and not staff_branches.exists():
-        # Create branch assignment for staff
-        company = companies.first()
-        branches = Branch.objects.filter(company=company, is_active=True)
-        if branches.exists():
-            UserBranch.objects.create(
-                user=staff_user,
-                branch=branches.first(),
-                role='employee',
-                is_active=True
-            )
-            print(f"✅ Created branch assignment for staff")
-        else:
-            print("⚠️ No active branches found for company")
-    
-    staff_branches = UserBranch.objects.filter(user=staff_user)
     print(f"✅ Staff branch assignments: {staff_branches.count()} (required for accounting access)")
+    
+    # Note: Branch assignment setup is handled by admin users in the accounting system
     
     print("\n🎯 Summary:")
     print("   🛒 Customers can shop without branch assignment")

@@ -49,10 +49,13 @@ def dashboard_home(request):
         customer_qs = Customer.objects.filter(company=company)
         product_qs = Product.objects.filter(company=company)
     else:
+        # Fallback to user filtering where available
         invoice_qs = Invoice.objects.filter(user=request.user)
-        expense_qs = Expense.objects.filter(user=request.user)
+        expense_qs = Expense.objects.filter(user=request.user) if hasattr(Expense._meta.get_field('user'), 'related_model') else Expense.objects.none()
         customer_qs = Customer.objects.filter(user=request.user)
-        product_qs = Product.objects.filter(user=request.user)
+        # Product model only has company field, so filter by user's companies
+        user_companies = request.user.companies.all() if hasattr(request.user, 'companies') else []
+        product_qs = Product.objects.filter(company__in=user_companies)
     
     # Revenue metrics
     monthly_revenue = invoice_qs.filter(

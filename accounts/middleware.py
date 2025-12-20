@@ -32,6 +32,40 @@ def set_current_branch(branch):
     _thread_locals.branch = branch
 
 
+def is_website_path(path):
+    """Check if the path belongs to the e-commerce website (not the accounting app)"""
+    # Website paths (e-commerce) - these don't need company/branch
+    website_patterns = [
+        '/',  # Homepage
+        '/about/',
+        '/contact/', 
+        '/newsletter/',
+        '/products/',
+        '/product/',
+        '/cart/',
+        '/checkout/',
+        '/payment/',
+        '/order/',
+        '/orders/',
+        '/customer/',
+        '/api/cart/',
+        '/api/sync-products-to-invoice/',
+        '/api/check-invoice-inventory/',
+        '/api/products-autocomplete/',
+    ]
+    
+    # Check if path matches any website pattern
+    for pattern in website_patterns:
+        if path.startswith(pattern):
+            return True
+    
+    # Special case for exact homepage match
+    if path == '/':
+        return True
+        
+    return False
+
+
 class CompanyIsolationMiddleware(MiddlewareMixin):
     """
     Middleware to ensure data isolation between companies.
@@ -75,8 +109,8 @@ class CompanyIsolationMiddleware(MiddlewareMixin):
             # No session company, use user's default company
             company = getattr(request.user, 'company', None)
 
-        # If user has no company, redirect to company setup
-        if not company:
+        # If user has no company, redirect to company setup ONLY for app users (not website)
+        if not company and not is_website_path(request.path):
             # Allow access to company setup, logout, and profile pages
             allowed_paths = [
                 reverse('accounts:logout'),
@@ -113,11 +147,13 @@ class BranchAccessControlMiddleware(MiddlewareMixin):
         # Initialize branch as None by default
         branch = None
 
-        # Skip for anonymous users
-        if not request.user.is_authenticated:
+        # Skip for anonymous users or website users (no branch requirement)
+        if not request.user.is_authenticated or is_website_path(request.path):
             set_current_branch(None)
             request.current_branch = None
             request.accessible_branches = []
+            return None
+            return None
             return None
 
         # Handle branch switching (admin only)
@@ -161,8 +197,8 @@ class BranchAccessControlMiddleware(MiddlewareMixin):
             if branch and not (request.user.role == 'admin' or branch in accessible_branches):
                 branch = accessible_branches.first() if accessible_branches.exists() else None
 
-        # If user has no accessible branch and is not admin
-        if not branch and request.user.role != 'admin':
+        # If user has no accessible branch and is not admin (excluding website users)
+        if not branch and request.user.role != 'admin' and not is_website_path(request.path):
             # Allow access to certain pages
             allowed_paths = [
                 reverse('accounts:logout'),
@@ -170,7 +206,7 @@ class BranchAccessControlMiddleware(MiddlewareMixin):
                 '/accounts/branch-assignment/',  # Add this URL if it exists
             ]
 
-            if request.path not in allowed_paths and not request.path.startswith('/website/'):
+            if request.path not in allowed_paths:
                 messages.warning(request, 'You are not assigned to any branch. Please contact administrator.')
 
         # Set branch in thread-local storage

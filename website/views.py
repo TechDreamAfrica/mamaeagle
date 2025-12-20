@@ -981,9 +981,8 @@ def get_products_for_invoice_autocomplete(request):
     return JsonResponse({'results': results})
 
 
-# Customer Authentication Views
 def customer_register(request):
-    """Customer registration for e-commerce"""
+    """Customer registration for e-commerce - simplified, no company/branch required"""
     if request.user.is_authenticated:
         return redirect('website:home')
         
@@ -992,8 +991,10 @@ def customer_register(request):
         if form.is_valid():
             user = form.save()
             username = form.cleaned_data.get('username')
-            messages.success(request, f'Account created for {username}! You can now log in.')
-            return redirect('website:customer_login')
+            # Auto-login after registration for better UX
+            login(request, user)
+            messages.success(request, f'Welcome to Mama Eagle, {user.first_name or username}! Your account has been created.')
+            return redirect('website:home')
     else:
         form = CustomerRegistrationForm()
     
@@ -1001,7 +1002,7 @@ def customer_register(request):
 
 
 def customer_login(request):
-    """Customer login for e-commerce"""
+    """Customer login for e-commerce - no company/branch requirements"""
     if request.user.is_authenticated:
         next_url = request.GET.get('next', 'website:home')
         return redirect(next_url)

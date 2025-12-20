@@ -605,7 +605,14 @@ def product_list(request):
     """
     Product/Service management
     """
-    products = Product.objects.filter(user=request.user)
+    # Use company filtering for products as Product model has company field, not user
+    company = getattr(request, 'company', None)
+    if company:
+        products = Product.objects.filter(company=company)
+    else:
+        # Fallback: get products from all user's companies
+        user_companies = request.user.companies.all() if hasattr(request.user, 'companies') else []
+        products = Product.objects.filter(company__in=user_companies)
     
     # Search and filter
     search_query = request.GET.get('search', '')
