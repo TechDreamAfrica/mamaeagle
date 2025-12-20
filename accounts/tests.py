@@ -1,3 +1,4 @@
 from django.test import TestCase
 
-# TODO: Add tests for accounts functionality
+# Tests for accounts functionality
+# Add test cases here as needed

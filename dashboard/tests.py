@@ -1,3 +1,4 @@
 from django.test import TestCase
 
-# TODO: Add tests for dashboard functionality
+# Tests for dashboard functionality
+# Add test cases here as needed

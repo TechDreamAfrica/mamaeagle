@@ -51,12 +51,13 @@
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
                     <a href="{% url 'website:home' %}" class="flex items-center">
-                        <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center mr-3">
-                            <span class="text-white font-bold text-lg">🔧</span>
+                        {% load static %}
+                        <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                            <img src="{% static 'logo.jpeg' %}" alt="Mama Eagle Logo" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <div class="text-xl font-bold text-primary">Mama Eagle</div>
-                            <div class="text-xs text-gray-600">Plumbing Solutions</div>
+                            <div class="text-xs text-gray-600">Plumbing and Trading Enterprise</div>
                         </div>
                     </a>
                 </div>
