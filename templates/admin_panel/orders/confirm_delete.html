@@ -59,7 +59,7 @@
                         </div>
                         <div class="flex justify-between py-2 border-b border-gray-200">
                             <span class="font-semibold text-gray-700">Total Amount:</span>
-                            <span class="text-lg font-bold text-blue-600">${{ object.total|default:"0.00"|floatformat:2 }}</span>
+                            <span class="text-lg font-bold text-blue-600">₵{{ object.total|default:"0.00"|floatformat:2 }}</span>
                         </div>
                         <div class="flex justify-between py-2">
                             <span class="font-semibold text-gray-700">Status:</span>
@@ -82,12 +82,12 @@
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ item.product.name|default:"Unknown Product" }}</p>
                                     <p class="text-sm text-gray-600">
-                                        Qty: {{ item.quantity|default:"1" }} × ${{ item.price|default:"0.00"|floatformat:2 }}
+                                        Qty: {{ item.quantity|default:"1" }} × ₵{{ item.price|default:"0.00"|floatformat:2 }}
                                     </p>
                                 </div>
                                 <span class="font-bold text-gray-900">
                                     {% widthratio item.quantity 1 item.price as item_total %}
-                                    ${{ item_total|floatformat:2 }}
+                                    ₵{{ item_total|floatformat:2 }}
                                 </span>
                             </div>
                             {% endfor %}

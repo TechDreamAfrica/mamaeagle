@@ -30,7 +30,7 @@
                 <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8">
                     <div class="flex items-center">
                         <span class="text-secondary text-2xl mr-3">✓</span>
-                        <span class="text-lg">Free Delivery Above GHS 500</span>
+                        <span class="text-lg">Free Delivery Above ₵ 500</span>
                     </div>
                     <div class="flex items-center">
                         <span class="text-secondary text-2xl mr-3">✓</span>
@@ -209,10 +209,10 @@
                         <div class="flex justify-between items-center mb-4">
                             <div>
                                 {% if product.is_on_sale %}
-                                    <span class="text-xl font-bold text-red-600">GHS {{ product.price }}</span>
-                                    <span class="text-sm text-gray-500 line-through ml-2">GHS {{ product.compare_at_price }}</span>
+                                    <span class="text-xl font-bold text-red-600">₵ {{ product.price }}</span>
+                                    <span class="text-sm text-gray-500 line-through ml-2">₵ {{ product.compare_at_price }}</span>
                                 {% else %}
-                                    <span class="text-xl font-bold text-primary">GHS {{ product.price }}</span>
+                                    <span class="text-xl font-bold text-primary">₵ {{ product.price }}</span>
                                 {% endif %}
                             </div>
                             <div class="text-sm text-gray-500">

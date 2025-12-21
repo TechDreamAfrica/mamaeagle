@@ -25,7 +25,7 @@
                 <div class="text-gray-600">
                     <p><strong>Order Number:</strong> #{{ order.order_number }}</p>
                     <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
-                    <p><strong>Total Amount:</strong> <span class="text-primary font-semibold">GHS {{ order.total_amount }}</span></p>
+                    <p><strong>Total Amount:</strong> <span class="text-primary font-semibold">₵ {{ order.total_amount }}</span></p>
                 </div>
             </div>
             
@@ -48,7 +48,7 @@
                                 <div class="text-sm text-gray-600">Qty: {{ item.quantity }}</div>
                             </div>
                         </div>
-                        <div class="font-medium">GHS {{ item.get_total_price }}</div>
+                        <div class="font-medium">₵ {{ item.get_total_price }}</div>
                     </div>
                     {% endfor %}
                 </div>

@@ -48,14 +48,27 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="{{ form.customer.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
-                                <select name="{{ form.customer.name }}" id="{{ form.customer.id_for_label }}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                    {% for choice in form.customer %}
-                                        {{ choice.tag }}
-                                    {% endfor %}
-                                </select>
-                                {% if form.customer.help_text %}
-                                    <p class="mt-1 text-sm text-gray-500">{{ form.customer.help_text }}</p>
+                                <label for="{{ form.customer_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                                <input type="text" name="{{ form.customer_name.name }}" id="{{ form.customer_name.id_for_label }}" value="{{ form.customer_name.value|default:'' }}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                {% if form.customer_name.help_text %}
+                                    <p class="mt-1 text-sm text-gray-500">{{ form.customer_name.help_text }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.customer_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Customer Email</label>
+                                <input type="email" name="{{ form.customer_email.name }}" id="{{ form.customer_email.id_for_label }}" value="{{ form.customer_email.value|default:'' }}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                {% if form.customer_email.help_text %}
+                                    <p class="mt-1 text-sm text-gray-500">{{ form.customer_email.help_text }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.customer_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Customer Phone</label>
+                                <input type="tel" name="{{ form.customer_phone.name }}" id="{{ form.customer_phone.id_for_label }}" value="{{ form.customer_phone.value|default:'' }}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                {% if form.customer_phone.help_text %}
+                                    <p class="mt-1 text-sm text-gray-500">{{ form.customer_phone.help_text }}</p>
                                 {% endif %}
                             </div>
                             <div>
@@ -71,32 +84,6 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="{{ form.total.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Total Amount</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span class="text-gray-500 text-sm">$</span>
-                                    </div>
-                                    <input type="number" step="0.01" name="{{ form.total.name }}" id="{{ form.total.id_for_label }}" value="{{ form.total.value|default:'' }}" class="block w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                </div>
-                                {% if form.total.help_text %}
-                                    <p class="mt-1 text-sm text-gray-500">{{ form.total.help_text }}</p>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <label for="{{ form.payment_status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
-                                <select name="{{ form.payment_status.name }}" id="{{ form.payment_status.id_for_label }}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                    {% for choice in form.payment_status %}
-                                        {{ choice.tag }}
-                                    {% endfor %}
-                                </select>
-                                {% if form.payment_status.help_text %}
-                                    <p class="mt-1 text-sm text-gray-500">{{ form.payment_status.help_text }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-
                         {% if form.notes %}
                         <div>
                             <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Order Notes</label>
@@ -107,15 +94,46 @@
                         </div>
                         {% endif %}
 
-                        {% if form.shipping_address %}
-                        <div>
-                            <label for="{{ form.shipping_address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Shipping Address</label>
-                            <textarea name="{{ form.shipping_address.name }}" id="{{ form.shipping_address.id_for_label }}" rows="3" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">{{ form.shipping_address.value|default:'' }}</textarea>
-                            {% if form.shipping_address.help_text %}
-                                <p class="mt-1 text-sm text-gray-500">{{ form.shipping_address.help_text }}</p>
-                            {% endif %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.shipping_address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Shipping Address</label>
+                                <textarea name="{{ form.shipping_address.name }}" id="{{ form.shipping_address.id_for_label }}" rows="3" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">{{ form.shipping_address.value|default:'' }}</textarea>
+                                {% if form.shipping_address.help_text %}
+                                    <p class="mt-1 text-sm text-gray-500">{{ form.shipping_address.help_text }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.shipping_city.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Shipping City</label>
+                                <input type="text" name="{{ form.shipping_city.name }}" id="{{ form.shipping_city.id_for_label }}" value="{{ form.shipping_city.value|default:'' }}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                {% if form.shipping_city.help_text %}
+                                    <p class="mt-1 text-sm text-gray-500">{{ form.shipping_city.help_text }}</p>
+                                {% endif %}
+                            </div>
                         </div>
-                        {% endif %}
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label for="{{ form.shipping_state.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Shipping State/Region</label>
+                                <input type="text" name="{{ form.shipping_state.name }}" id="{{ form.shipping_state.id_for_label }}" value="{{ form.shipping_state.value|default:'' }}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                {% if form.shipping_state.help_text %}
+                                    <p class="mt-1 text-sm text-gray-500">{{ form.shipping_state.help_text }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.shipping_postal_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
+                                <input type="text" name="{{ form.shipping_postal_code.name }}" id="{{ form.shipping_postal_code.id_for_label }}" value="{{ form.shipping_postal_code.value|default:'' }}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                {% if form.shipping_postal_code.help_text %}
+                                    <p class="mt-1 text-sm text-gray-500">{{ form.shipping_postal_code.help_text }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.shipping_country.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Shipping Country</label>
+                                <input type="text" name="{{ form.shipping_country.name }}" id="{{ form.shipping_country.id_for_label }}" value="{{ form.shipping_country.value|default:'' }}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                {% if form.shipping_country.help_text %}
+                                    <p class="mt-1 text-sm text-gray-500">{{ form.shipping_country.help_text }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
 
                         <div class="flex justify-between pt-6 border-t border-gray-200">
                             <a href="{% url 'admin_panel:order_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -169,80 +187,64 @@
             </div>
 
         {% if object %}
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="card-title mb-0">Order Information</h6>
+        <div class="bg-white shadow rounded-lg border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Order Information</h3>
             </div>
-            <div class="card-body">
-                <div class="row g-2">
-                    <div class="col-6">
-                        <strong>Order ID:</strong>
+            <div class="p-6">
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-sm font-medium text-gray-700">Order ID:</span>
+                        <span class="text-sm text-gray-900">#{{ object.id }}</span>
                     </div>
-                    <div class="col-6">
-                        #{{ object.id }}
+                    <div class="flex justify-between">
+                        <span class="text-sm font-medium text-gray-700">Order Number:</span>
+                        <span class="text-sm text-gray-900">{{ object.order_number }}</span>
                     </div>
-                    <div class="col-6">
-                        <strong>Created:</strong>
+                    <div class="flex justify-between">
+                        <span class="text-sm font-medium text-gray-700">Created:</span>
+                        <span class="text-sm text-gray-900">{{ object.created_at|date:"M d, Y" }}</span>
                     </div>
-                    <div class="col-6">
-                        {{ object.created_at|date:"M d, Y" }}
+                    <div class="flex justify-between">
+                        <span class="text-sm font-medium text-gray-700">Updated:</span>
+                        <span class="text-sm text-gray-900">{{ object.updated_at|date:"M d, Y" }}</span>
                     </div>
-                    <div class="col-6">
-                        <strong>Updated:</strong>
+                    <div class="flex justify-between">
+                        <span class="text-sm font-medium text-gray-700">Items:</span>
+                        <span class="text-sm text-gray-900">{{ object.items.count }} item{{ object.items.count|pluralize }}</span>
                     </div>
-                    <div class="col-6">
-                        {{ object.updated_at|date:"M d, Y" }}
-                    </div>
-                    <div class="col-6">
-                        <strong>Items:</strong>
-                    </div>
-                    <div class="col-6">
-                        {{ object.orderitem_set.count }} item{{ object.orderitem_set.count|pluralize }}
+                    <div class="flex justify-between border-t pt-3 mt-3">
+                        <span class="text-sm font-medium text-gray-700">Total:</span>
+                        <span class="text-sm font-bold text-blue-600">₵{{ object.total_amount|floatformat:2 }}</span>
                     </div>
                 </div>
             </div>
         </div>
         {% endif %}
 
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="card-title mb-0">Available Actions</h6>
+        <div class="bg-white shadow rounded-lg border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Available Actions</h3>
             </div>
-            <div class="card-body">
+            <div class="p-6">
                 {% if object %}
-                <div class="d-grid gap-2">
-                    <a href="{% url 'admin_panel:order_detail' object.pk %}" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-eye me-2"></i>View Order Details
+                <div class="space-y-3">
+                    <a href="{% url 'admin_panel:order_detail' object.pk %}" class="w-full inline-flex items-center justify-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-eye mr-2"></i>View Order Details
                     </a>
-                    <button class="btn btn-outline-secondary btn-sm" onclick="alert('Add items coming soon'); return false;">
-                        <i class="bi bi-plus-lg me-2"></i>Add Items
+                    <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" onclick="alert('Print order coming soon'); return false;">
+                        <i class="fas fa-print mr-2"></i>Print order coming soon
                     </button>
-                    <button class="btn btn-outline-info btn-sm" onclick="alert('Duplicate order coming soon'); return false;">
-                        <i class="bi bi-files me-2"></i>Duplicate Order
+                    <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-green-300 text-sm font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onclick="alert('Mark as shipped coming soon'); return false;">
+                        <i class="fas fa-truck mr-2"></i>Mark as shipped coming soon
+                    </button>
+                    <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-purple-300 text-sm font-medium rounded-md text-purple-700 bg-white hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500" onclick="alert('Invoice generation feature coming soon!'); return false;">
+                        <i class="fas fa-file-invoice mr-2"></i>Invoice generation feature coming soon!
                     </button>
                 </div>
                 {% else %}
-                <p class="text-muted mb-0">After creating the order, you'll be able to add items and manage order details.</p>
+                <p class="text-gray-500 mb-0">After creating the order, you'll be able to add items and manage order details.</p>
                 {% endif %}
             </div>
         </div>
-    </div>
-</div>
-
-<style>
-    .form-control, .form-select {
-        border: 1px solid #ced4da;
-        border-radius: 0.375rem;
-        padding: 0.375rem 0.75rem;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-    
-    textarea.form-control {
-        min-height: 80px;
-    }
-</style>
 {% endblock %}

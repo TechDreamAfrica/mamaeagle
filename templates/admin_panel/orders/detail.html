@@ -92,7 +92,7 @@
                         <div>
                             <label class="text-sm font-medium text-gray-700">Total Amount</label>
                             <p class="mt-1 text-lg font-bold text-blue-600">
-                                ${{ object.total_amount|default:"0.00"|floatformat:2 }}
+                                ₵{{ object.total_amount|default:"0.00"|floatformat:2 }}
                             </p>
                         </div>
                     </div>
@@ -133,9 +133,9 @@
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.quantity|default:"1" }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ item.unit_price|default:"0.00"|floatformat:2 }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₵{{ item.unit_price|default:"0.00"|floatformat:2 }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            ${{ item.total_price|floatformat:2 }}
+                                            ₵{{ item.total_price|floatformat:2 }}
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -178,7 +178,7 @@
                     <div class="border-t border-gray-200 mt-4 pt-4">
                         <div class="flex justify-between">
                             <span class="text-base font-medium text-gray-900">Total Amount:</span>
-                            <span class="text-lg font-bold text-blue-600">${{ object.total_amount|default:"0.00"|floatformat:2 }}</span>
+                            <span class="text-lg font-bold text-blue-600">₵{{ object.total_amount|default:"0.00"|floatformat:2 }}</span>
                         </div>
                     </div>
                 </div>
@@ -223,17 +223,17 @@
                     <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
                 </div>
                 <div class="p-6">
-                    <div class="space-y-3">
-                        <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" onclick="alert('Print order coming soon'); return false;">
-                            <i class="fas fa-print mr-2"></i>Print Order
-                        </button>
-                        <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-green-300 text-sm font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onclick="alert('Mark as shipped coming soon'); return false;">
-                            <i class="fas fa-truck mr-2"></i>Mark as Shipped
-                        </button>
-                        <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-yellow-300 text-sm font-medium rounded-md text-yellow-700 bg-white hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" onclick="alert('Request refund coming soon'); return false;">
-                            <i class="fas fa-undo mr-2"></i>Request Refund
-                        </button>
-                    </div>
+                <div class="space-y-3">
+                    <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" onclick="alert('Print order coming soon'); return false;">
+                        <i class="fas fa-print mr-2"></i>Print order coming soon
+                    </button>
+                    <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-green-300 text-sm font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onclick="alert('Mark as shipped coming soon'); return false;">
+                        <i class="fas fa-truck mr-2"></i>Mark as shipped coming soon
+                    </button>
+                    <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-purple-300 text-sm font-medium rounded-md text-purple-700 bg-white hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500" onclick="alert('Invoice generation feature coming soon! Order ID: {{ object.id }}'); return false;">
+                        <i class="fas fa-file-invoice mr-2"></i>Invoice generation feature coming soon!
+                    </button>
+                </div>
                 </div>
             </div>
         </div>

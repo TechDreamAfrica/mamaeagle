@@ -23,13 +23,13 @@
                 <div class="space-y-3">
                     <div class="flex justify-between">
                         <span class="text-gray-600">Subtotal:</span>
-                        <span class="font-medium">GHS {{ order.subtotal }}</span>
+                        <span class="font-medium">₵ {{ order.subtotal }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600">Shipping:</span>
                         <span class="font-medium">
                             {% if order.shipping_cost > 0 %}
-                                GHS {{ order.shipping_cost }}
+                                ₵ {{ order.shipping_cost }}
                             {% else %}
                                 <span class="text-green-600">FREE</span>
                             {% endif %}
@@ -37,7 +37,7 @@
                     </div>
                     <div class="flex justify-between text-lg font-bold border-t pt-3">
                         <span>Total:</span>
-                        <span class="text-primary">GHS {{ order.total_amount }}</span>
+                        <span class="text-primary">₵ {{ order.total_amount }}</span>
                     </div>
                 </div>
             </div>
@@ -70,7 +70,7 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                     </svg>
-                    <span>Pay GHS {{ order.total_amount }} Securely</span>
+                    <span>Pay ₵ {{ order.total_amount }} Securely</span>
                 </button>
                 
                 <div class="mt-4 text-sm text-gray-600">

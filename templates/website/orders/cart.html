@@ -101,10 +101,10 @@
                                 <!-- Price -->
                                 <div class="col-span-2 text-center">
                                     {% if item.product.is_on_sale %}
-                                        <div class="text-lg font-semibold text-red-600">GHS {{ item.product.price }}</div>
-                                        <div class="text-sm text-gray-500 line-through">GHS {{ item.product.compare_at_price }}</div>
+                                        <div class="text-lg font-semibold text-red-600">₵ {{ item.product.price }}</div>
+                                        <div class="text-sm text-gray-500 line-through">₵ {{ item.product.compare_at_price }}</div>
                                     {% else %}
-                                        <div class="text-lg font-semibold text-gray-900">GHS {{ item.product.price }}</div>
+                                        <div class="text-lg font-semibold text-gray-900">₵ {{ item.product.price }}</div>
                                     {% endif %}
                                 </div>
                                 
@@ -143,7 +143,7 @@
                                 <!-- Total -->
                                 <div class="col-span-2 text-center">
                                     <div class="text-lg font-semibold text-primary item-total" data-item-id="{{ item.id }}">
-                                        GHS {{ item.get_total_price }}
+                                        ₵ {{ item.get_total_price }}
                                     </div>
                                     <button class="remove-btn text-red-500 hover:text-red-700 text-sm mt-1"
                                             data-item-id="{{ item.id }}">
@@ -173,7 +173,7 @@
                     <div class="space-y-3 text-sm">
                         <div class="flex justify-between">
                             <span>Subtotal ({{ cart_items|length }} items):</span>
-                            <span class="font-medium" id="cartSubtotal">GHS {{ cart.get_total_price }}</span>
+                            <span class="font-medium" id="cartSubtotal">₵ {{ cart.get_total_price }}</span>
                         </div>
                         
                         <div class="flex justify-between">
@@ -182,7 +182,7 @@
                                 {% if cart.get_total_price >= 500 %}
                                     <span class="text-green-600">FREE</span>
                                 {% else %}
-                                    GHS 25
+                                    ₵ 25
                                 {% endif %}
                             </span>
                         </div>
@@ -550,7 +550,7 @@ function updateQuantity(itemId, newQuantity) {
             const totalElement = document.querySelector(`[data-item-id="${itemId}"].item-total`);
             if (totalElement) {
                 totalElement.style.transform = 'scale(1.1)';
-                totalElement.textContent = `GHS ${parseFloat(data.item_total).toFixed(2)}`;
+                totalElement.textContent = `₵ ${parseFloat(data.item_total).toFixed(2)}`;
                 setTimeout(() => {
                     totalElement.style.transform = 'scale(1)';
                 }, 200);
@@ -642,12 +642,12 @@ function updateCartTotals(subtotal, total, itemCount) {
     // Update subtotal with animation
     const subtotalElement = document.getElementById('cartSubtotal');
     subtotalElement.style.transform = 'scale(1.05)';
-    subtotalElement.textContent = `GHS ${parseFloat(subtotal).toFixed(2)}`;
+    subtotalElement.textContent = `₵ ${parseFloat(subtotal).toFixed(2)}`;
     
     // Update total with animation
     const totalElement = document.getElementById('cartTotal');
     totalElement.style.transform = 'scale(1.05)';
-    totalElement.textContent = `GHS ${parseFloat(total).toFixed(2)}`;
+    totalElement.textContent = `₵ ${parseFloat(total).toFixed(2)}`;
     
     // Reset animations
     setTimeout(() => {

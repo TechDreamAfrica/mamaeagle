@@ -73,7 +73,7 @@
                                 <h5 class="text-sm font-medium text-gray-900">{{ product.name }}</h5>
                                 <p class="text-xs text-gray-500">
                                     SKU: {{ product.sku|default:'-' }} | 
-                                    Price: ${{ product.price|floatformat:2 }} |
+                                    Price: ₵{{ product.price|floatformat:2 }} |
                                     {% if product.category %}Category: {{ product.category.name }}{% else %}No category{% endif %}
                                 </p>
                             </div>

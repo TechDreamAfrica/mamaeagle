@@ -86,31 +86,31 @@ Plumbing Materials - Mama Eagle Enterprise
                                 <input type="radio" name="price_range" value="0-50" 
                                        {% if selected_price_range == '0-50' %}checked{% endif %}
                                        class="text-primary focus:ring-primary" onchange="this.form.submit()">
-                                <span class="ml-2 text-sm">Under GHS 50</span>
+                                <span class="ml-2 text-sm">Under ₵ 50</span>
                             </label>
                             <label class="flex items-center">
                                 <input type="radio" name="price_range" value="50-200" 
                                        {% if selected_price_range == '50-200' %}checked{% endif %}
                                        class="text-primary focus:ring-primary" onchange="this.form.submit()">
-                                <span class="ml-2 text-sm">GHS 50 - 200</span>
+                                <span class="ml-2 text-sm">₵ 50 - 200</span>
                             </label>
                             <label class="flex items-center">
                                 <input type="radio" name="price_range" value="200-500" 
                                        {% if selected_price_range == '200-500' %}checked{% endif %}
                                        class="text-primary focus:ring-primary" onchange="this.form.submit()">
-                                <span class="ml-2 text-sm">GHS 200 - 500</span>
+                                <span class="ml-2 text-sm">₵ 200 - 500</span>
                             </label>
                             <label class="flex items-center">
                                 <input type="radio" name="price_range" value="500-1000" 
                                        {% if selected_price_range == '500-1000' %}checked{% endif %}
                                        class="text-primary focus:ring-primary" onchange="this.form.submit()">
-                                <span class="ml-2 text-sm">GHS 500 - 1000</span>
+                                <span class="ml-2 text-sm">₵ 500 - 1000</span>
                             </label>
                             <label class="flex items-center">
                                 <input type="radio" name="price_range" value="1000+" 
                                        {% if selected_price_range == '1000+' %}checked{% endif %}
                                        class="text-primary focus:ring-primary" onchange="this.form.submit()">
-                                <span class="ml-2 text-sm">Above GHS 1000</span>
+                                <span class="ml-2 text-sm">Above ₵ 1000</span>
                             </label>
                         </div>
                     </div>
@@ -261,10 +261,10 @@ Plumbing Materials - Mama Eagle Enterprise
                             <div class="flex justify-between items-center mb-4">
                                 <div>
                                     {% if product.is_on_sale %}
-                                        <span class="text-lg font-bold text-red-600">GHS {{ product.price }}</span>
-                                        <span class="text-sm text-gray-500 line-through ml-2">GHS {{ product.compare_at_price }}</span>
+                                        <span class="text-lg font-bold text-red-600">₵ {{ product.price }}</span>
+                                        <span class="text-sm text-gray-500 line-through ml-2">₵ {{ product.compare_at_price }}</span>
                                     {% else %}
-                                        <span class="text-lg font-bold text-primary">GHS {{ product.price }}</span>
+                                        <span class="text-lg font-bold text-primary">₵ {{ product.price }}</span>
                                     {% endif %}
                                 </div>
                                 <div class="text-xs text-gray-500">

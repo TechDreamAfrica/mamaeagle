@@ -469,12 +469,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update display
         document.getElementById('deliveryFee').innerHTML = deliveryFee === 0 ? 
             '<span class="text-green-600">FREE</span>' : 
-            `GHS ${deliveryFee.toFixed(2)}`;
+            `₵ ${deliveryFee.toFixed(2)}`;
             
-        document.getElementById('paymentFee').textContent = `GHS ${paymentFee.toFixed(2)}`;
+        document.getElementById('paymentFee').textContent = `₵ ${paymentFee.toFixed(2)}`;
         
         const total = subtotal + deliveryFee + paymentFee;
-        document.getElementById('orderTotal').textContent = `GHS ${total.toFixed(2)}`;
+        document.getElementById('orderTotal').textContent = `₵ ${total.toFixed(2)}`;
     }
     
     // Form validation

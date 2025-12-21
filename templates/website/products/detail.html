@@ -102,13 +102,13 @@
                 
                 <div class="flex items-center space-x-4 mb-4">
                     {% if product.is_on_sale %}
-                        <span class="text-3xl font-bold text-red-600">GHS {{ product.price }}</span>
-                        <span class="text-xl text-gray-500 line-through">GHS {{ product.compare_at_price }}</span>
+                        <span class="text-3xl font-bold text-red-600">₵ {{ product.price }}</span>
+                        <span class="text-xl text-gray-500 line-through">₵ {{ product.compare_at_price }}</span>
                         <span class="bg-red-500 text-white px-2 py-1 text-sm rounded font-bold">
                             {{ product.sale_percentage }}% OFF
                         </span>
                     {% else %}
-                        <span class="text-3xl font-bold text-primary">GHS {{ product.price }}</span>
+                        <span class="text-3xl font-bold text-primary">₵ {{ product.price }}</span>
                     {% endif %}
                 </div>
 
@@ -204,7 +204,7 @@
             <div class="bg-light-blue rounded-lg p-4">
                 <h3 class="font-semibold text-gray-900 mb-2">🚚 Shipping Information</h3>
                 <ul class="text-sm text-gray-700 space-y-1">
-                    <li>• Free delivery for orders above GHS 500</li>
+                    <li>• Free delivery for orders above ₵ 500</li>
                     <li>• Same-day delivery in Accra (orders before 2 PM)</li>
                     <li>• Nationwide delivery within 2-3 business days</li>
                     <li>• Professional installation available</li>
@@ -389,7 +389,7 @@
                         <a href="{{ related_product.get_absolute_url }}">{{ related_product.name }}</a>
                     </h3>
                     <div class="flex justify-between items-center">
-                        <span class="text-lg font-bold text-primary">GHS {{ related_product.price }}</span>
+                        <span class="text-lg font-bold text-primary">₵ {{ related_product.price }}</span>
                         <a href="{{ related_product.get_absolute_url }}" class="text-sm text-primary hover:underline">
                             View Details
                         </a>

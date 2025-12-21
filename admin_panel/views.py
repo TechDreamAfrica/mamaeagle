@@ -349,8 +349,13 @@ class OrderDetailView(AdminRequiredMixin, DetailView):
 class OrderUpdateView(AdminRequiredMixin, UpdateView):
     model = Order
     template_name = 'admin_panel/orders/form.html'
-    fields = ['status', 'notes']
+    fields = ['status', 'notes', 'customer_name', 'customer_email', 'customer_phone', 'shipping_address', 'shipping_city', 'shipping_state', 'shipping_postal_code', 'shipping_country']
     success_url = reverse_lazy('admin_panel:order_list')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = f'Edit Order #{self.object.order_number}'
+        return context
 
 
 class OrderDeleteView(AdminRequiredMixin, DeleteView):

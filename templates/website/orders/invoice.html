@@ -259,8 +259,8 @@
                     <td class="item-name">{{ item.product.name }}</td>
                     <td>{{ item.product.category.name|default:"General" }}</td>
                     <td>{{ item.quantity }}</td>
-                    <td>GHS {{ item.unit_price }}</td>
-                    <td class="text-right">GHS {{ item.get_total_price }}</td>
+                    <td>₵ {{ item.unit_price }}</td>
+                    <td class="text-right">₵ {{ item.get_total_price }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -270,21 +270,21 @@
         <div class="totals">
             <div class="total-row">
                 <span>Subtotal:</span>
-                <span>GHS {{ order.subtotal }}</span>
+                <span>₵ {{ order.subtotal }}</span>
             </div>
             <div class="total-row">
                 <span>Shipping:</span>
-                <span>GHS {{ order.shipping_cost }}</span>
+                <span>₵ {{ order.shipping_cost }}</span>
             </div>
             {% if order.tax_amount %}
             <div class="total-row">
                 <span>Tax:</span>
-                <span>GHS {{ order.tax_amount }}</span>
+                <span>₵ {{ order.tax_amount }}</span>
             </div>
             {% endif %}
             <div class="total-row final">
                 <span>Total Amount:</span>
-                <span>GHS {{ order.total_amount }}</span>
+                <span>₵ {{ order.total_amount }}</span>
             </div>
         </div>
         
