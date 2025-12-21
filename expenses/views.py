@@ -114,9 +114,9 @@ def expense_create(request):
             
             # Process receipt if uploaded
             if expense.receipt:
-                # TODO: Implement AI receipt processing
-                expense.receipt_processed = True
-                expense.ai_confidence_score = 0.95  # Placeholder
+                # Mark receipt as uploaded for future AI processing
+                expense.receipt_processed = False  # Will be processed by background task
+                expense.ai_confidence_score = 0.0  # To be calculated by AI service
                 expense.save()
             
             if expense.status == 'draft':
@@ -262,22 +262,24 @@ def add_vendor_ajax(request):
 def process_receipt_ajax(request):
     """
     AJAX endpoint for AI receipt processing
+    Currently returns structured data for development
     """
     if request.method == 'POST' and request.FILES.get('receipt'):
-        # TODO: Implement actual AI processing with OpenAI Vision API
-        # For now, return mock data
+        # Future: Integrate with OpenAI Vision API or similar service
+        # For now, return structured data format that matches expected AI output
         
         import time
-        time.sleep(2)  # Simulate processing time
+        time.sleep(1)  # Simulate processing time
         
-        # Mock extracted data (replace with actual AI processing)
+        # Return structured data format for development and testing
         extracted_data = {
-            'description': 'Office supplies - Staples',
-            'amount': '89.99',
-            'vendor': 'Staples',
-            'tax_amount': '7.20',
+            'description': 'Receipt processed - enter details manually',
+            'amount': '0.00',
+            'vendor': '',
+            'tax_amount': '0.00',
             'date': date.today().isoformat(),
-            'confidence': 0.95
+            'confidence': 0.0,
+            'status': 'manual_entry_required'
         }
         
         return JsonResponse({

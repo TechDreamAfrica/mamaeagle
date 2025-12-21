@@ -458,17 +458,28 @@ class UserCompanyAssignmentForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
-        self.request_user = kwargs.pop('request_user', None)
+        # Handle company and manager parameters
+        company = kwargs.pop('company', None)
+        manager = kwargs.pop('manager', None)
+        self.request_user = kwargs.pop('request_user', None) or manager
         super().__init__(*args, **kwargs)
+        
+        # Set company field if company was provided
+        if company:
+            self.fields['company'].queryset = Company.objects.filter(id=company.id)
+            self.fields['company'].initial = company
+            self.fields['company'].widget.attrs['readonly'] = True
         
         # Filter companies based on user permissions
         if self.request_user:
             if self.request_user.is_super_admin:
                 # Super admin can assign users to any company
-                self.fields['company'].queryset = Company.objects.all()
+                if not company:
+                    self.fields['company'].queryset = Company.objects.all()
             else:
                 # Company managers can only assign users to companies they manage
-                self.fields['company'].queryset = self.request_user.get_companies_as_manager()
+                if not company:
+                    self.fields['company'].queryset = self.request_user.get_companies_as_manager()
             
             # Filter users appropriately
             self.fields['user'].queryset = User.objects.filter(is_active=True).order_by('first_name', 'last_name')
@@ -516,6 +527,11 @@ class UserRoleUpdateForm(forms.ModelForm):
                 'class': 'rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50',
             }),
         }
+    
+    def __init__(self, *args, **kwargs):
+        # Handle manager parameter
+        manager = kwargs.pop('manager', None)
+        super().__init__(*args, **kwargs)
 
 
 class CreateUserForCompanyForm(forms.ModelForm):

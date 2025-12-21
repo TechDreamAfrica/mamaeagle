@@ -13,6 +13,7 @@ from invoicing.models import Invoice, Customer
 from expenses.models import Expense
 from sales.models import Lead
 from inventory.models import Product, StockMovement
+from common.utils import calculate_percentage_change
 
 
 
@@ -208,13 +209,6 @@ def dashboard_home(request):
     }
     
     return render(request, 'dashboard/home.html', context)
-
-
-def calculate_percentage_change(old_value, new_value):
-    """Calculate percentage change between two values"""
-    if old_value == 0:
-        return 100 if new_value > 0 else 0
-    return round(((new_value - old_value) / old_value) * 100, 1)
 
 
 @login_required

@@ -6,7 +6,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, date
 import logging
 
 logger = logging.getLogger(__name__)
@@ -76,7 +76,6 @@ def send_welcome_email(user, request=None):
 
 def send_invoice_reminder(invoice, request=None):
     """Send payment reminder for overdue invoice"""
-    from datetime import date
     
     days_overdue = (date.today() - invoice.due_date).days
     invoice_url = request.build_absolute_uri(f'/invoicing/invoice/{invoice.id}/') if request else f'http://localhost:8000/invoicing/invoice/{invoice.id}/'
@@ -187,7 +186,6 @@ def send_bulk_invoice_reminders():
     Called by scheduled task (e.g., daily cron job)
     """
     from invoicing.models import Invoice
-    from datetime import date
     
     # Get all overdue unpaid invoices
     overdue_invoices = Invoice.objects.filter(

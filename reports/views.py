@@ -15,6 +15,7 @@ from .financial_statements import (
     get_monthly_statements, get_annual_statements, get_quarterly_statements
 )
 from .statement_generator import ComprehensiveStatementGenerator
+from common.utils import calculate_percentage_change
 
 
 @login_required
@@ -51,7 +52,6 @@ def report_list(request):
 def profit_loss_report(request):
     """Generate and display Profit & Loss (Income Statement)"""
     from django.db.models import Sum, Q
-    from datetime import datetime, timedelta
     from calendar import monthrange
     
     # Get date range from request or default to current month
@@ -236,7 +236,6 @@ def profit_loss_report(request):
 def balance_sheet_report(request):
     """Generate and display Balance Sheet"""
     from django.db.models import Sum
-    from datetime import datetime
     
     # Get date parameter or default to today
     as_of_date_str = request.GET.get('as_of_date')
@@ -248,7 +247,7 @@ def balance_sheet_report(request):
     else:
         as_of_date = date.today()
     
-    from .models import Account, AccountType, JournalEntryLine
+    from .models import AccountType, JournalEntryLine
     
     # Get all asset accounts
     asset_accounts = Account.objects.filter(
@@ -435,7 +434,6 @@ def balance_sheet_report(request):
 def cash_flow_report(request):
     """Generate and display Cash Flow Statement"""
     from django.db.models import Sum, Q
-    from datetime import datetime, timedelta
     from calendar import monthrange
     
     # Get date range from request or default to current month
@@ -573,7 +571,6 @@ def cash_flow_report(request):
 def ar_aging_report(request):
     """Accounts Receivable Aging Report"""
     from invoicing.models import Invoice
-    from datetime import timedelta
     
     today = date.today()
     
@@ -642,7 +639,6 @@ def expense_category_report(request):
     """Expense Report by Category"""
     from django.db.models import Sum
     from expenses.models import Expense
-    from datetime import datetime, timedelta
     from calendar import monthrange
     
     period = request.GET.get('period', 'current-month')
@@ -701,7 +697,6 @@ def sales_tax_report(request):
     """Sales Tax Report"""
     from django.db.models import Sum
     from invoicing.models import Invoice
-    from datetime import datetime, timedelta
     from calendar import monthrange
     
     period = request.GET.get('period', 'current-month')
@@ -763,7 +758,6 @@ def budget_actual_report(request):
     """Budget vs Actual Report"""
     from django.db.models import Sum
     from .models import JournalEntryLine
-    from datetime import datetime
     from calendar import monthrange
     
     year = int(request.GET.get('year', date.today().year))
@@ -918,7 +912,6 @@ def customer_sales_report(request):
     """Customer Sales Report"""
     from django.db.models import Sum, Count
     from invoicing.models import Invoice
-    from datetime import datetime, timedelta
     from calendar import monthrange
     
     period = request.GET.get('period', 'current-month')
@@ -1289,19 +1282,19 @@ def monthly_financial_statements(request):
     # Calculate month-over-month changes
     current_income = statements['income_statement']
     mom_changes = {
-        'revenue_change': _calculate_percentage_change(
+        'revenue_change': calculate_percentage_change(
             prev_statements.get('revenue', {}).get('gross_revenue', 0),
             current_income['revenue']['gross_revenue']
         ),
-        'gross_profit_change': _calculate_percentage_change(
+        'gross_profit_change': calculate_percentage_change(
             prev_statements.get('gross_profit', 0),
             current_income['gross_profit']
         ),
-        'operating_income_change': _calculate_percentage_change(
+        'operating_income_change': calculate_percentage_change(
             prev_statements.get('operating_income', 0),
             current_income['operating_income']
         ),
-        'net_income_change': _calculate_percentage_change(
+        'net_income_change': calculate_percentage_change(
             prev_statements.get('net_income', 0),
             current_income['net_income']
         ),
@@ -1373,19 +1366,19 @@ def annual_financial_statements(request):
     prev_income = prev_statements['income_statement']
     
     yoy_changes = {
-        'revenue_change': _calculate_percentage_change(
+        'revenue_change': calculate_percentage_change(
             prev_income['revenue']['gross_revenue'],
             current_income['revenue']['gross_revenue']
         ),
-        'gross_profit_change': _calculate_percentage_change(
+        'gross_profit_change': calculate_percentage_change(
             prev_income['gross_profit'],
             current_income['gross_profit']
         ),
-        'operating_income_change': _calculate_percentage_change(
+        'operating_income_change': calculate_percentage_change(
             prev_income['operating_income'],
             current_income['operating_income']
         ),
-        'net_income_change': _calculate_percentage_change(
+        'net_income_change': calculate_percentage_change(
             prev_income['net_income'],
             current_income['net_income']
         ),
@@ -1495,18 +1488,6 @@ def comparative_analysis(request):
 
 
 # Helper functions
-def _calculate_percentage_change(old_value, new_value):
-    """Calculate percentage change between two values"""
-    old_value = Decimal(str(old_value)) if old_value else Decimal('0')
-    new_value = Decimal(str(new_value)) if new_value else Decimal('0')
-    
-    if old_value == 0:
-        return 100 if new_value > 0 else 0
-    
-    change = ((new_value - old_value) / old_value) * 100
-    return round(change, 2)
-
-
 def _calculate_financial_ratios(statements):
     """Calculate comprehensive financial ratios"""
     income = statements['income_statement']
@@ -1581,33 +1562,41 @@ def _calculate_trends(yearly_data):
         
         trends['revenue_growth'].append({
             'year': curr_year['year'],
-            'growth': _calculate_percentage_change(prev_year['revenue'], curr_year['revenue'])
+            'growth': calculate_percentage_change(prev_year['revenue'], curr_year['revenue'])
         })
         
         trends['profit_growth'].append({
             'year': curr_year['year'],
-            'growth': _calculate_percentage_change(prev_year['net_income'], curr_year['net_income'])
+            'growth': calculate_percentage_change(prev_year['net_income'], curr_year['net_income'])
         })
         
         trends['asset_growth'].append({
             'year': curr_year['year'],
-            'growth': _calculate_percentage_change(prev_year['total_assets'], curr_year['total_assets'])
+            'growth': calculate_percentage_change(prev_year['total_assets'], curr_year['total_assets'])
         })
     
     return trends
 
 
 def _export_to_pdf(statements, filename):
-    """Export statements to PDF"""
-    # TODO: Implement PDF export using reportlab or weasyprint
-    response = HttpResponse('PDF export not yet implemented', content_type='text/plain')
+    """Export statements to PDF - Feature Coming Soon"""
+    # Professional PDF export functionality will be implemented with reportlab
+    response = HttpResponse(
+        'PDF Export Feature Coming Soon! Please use the web view for now.',
+        content_type='text/plain'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}.txt"'
     return response
 
 
 def _export_to_excel(statements, filename):
-    """Export statements to Excel"""
-    # TODO: Implement Excel export using openpyxl or xlsxwriter
-    response = HttpResponse('Excel export not yet implemented', content_type='text/plain')
+    """Export statements to Excel - Feature Coming Soon"""
+    # Professional Excel export functionality will be implemented with openpyxl
+    response = HttpResponse(
+        'Excel Export Feature Coming Soon! Please use CSV export for now.',
+        content_type='text/plain'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}.txt"'
     return response
 
 
