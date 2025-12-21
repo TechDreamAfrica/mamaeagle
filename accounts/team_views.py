@@ -517,10 +517,18 @@ def assign_user_branches(request, user_id=None):
     """
     Assign or manage user branch assignments
     """
-    company = request.user.company
+    # Get company from request (set by middleware) or user's default company
+    company = getattr(request, 'company', None) or getattr(request.user, 'company', None)
+    
     if not company:
-        messages.error(request, "You must be associated with a company to manage branch assignments.")
-        return redirect('dashboard:home')
+        # Try to get first company the user has access to
+        from .models import UserCompany
+        user_company = UserCompany.objects.filter(user=request.user, is_active=True).first()
+        if user_company:
+            company = user_company.company
+        else:
+            messages.error(request, "You must be associated with a company to manage branch assignments.")
+            return redirect('dashboard:home')
 
     # Import models
     from .models import Branch

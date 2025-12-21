@@ -36,14 +36,11 @@ def company_switcher(request):
 @login_required
 def switch_company(request, company_id):
     """
-    Switch active company context (Admin only)
+    Switch active company context (Super Admin only)
     """
-    # Check if user has admin/company management permissions
-    from .context_processors import team_permissions as get_permissions
-    perms = get_permissions(request)
-    
-    if not perms.get('can_manage_roles', False):
-        messages.error(request, 'Only administrators can switch companies.')
+    # Only super admins can switch between companies
+    if not (request.user.is_super_admin or request.user.role == 'super_admin' or request.user.is_superuser):
+        messages.error(request, 'Only super administrators can switch between companies.')
         return redirect('dashboard:home')
     
     # Verify user has access to this company
@@ -57,6 +54,9 @@ def switch_company(request, company_id):
         # Set as active company in session
         request.session['active_company_id'] = company_id
         request.session.modified = True  # Force session save
+        
+        # Also update the current request object for immediate display
+        request.company = user_company.company
         
         messages.success(request, f'Switched to {user_company.company.name}')
         
@@ -84,11 +84,22 @@ def switch_company(request, company_id):
 def create_company(request):
     """
     Create a new company with proper role-based management
+    Only super admins can create companies
     """
-    # Check if user can create companies
-    if not (request.user.is_super_admin or request.user.role in ['super_admin', 'admin']):
-        messages.error(request, 'You do not have permission to create companies.')
+    # Check if user can create companies - only super admins
+    if not (request.user.is_super_admin or request.user.role == 'super_admin' or request.user.is_superuser):
+        messages.error(request, 'Only super administrators can create companies. Contact your system administrator.')
         return redirect('dashboard:home')
+    
+    # Calculate company limits for context
+    owned_companies = UserCompany.objects.filter(
+        user=request.user,
+        role__in=['owner', 'admin'],
+        is_active=True
+    ).count()
+    
+    # Mama Eagle Enterprise allows unlimited companies for super admins
+    company_limit = -1  # -1 means unlimited
     
     if request.method == 'POST':
         form = CompanyCreationForm(request.POST)
@@ -120,7 +131,7 @@ def create_company(request):
             if assigned_user == request.user:
                 request.session['active_company_id'] = company.id
             
-            return redirect('accounts:manage_company_users', company_id=company.id)
+            return redirect('accounts:company_users', company_id=company.id)
     else:
         # Initialize form with current user as default selection
         form = CompanyCreationForm(initial={'assign_to_user': request.user})

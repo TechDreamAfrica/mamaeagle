@@ -198,6 +198,58 @@
 
     <!-- Content Row -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <!-- Low Stock Alerts - Detailed -->
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+            Low Stock Alerts
+          </h3>
+        </div>
+        <div class="p-6">
+          {% if low_stock_alerts %}
+          <div class="space-y-4">
+            {% for product in low_stock_alerts %}
+            <div class="border border-yellow-200 rounded-lg p-4 bg-yellow-50">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-sm font-semibold text-gray-900">
+                  {{ product.name }}
+                </h4>
+                <span class="text-xs font-medium px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full">
+                  Critical
+                </span>
+              </div>
+              <div class="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span class="text-gray-600">Current:</span>
+                  <span class="font-medium text-red-600">{{ product.current_stock|default:0 }}</span>
+                </div>
+                <div>
+                  <span class="text-gray-600">Reorder at:</span>
+                  <span class="font-medium">{{ product.reorder_point }}</span>
+                </div>
+                <div>
+                  <span class="text-gray-600">SKU:</span>
+                  <span class="font-medium">{{ product.sku }}</span>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="mt-4 text-center">
+            <a href="{% url 'inventory:product_list' %}?low_stock=1" class="inline-flex items-center px-4 py-2 border border-yellow-300 rounded-md text-sm font-medium text-yellow-700 bg-yellow-100 hover:bg-yellow-200">
+              <i class="fas fa-list mr-2"></i>
+              View All Low Stock Items
+            </a>
+          </div>
+          {% else %}
+          <div class="text-center py-8">
+            <i class="fas fa-check-circle text-4xl text-green-500 mb-4"></i>
+            <p class="text-gray-600">All products are adequately stocked.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
       <!-- Low Stock Alert -->
       <div class="bg-white rounded-lg shadow-lg overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200">
@@ -280,8 +332,7 @@
                 >
               </div>
               <p class="text-xs text-gray-600">
-                {{ movement.warehouse.name }} - {{
-                movement.created_by.get_full_name }}
+                {{ movement.warehouse.name }} - {{ movement.created_by.get_full_name|default:movement.created_by.username }}
               </p>
             </div>
             {% endfor %}

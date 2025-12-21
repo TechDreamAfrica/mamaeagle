@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ purchase_order.po_number }} - Purchase Order Detail - DreamBiz Accounting{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Page Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">{{ purchase_order.po_number }}</h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Purchase order details and items
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <a
+            href="{% url 'inventory:purchase_order_list' %}"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to List
+          </a>
+          <a
+            href="{% url 'inventory:purchase_order_update' purchase_order.pk %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <i class="fas fa-edit mr-2"></i>
+            Edit Order
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Order Details -->
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Order Information</h3>
+      </div>
+      <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Status</dt>
+          <dd class="mt-1">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+              {% if purchase_order.status == 'draft' %}bg-gray-100 text-gray-800
+              {% elif purchase_order.status == 'sent' %}bg-blue-100 text-blue-800
+              {% elif purchase_order.status == 'confirmed' %}bg-green-100 text-green-800
+              {% elif purchase_order.status == 'partially_received' %}bg-yellow-100 text-yellow-800
+              {% elif purchase_order.status == 'received' %}bg-green-100 text-green-800
+              {% elif purchase_order.status == 'cancelled' %}bg-red-100 text-red-800
+              {% else %}bg-gray-100 text-gray-800{% endif %}">
+              {{ purchase_order.get_status_display }}
+            </span>
+          </dd>
+        </div>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Supplier</dt>
+          <dd class="mt-1 text-sm text-gray-900">{{ purchase_order.supplier.name }}</dd>
+        </div>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Warehouse</dt>
+          <dd class="mt-1 text-sm text-gray-900">{{ purchase_order.warehouse.name }}</dd>
+        </div>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Order Date</dt>
+          <dd class="mt-1 text-sm text-gray-900">{{ purchase_order.order_date|date:"M d, Y" }}</dd>
+        </div>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Expected Delivery</dt>
+          <dd class="mt-1 text-sm text-gray-900">
+            {% if purchase_order.expected_delivery_date %}
+            {{ purchase_order.expected_delivery_date|date:"M d, Y" }}
+            {% else %}
+            Not specified
+            {% endif %}
+          </dd>
+        </div>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Created By</dt>
+          <dd class="mt-1 text-sm text-gray-900">
+            {% if purchase_order.created_by %}
+            {{ purchase_order.created_by.get_full_name|default:purchase_order.created_by.username }}
+            {% else %}
+            Not specified
+            {% endif %}
+          </dd>
+        </div>
+        
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Total Amount</dt>
+          <dd class="mt-1 text-lg font-bold text-gray-900">GH₵{{ purchase_order.total_amount|floatformat:2 }}</dd>
+        </div>
+      </div>
+      
+      {% if purchase_order.notes %}
+      <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <dt class="text-sm font-medium text-gray-500 mb-2">Notes</dt>
+        <dd class="text-sm text-gray-900">{{ purchase_order.notes|linebreaks }}</dd>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Order Items -->
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Order Items</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Product
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Quantity Ordered
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Quantity Received
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Unit Cost
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Total Cost
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for item in items %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">{{ item.product.name }}</div>
+                <div class="text-sm text-gray-500">SKU: {{ item.product.sku }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ item.quantity_ordered }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <span class="text-gray-900">{{ item.quantity_received }}</span>
+                {% if item.quantity_pending > 0 %}
+                <div class="text-xs text-red-600">({{ item.quantity_pending }} pending)</div>
+                {% else %}
+                <div class="text-xs text-green-600">Complete</div>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                GH₵{{ item.unit_cost|floatformat:2 }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                GH₵{{ item.total_cost|floatformat:2 }}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                <div class="flex flex-col items-center">
+                  <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
+                  <p class="text-lg">No items in this purchase order</p>
+                  <p class="text-sm">Add items to this purchase order.</p>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          {% if items %}
+          <tfoot class="bg-gray-50">
+            <tr>
+              <th colspan="4" class="px-6 py-4 text-right text-sm font-medium text-gray-900">
+                Total:
+              </th>
+              <th class="px-6 py-4 text-left text-lg font-bold text-gray-900">
+                GH₵{{ purchase_order.total_amount|floatformat:2 }}
+              </th>
+            </tr>
+          </tfoot>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

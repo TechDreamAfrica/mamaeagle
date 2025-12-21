@@ -133,6 +133,60 @@ def dashboard_home(request):
     total_customers = customer_qs.count()
     total_products = product_qs.filter(is_active=True).count()
     
+    # Product Statistics
+    product_stats = {}
+    if company:
+        from inventory.models import StockMovement
+        
+        # Calculate total inventory value
+        total_inventory_value = Decimal('0.00')
+        low_stock_count = 0
+        out_of_stock_count = 0
+        
+        active_products = product_qs.filter(is_active=True)
+        for product in active_products:
+            current_stock = product.current_stock
+            stock_value = current_stock * product.cost_price
+            total_inventory_value += stock_value
+            
+            if current_stock <= 0:
+                out_of_stock_count += 1
+            elif current_stock <= product.reorder_point:
+                low_stock_count += 1
+        
+        # Stock movement statistics for current month
+        stock_movements_this_month = StockMovement.objects.filter(
+            company=company,
+            movement_date__gte=month_start
+        )
+        
+        monthly_stock_in = stock_movements_this_month.filter(
+            quantity_change__gt=0
+        ).aggregate(total=Sum('quantity_change'))['total'] or 0
+        
+        monthly_stock_out = stock_movements_this_month.filter(
+            quantity_change__lt=0
+        ).aggregate(total=Sum('quantity_change'))['total'] or 0
+        
+        # Top selling products this month
+        top_selling_products = product_qs.filter(
+            stock_movements__movement_date__gte=month_start,
+            stock_movements__movement_type='sale'
+        ).annotate(
+            units_sold=Sum('stock_movements__quantity_change')
+        ).order_by('units_sold')[:5]  # Negative values, so ascending order
+        
+        product_stats = {
+            'total_inventory_value': float(total_inventory_value),
+            'low_stock_count': low_stock_count,
+            'out_of_stock_count': out_of_stock_count,
+            'monthly_stock_in': monthly_stock_in,
+            'monthly_stock_out': abs(monthly_stock_out),
+            'top_selling_products': list(top_selling_products.values(
+                'name', 'sku', 'units_sold'
+            )),
+        }
+    
     context = {
         'widgets': widgets,
         'notifications': notifications,
@@ -149,6 +203,7 @@ def dashboard_home(request):
             'revenue_change': revenue_change,
             'expense_change': expense_change,
         },
+        'product_stats': product_stats,
         'today': today,
     }
     
@@ -315,6 +370,124 @@ def get_revenue_chart_data(request):
         current_date += timedelta(days=1)
     
     return JsonResponse({'data': daily_revenue})
+
+
+@login_required
+def get_product_stats(request):
+    """
+    API endpoint for product statistics
+    """
+    company = getattr(request, 'company', None)
+    if not company:
+        return JsonResponse({'error': 'No active company'}, status=400)
+    
+    from inventory.models import Product, StockMovement
+    
+    # Calculate product statistics
+    active_products = Product.objects.filter(company=company, is_active=True)
+    total_products = active_products.count()
+    
+    # Calculate inventory value and stock levels
+    total_inventory_value = Decimal('0.00')
+    low_stock_count = 0
+    out_of_stock_count = 0
+    overstocked_count = 0
+    
+    for product in active_products:
+        current_stock = product.current_stock
+        stock_value = current_stock * product.cost_price
+        total_inventory_value += stock_value
+        
+        if current_stock <= 0:
+            out_of_stock_count += 1
+        elif current_stock <= product.reorder_point:
+            low_stock_count += 1
+        elif current_stock > product.maximum_stock_level:
+            overstocked_count += 1
+    
+    # Recent stock movements
+    today = timezone.now().date()
+    week_start = today - timedelta(days=7)
+    month_start = today.replace(day=1)
+    
+    weekly_movements = StockMovement.objects.filter(
+        company=company,
+        movement_date__gte=week_start
+    )
+    
+    monthly_movements = StockMovement.objects.filter(
+        company=company,
+        movement_date__gte=month_start
+    )
+    
+    # Stock in/out statistics
+    weekly_stock_in = weekly_movements.filter(
+        quantity_change__gt=0
+    ).aggregate(total=Sum('quantity_change'))['total'] or 0
+    
+    weekly_stock_out = weekly_movements.filter(
+        quantity_change__lt=0
+    ).aggregate(total=Sum('quantity_change'))['total'] or 0
+    
+    monthly_stock_in = monthly_movements.filter(
+        quantity_change__gt=0
+    ).aggregate(total=Sum('quantity_change'))['total'] or 0
+    
+    monthly_stock_out = monthly_movements.filter(
+        quantity_change__lt=0
+    ).aggregate(total=Sum('quantity_change'))['total'] or 0
+    
+    # Top products by value and movement
+    top_value_products = active_products.annotate(
+        stock_value=F('cost_price') * Sum('stock_movements__quantity_change')
+    ).order_by('-stock_value')[:5]
+    
+    # Most active products (by movement frequency)
+    most_active_products = active_products.filter(
+        stock_movements__movement_date__gte=month_start
+    ).annotate(
+        movement_count=Count('stock_movements')
+    ).order_by('-movement_count')[:5]
+    
+    # Low stock alerts
+    low_stock_products = active_products.filter(
+        stock_movements__isnull=False
+    ).annotate(
+        current_stock=Sum('stock_movements__quantity_change')
+    ).filter(
+        current_stock__lte=F('reorder_point')
+    )[:10]
+    
+    data = {
+        'overview': {
+            'total_products': total_products,
+            'total_inventory_value': float(total_inventory_value),
+            'low_stock_count': low_stock_count,
+            'out_of_stock_count': out_of_stock_count,
+            'overstocked_count': overstocked_count,
+        },
+        'movements': {
+            'weekly_stock_in': weekly_stock_in,
+            'weekly_stock_out': abs(weekly_stock_out),
+            'monthly_stock_in': monthly_stock_in,
+            'monthly_stock_out': abs(monthly_stock_out),
+        },
+        'top_products': {
+            'by_value': list(top_value_products.values(
+                'name', 'sku', 'stock_value'
+            )),
+            'most_active': list(most_active_products.values(
+                'name', 'sku', 'movement_count'
+            )),
+        },
+        'alerts': {
+            'low_stock_products': list(low_stock_products.values(
+                'name', 'sku', 'current_stock', 'reorder_point'
+            )),
+        }
+    }
+    
+    return JsonResponse(data)
 
 
 @login_required

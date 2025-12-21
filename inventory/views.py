@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
-from .forms import ProductForm
+from .forms import ProductForm, InventoryCountForm, StockMovementForm
 from .utils import check_and_alert_low_stock
 
 from .models import (
@@ -34,7 +34,9 @@ def inventory_dashboard(request):
         current_stock=Sum('stock_movements__quantity_change')
     ).filter(
         current_stock__lte=F('reorder_point')
-    ).count()
+    )
+    
+    low_stock_count = low_stock_products.count()
     
     # Financial metrics - Calculate total inventory value
     total_inventory_value = Decimal('0.00')
@@ -71,7 +73,8 @@ def inventory_dashboard(request):
         'total_products': total_products,
         'total_suppliers': total_suppliers,
         'total_warehouses': total_warehouses,
-        'low_stock_products': low_stock_products,
+        'low_stock_products': low_stock_products[:10],  # First 10 low stock products
+        'low_stock_items': low_stock_count,  # Count for metrics card
         'total_inventory_value': total_inventory_value,
         'recent_movements': recent_movements,
         'pending_pos': pending_pos,
@@ -277,11 +280,8 @@ class StockMovementListView(LoginRequiredMixin, ListView):
 class StockMovementCreateView(LoginRequiredMixin, CreateView):
     """Create a new stock movement."""
     model = StockMovement
+    form_class = StockMovementForm
     template_name = 'inventory/stock_movement_form.html'
-    fields = [
-        'product', 'warehouse', 'movement_type', 'quantity_change',
-        'unit_cost', 'reference_number', 'notes'
-    ]
     success_url = reverse_lazy('inventory:stock_movement_list')
     
     def form_valid(self, form):
@@ -514,17 +514,15 @@ class InventoryCountDetailView(LoginRequiredMixin, DetailView):
 class InventoryCountCreateView(LoginRequiredMixin, CreateView):
     """Create a new inventory count."""
     model = InventoryCount
+    form_class = InventoryCountForm
     template_name = 'inventory/inventory_count_form.html'
-    fields = [
-        'count_number', 'warehouse', 'count_date', 'count_type', 'notes'
-    ]
     success_url = reverse_lazy('inventory:inventory_count_list')
     
     def form_valid(self, form):
         # Auto-generate count number if not provided
         if not form.instance.count_number:
             form.instance.count_number = f"COUNT-{timezone.now().strftime('%Y%m%d%H%M%S')}"
-        
+            
         messages.success(self.request, 'Inventory count created successfully!')
         return super().form_valid(form)
 

@@ -35,6 +35,9 @@ urlpatterns = [
     path('app/hr/', include('hr.urls', namespace='hr')),
     path('app/ai-insights/', include('ai_insights.urls', namespace='ai_insights')),
     
+    # Legacy reports URL redirect (for backward compatibility)
+    path('reports/', include('reports.urls')),
+    
     # New feature apps
     path('app/sales/', include('sales.urls', namespace='sales')),
     path('app/bank-reconciliation/', include('bank_reconciliation.urls', namespace='bank_reconciliation')),

@@ -1,5 +1,8 @@
 from django import forms
-from .models import Product
+from django.contrib.auth import get_user_model
+from .models import Product, InventoryCount, Category, StockMovement, Warehouse
+
+User = get_user_model()
 
 class ProductForm(forms.ModelForm):
     class Meta:
@@ -67,3 +70,168 @@ class ProductForm(forms.ModelForm):
             self.fields['slug'].required = False
             self.fields['slug'].help_text = 'Leave empty to auto-generate from product name'
 
+
+class InventoryCountForm(forms.ModelForm):
+    # Additional fields for the template
+    count_name = forms.CharField(
+        max_length=100, 
+        label="Count Name",
+        help_text="Descriptive name for this inventory count"
+    )
+    description = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 3}), 
+        required=False,
+        label="Description",
+        help_text="Additional details about this count"
+    )
+    categories = forms.ModelMultipleChoiceField(
+        queryset=Category.objects.none(), 
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label="Categories to Count",
+        help_text="Leave empty to count all categories"
+    )
+    assigned_users = forms.ModelMultipleChoiceField(
+        queryset=User.objects.none(), 
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label="Assigned Users",
+        help_text="Users who will perform the count"
+    )
+    supervisor = forms.ModelChoiceField(
+        queryset=User.objects.none(), 
+        required=False,
+        label="Supervisor",
+        help_text="User who will supervise this count"
+    )
+    include_zero_stock = forms.BooleanField(
+        required=False,
+        initial=False,
+        label="Include Zero Stock Items",
+        help_text="Include products with zero stock in the count"
+    )
+    freeze_transactions = forms.BooleanField(
+        required=False,
+        initial=False,
+        label="Freeze Transactions",
+        help_text="Prevent inventory transactions during count"
+    )
+    
+    class Meta:
+        model = InventoryCount
+        fields = ['count_number', 'warehouse', 'count_date', 'count_type', 'notes', 'status']
+        widgets = {
+            'count_date': forms.DateInput(attrs={'type': 'date'}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Populate dropdowns (you might want to filter by company)
+        self.fields['categories'].queryset = Category.objects.filter(is_active=True)
+        self.fields['assigned_users'].queryset = User.objects.filter(is_active=True)
+        self.fields['supervisor'].queryset = User.objects.filter(is_active=True)
+        
+        # Set initial values
+        if self.instance and self.instance.count_number:
+            self.fields['count_name'].initial = self.instance.count_number
+        if self.instance and self.instance.notes:
+            self.fields['description'].initial = self.instance.notes
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        # Map additional fields to model fields
+        instance.count_number = self.cleaned_data.get('count_name', instance.count_number)
+        if self.cleaned_data.get('description'):
+            instance.notes = self.cleaned_data['description']
+        
+        if commit:
+            instance.save()
+            self.save_m2m()
+        
+        return instance
+
+
+class StockMovementForm(forms.ModelForm):
+    # Additional fields for the template
+    processed_by = forms.ModelChoiceField(
+        queryset=User.objects.none(),
+        required=False,
+        label="Processed By",
+        help_text="User processing this movement"
+    )
+    from_location = forms.ModelChoiceField(
+        queryset=Warehouse.objects.none(),
+        required=False,
+        label="From Location",
+        help_text="Source location (for transfers)"
+    )
+    to_location = forms.ModelChoiceField(
+        queryset=Warehouse.objects.none(),
+        required=False,
+        label="To Location",
+        help_text="Destination location (for transfers)"
+    )
+    quantity = forms.IntegerField(
+        label="Quantity",
+        help_text="Quantity to move",
+        widget=forms.NumberInput(attrs={'min': '1'})
+    )
+    reason = forms.CharField(
+        max_length=255,
+        required=False,
+        label="Reason for Movement",
+        help_text="Brief reason for this movement"
+    )
+    
+    class Meta:
+        model = StockMovement
+        fields = ['product', 'warehouse', 'movement_type', 'unit_cost', 'reference_number', 'notes', 'movement_date']
+        widgets = {
+            'movement_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
+            'unit_cost': forms.NumberInput(attrs={'step': '0.01'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Populate dropdowns
+        self.fields['processed_by'].queryset = User.objects.filter(is_active=True)
+        self.fields['from_location'].queryset = Warehouse.objects.filter(is_active=True)
+        self.fields['to_location'].queryset = Warehouse.objects.filter(is_active=True)
+        
+        # Map quantity_change to quantity for display
+        if self.instance and hasattr(self.instance, 'quantity_change'):
+            self.fields['quantity'].initial = abs(self.instance.quantity_change)
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        # Map quantity to quantity_change (positive for in, negative for out)
+        quantity = self.cleaned_data.get('quantity', 0)
+        movement_type = self.cleaned_data.get('movement_type')
+        
+        # Determine if quantity should be positive or negative
+        if movement_type in ['purchase', 'transfer_in', 'return', 'initial']:
+            instance.quantity_change = quantity
+        elif movement_type in ['sale', 'transfer_out', 'damage', 'theft', 'expired']:
+            instance.quantity_change = -quantity
+        else:  # adjustment
+            # For adjustments, let the user specify positive or negative
+            instance.quantity_change = quantity
+        
+        # Add reason to notes if provided
+        reason = self.cleaned_data.get('reason')
+        if reason:
+            if instance.notes:
+                instance.notes += f"\nReason: {reason}"
+            else:
+                instance.notes = f"Reason: {reason}"
+        
+        if commit:
+            instance.save()
+        
+        return instance

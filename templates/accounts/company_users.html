@@ -1,139 +1,162 @@
-{% extends 'dashboard/base.html' %}
+{% extends 'base.html' %}
 {% load i18n %}
 
 {% block title %}Users - {{ company.name }}{% endblock %}
 
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_list' %}">Companies</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_detail' company.id %}">{{ company.name }}</a></li>
-<li class="breadcrumb-item active">Users</li>
-{% endblock %}
-
 {% block content %}
-<div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">{{ company.name }} - Users</h1>
-        <div>
-            <a href="{% url 'accounts:assign_user_to_company' company.id %}" class="btn btn-outline-primary btn-sm mr-2">
-                <i class="fas fa-user-plus"></i> Assign User
-            </a>
-            <a href="{% url 'accounts:create_user_for_company' company.id %}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus"></i> Create User
-            </a>
+<div class="min-h-screen bg-gray-50">
+    <!-- Page Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div>
+                    <nav class="flex mb-2" aria-label="Breadcrumb">
+                        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                            <li class="inline-flex items-center">
+                                <a href="{% url 'dashboard:home' %}" class="text-gray-700 hover:text-primary">Dashboard</a>
+                            </li>
+                            <li>
+                                <div class="flex items-center">
+                                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                                    <a href="{% url 'accounts:company_list' %}" class="ml-1 text-gray-700 hover:text-primary md:ml-2">Companies</a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="flex items-center">
+                                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                                    <a href="{% url 'accounts:company_detail' company.id %}" class="ml-1 text-gray-700 hover:text-primary md:ml-2">{{ company.name }}</a>
+                                </div>
+                            </li>
+                            <li aria-current="page">
+                                <div class="flex items-center">
+                                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                                    <span class="ml-1 text-gray-500 md:ml-2">Users</span>
+                                </div>
+                            </li>
+                        </ol>
+                    </nav>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ company.name }} - Users</h1>
+                    <p class="mt-1 text-sm text-gray-600">Manage users and their roles within this company</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'accounts:assign_user_to_company' company.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="fas fa-user-plus mr-2"></i> Assign User
+                    </a>
+                    <a href="{% url 'accounts:create_user_for_company' company.id %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark">
+                        <i class="fas fa-plus mr-2"></i> Create User
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    {% if users %}
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Company Users</h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable">
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Assigned By</th>
-                            <th>Date Assigned</th>
-                            <th width="150">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user_company in users %}
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    {% if user_company.user.profile_image %}
-                                    <img src="{{ user_company.user.profile_image.url }}" alt="Avatar" class="rounded-circle mr-2" width="32" height="32">
-                                    {% else %}
-                                    <div class="bg-gray-200 rounded-circle d-flex align-items-center justify-content-center mr-2" style="width: 32px; height: 32px;">
-                                        <i class="fas fa-user text-gray-600"></i>
-                                    </div>
-                                    {% endif %}
-                                    <div>
-                                        <div class="font-weight-bold">{{ user_company.user.get_full_name|default:user_company.user.username }}</div>
-                                        {% if user_company.user.is_active %}
-                                        <small class="text-success">Active</small>
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% if users %}
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Company Users</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Manage users and their roles within this company.</p>
+            </div>
+            <div class="border-t border-gray-200">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned By</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Assigned</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for user_company in users %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        {% if user_company.user.profile_image %}
+                                        <img src="{{ user_company.user.profile_image.url }}" alt="Avatar" class="h-8 w-8 rounded-full mr-3">
                                         {% else %}
-                                        <small class="text-danger">Inactive</small>
+                                        <div class="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-user text-gray-600 text-sm"></i>
+                                        </div>
                                         {% endif %}
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">{{ user_company.user.get_full_name|default:user_company.user.username }}</div>
+                                            {% if user_company.user.is_active %}
+                                            <div class="text-sm text-green-600">Active</div>
+                                            {% else %}
+                                            <div class="text-sm text-red-600">Inactive</div>
+                                            {% endif %}
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
-                            <td>{{ user_company.user.email }}</td>
-                            <td>
-                                {% if user_company.role == 'ADMIN' %}
-                                <span class="badge badge-danger">Admin</span>
-                                {% elif user_company.role == 'MANAGER' %}
-                                <span class="badge badge-warning">Manager</span>
-                                {% elif user_company.role == 'ACCOUNTANT' %}
-                                <span class="badge badge-info">Accountant</span>
-                                {% elif user_company.role == 'SALES' %}
-                                <span class="badge badge-success">Sales</span>
-                                {% else %}
-                                <span class="badge badge-secondary">{{ user_company.role }}</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ user_company.assigned_by.get_full_name|default:user_company.assigned_by.username }}</td>
-                            <td>{{ user_company.created_at|date:"M d, Y" }}</td>
-                            <td>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown">
-                                        Actions
-                                    </button>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="{% url 'accounts:update_user_role' company.id user_company.id %}">
-                                            <i class="fas fa-edit"></i> Update Role
-                                        </a>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item text-danger" href="{% url 'accounts:remove_user_from_company' company.id user_company.id %}">
-                                            <i class="fas fa-trash"></i> Remove from Company
-                                        </a>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ user_company.user.email }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if user_company.role == 'admin' or user_company.role == 'ADMIN' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Admin</span>
+                                    {% elif user_company.role == 'manager' or user_company.role == 'MANAGER' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Manager</span>
+                                    {% elif user_company.role == 'accountant' or user_company.role == 'ACCOUNTANT' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Accountant</span>
+                                    {% elif user_company.role == 'sales' or user_company.role == 'SALES' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Sales</span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ user_company.role }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ user_company.assigned_by.get_full_name|default:user_company.assigned_by.username }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user_company.created_at|date:"M d, Y" }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="relative inline-block text-left" x-data="{ open: false }">
+                                        <div>
+                                            <button @click="open = !open" type="button" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                                Actions
+                                                <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                                            </button>
+                                        </div>
+                                        <div x-show="open" @click.away="open = false" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                                            <div class="py-1">
+                                                <a href="{% url 'accounts:update_user_role' company.id user_company.id %}" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    <i class="fas fa-edit mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                                                    Update Role
+                                                </a>
+                                                <a href="{% url 'accounts:remove_user_from_company' company.id user_company.id %}" class="group flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-100">
+                                                    <i class="fas fa-trash mr-3 text-red-400 group-hover:text-red-500"></i>
+                                                    Remove User
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
-    {% else %}
-    <div class="card shadow">
-        <div class="card-body text-center">
-            <i class="fas fa-users text-gray-300 mb-3" style="font-size: 3rem;"></i>
-            <h5 class="text-gray-500">No users assigned to this company</h5>
-            <p class="text-gray-400">Start by assigning existing users or creating new users for this company.</p>
-            <div class="mt-3">
-                <a href="{% url 'accounts:assign_user_to_company' company.id %}" class="btn btn-outline-primary mr-2">
-                    <i class="fas fa-user-plus"></i> Assign User
+        {% else %}
+        <div class="text-center bg-white rounded-lg shadow p-8">
+            <i class="fas fa-users text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-xl font-medium text-gray-500 mb-2">No users assigned to this company</h3>
+            <p class="text-gray-400 mb-6">Start by assigning existing users or creating new users for this company.</p>
+            <div class="space-x-3">
+                <a href="{% url 'accounts:assign_user_to_company' company.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    <i class="fas fa-user-plus mr-2"></i> Assign User
                 </a>
-                <a href="{% url 'accounts:create_user_for_company' company.id %}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Create User
+                <a href="{% url 'accounts:create_user_for_company' company.id %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark">
+                    <i class="fas fa-plus mr-2"></i> Create User
                 </a>
             </div>
         </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
-<script>
-$(document).ready(function() {
-    $('#dataTable').DataTable({
-        "pageLength": 25,
-        "order": [[ 4, "desc" ]],
-        "columnDefs": [
-            { "orderable": false, "targets": -1 }
-        ]
-    });
-});
-</script>
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 {% endblock %}

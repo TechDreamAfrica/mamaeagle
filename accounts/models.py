@@ -112,6 +112,10 @@ class User(AbstractUser):
         """
         Get the user's primary company (first active company they belong to)
         """
+        # Check if this is an anonymous user or user without an ID
+        if not hasattr(self, 'id') or self.id is None:
+            return None
+            
         from accounts.models import UserCompany
         user_company = UserCompany.objects.filter(user=self, is_active=True).first()
         return user_company.company if user_company else None
@@ -224,6 +228,33 @@ class UserCompany(models.Model):
     def can_manage_users(self):
         """Check if this user can manage other users in this company"""
         return self.role in ['admin', 'manager']
+
+
+class UserBranch(models.Model):
+    """
+    Many-to-many relationship between Users and Branches with role-based access
+    Supports branch-based user assignment and permissions
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='branch_assignments')
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='user_assignments')
+    role = models.CharField(max_length=50, default='employee')
+    is_active = models.BooleanField(default=True)
+    permissions = models.JSONField(default=list, help_text="Specific permissions within the branch")
+    assigned_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, 
+        related_name='branch_assignments_made'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.branch.name} ({self.role})"
+
+    class Meta:
+        unique_together = ['user', 'branch']
+        verbose_name = "User Branch Assignment"
+        verbose_name_plural = "User Branch Assignments"
 
 
 

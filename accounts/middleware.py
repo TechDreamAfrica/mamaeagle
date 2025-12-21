@@ -82,10 +82,24 @@ class CompanyIsolationMiddleware(MiddlewareMixin):
             request.company = None
             return None
 
-        # Skip for superusers (they can see all data)
+        # Skip for superusers only if they haven't explicitly switched to a company
         if request.user.is_superuser:
-            set_current_company(None)
-            request.company = None
+            # Check if superuser has explicitly switched to a company via session
+            requested_company_id = request.session.get('active_company_id')
+            if requested_company_id:
+                # Use the company from session even for superusers
+                from accounts.models import UserCompany, Company
+                try:
+                    company = Company.objects.get(id=requested_company_id)
+                except Company.DoesNotExist:
+                    # Invalid session, clear it
+                    del request.session['active_company_id']
+                    company = None
+            else:
+                company = None
+            
+            set_current_company(company)
+            request.company = company
             return None
 
         # Check if user has explicitly switched to a specific company via session
@@ -152,8 +166,6 @@ class BranchAccessControlMiddleware(MiddlewareMixin):
             set_current_branch(None)
             request.current_branch = None
             request.accessible_branches = []
-            return None
-            return None
             return None
 
         # Handle branch switching (admin only)
