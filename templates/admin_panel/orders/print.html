@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order #{{ object.order_number }} - Print</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: white;
+            padding: 20px;
+        }
+        
+        .print-header {
+            border-bottom: 3px solid #2563eb;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+        
+        .company-info {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .company-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+        
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        
+        .company-details {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .order-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 30px 0;
+            color: #1f2937;
+        }
+        
+        .order-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        
+        .info-section {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 5px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #4b5563;
+        }
+        
+        .info-value {
+            color: #1f2937;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background: white;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .items-table th {
+            background: #2563eb;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .items-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .items-table tr:nth-child(even) {
+            background: #f9fafb;
+        }
+        
+        .total-section {
+            margin-left: auto;
+            width: 300px;
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+        }
+        
+        .total-row.grand-total {
+            border-top: 2px solid #2563eb;
+            padding-top: 15px;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 18px;
+            color: #2563eb;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-processing { background: #dbeafe; color: #1d4ed8; }
+        .status-shipped { background: #d1fae5; color: #065f46; }
+        .status-delivered { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .status-refunded { background: #e5e7eb; color: #4b5563; }
+        
+        .print-info {
+            margin-top: 40px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 12px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 20px;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .print-info {
+                margin-top: 20px;
+            }
+        }
+        
+        .no-items {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="print-header">
+        <div class="company-info">
+            {% load static %}
+            <img src="{% static 'logo.png' %}" alt="Mama Eagle Logo" class="company-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="company-logo" style="background: #2563eb; color: white; display: none; align-items: center; justify-content: center; font-weight: bold; font-size: 24px;">ME</div>
+            <div class="company-name">Mama Eagle</div>
+            <div class="company-details">
+                E-commerce & Accounting Solutions<br>
+                Ghana | support@mamaeagle.com
+            </div>
+        </div>
+    </div>
+
+    <h1 class="order-title">Order #{{ object.order_number }}</h1>
+
+    <div class="order-info">
+        <div class="info-section">
+            <div class="section-title">Order Information</div>
+            <div class="info-row">
+                <span class="info-label">Order Number:</span>
+                <span class="info-value">{{ object.order_number }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Order Date:</span>
+                <span class="info-value">{{ object.created_at|date:"F d, Y g:i A" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Status:</span>
+                <span class="info-value">
+                    <span class="status-badge status-{{ object.status }}">{{ object.get_status_display|default:object.status }}</span>
+                </span>
+            </div>
+            {% if object.shipped_at %}
+            <div class="info-row">
+                <span class="info-label">Shipped Date:</span>
+                <span class="info-value">{{ object.shipped_at|date:"F d, Y g:i A" }}</span>
+            </div>
+            {% endif %}
+            <div class="info-row">
+                <span class="info-label">Payment Method:</span>
+                <span class="info-value">{{ object.payment_method|default:"Not specified" }}</span>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="section-title">Customer Information</div>
+            <div class="info-row">
+                <span class="info-label">Name:</span>
+                <span class="info-value">{{ object.customer_name|default:"N/A" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ object.customer_email|default:"N/A" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Phone:</span>
+                <span class="info-value">{{ object.customer_phone|default:"N/A" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="order-info">
+        <div class="info-section">
+            <div class="section-title">Billing Address</div>
+            <div class="info-value">
+                {{ object.billing_address|default:"N/A" }}<br>
+                {{ object.billing_city|default:"" }}{% if object.billing_state %}, {{ object.billing_state }}{% endif %}<br>
+                {{ object.billing_postal_code|default:"" }} {{ object.billing_country|default:"" }}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="section-title">Shipping Address</div>
+            <div class="info-value">
+                {{ object.shipping_address|default:"Same as billing address" }}<br>
+                {{ object.shipping_city|default:"" }}{% if object.shipping_state %}, {{ object.shipping_state }}{% endif %}<br>
+                {{ object.shipping_postal_code|default:"" }} {{ object.shipping_country|default:"" }}
+            </div>
+        </div>
+    </div>
+
+    {% if object.items.exists %}
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>SKU</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in object.items.all %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.product.sku|default:"-" }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₵{{ item.unit_price|floatformat:2 }}</td>
+                <td>₵{{ item.total_price|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <div class="total-row">
+            <span>Subtotal:</span>
+            <span>₵{{ object.subtotal|floatformat:2 }}</span>
+        </div>
+        <div class="total-row">
+            <span>Shipping:</span>
+            <span>₵{{ object.shipping_cost|floatformat:2 }}</span>
+        </div>
+        <div class="total-row">
+            <span>Tax:</span>
+            <span>₵{{ object.tax_amount|floatformat:2 }}</span>
+        </div>
+        <div class="total-row grand-total">
+            <span>Total:</span>
+            <span>₵{{ object.total_amount|floatformat:2 }}</span>
+        </div>
+    </div>
+    {% else %}
+    <div class="no-items">
+        <p>No items found in this order.</p>
+    </div>
+    {% endif %}
+
+    {% if object.notes %}
+    <div class="info-section" style="margin-top: 30px;">
+        <div class="section-title">Order Notes</div>
+        <div class="info-value">{{ object.notes }}</div>
+    </div>
+    {% endif %}
+
+    <div class="print-info">
+        <p>Printed on {{ print_date|date:"F d, Y g:i A" }} | Mama Eagle Order Management System</p>
+    </div>
+
+    <script>
+        // Auto print when page loads
+        window.onload = function() {
+            window.print();
+        }
+    </script>
+</body>
+</html>

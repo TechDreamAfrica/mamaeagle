@@ -121,7 +121,7 @@
                             </div>
                             <div>
                                 <label for="{{ form.shipping_postal_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
-                                <input type="text" name="{{ form.shipping_postal_code.name }}" id="{{ form.shipping_postal_code.id_for_label }}" value="{{ form.shipping_postal_code.value|default:'' }}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <input type="text" name="{{ form.shipping_postal_code.name }}" id="{{ form.shipping_postal_code.id_for_label }}" value="{{ form.shipping_postal_code.value|default:'' }}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
                                 {% if form.shipping_postal_code.help_text %}
                                     <p class="mt-1 text-sm text-gray-500">{{ form.shipping_postal_code.help_text }}</p>
                                 {% endif %}
@@ -232,15 +232,24 @@
                     <a href="{% url 'admin_panel:order_detail' object.pk %}" class="w-full inline-flex items-center justify-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <i class="fas fa-eye mr-2"></i>View Order Details
                     </a>
-                    <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" onclick="alert('Print order coming soon'); return false;">
-                        <i class="fas fa-print mr-2"></i>Print order coming soon
-                    </button>
-                    <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-green-300 text-sm font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onclick="alert('Mark as shipped coming soon'); return false;">
-                        <i class="fas fa-truck mr-2"></i>Mark as shipped coming soon
-                    </button>
-                    <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-purple-300 text-sm font-medium rounded-md text-purple-700 bg-white hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500" onclick="alert('Invoice generation feature coming soon!'); return false;">
-                        <i class="fas fa-file-invoice mr-2"></i>Invoice generation feature coming soon!
-                    </button>
+                    <a href="{% url 'admin_panel:order_print' object.pk %}" target="_blank" class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-print mr-2"></i>Print Order
+                    </a>
+                    {% if object.status != 'shipped' and object.status != 'delivered' %}
+                    <form method="post" action="{% url 'admin_panel:order_mark_shipped' object.pk %}" onsubmit="return confirm('Are you sure you want to mark this order as shipped?');">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-2 border border-green-300 text-sm font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <i class="fas fa-truck mr-2"></i>Mark as Shipped
+                        </button>
+                    </form>
+                    {% else %}
+                    <div class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-500 bg-gray-100 cursor-not-allowed">
+                        <i class="fas fa-check mr-2"></i>Already Shipped
+                    </div>
+                    {% endif %}
+                    <a href="{% url 'admin_panel:order_invoice' object.pk %}" target="_blank" class="w-full inline-flex items-center justify-center px-4 py-2 border border-purple-300 text-sm font-medium rounded-md text-purple-700 bg-white hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        <i class="fas fa-file-invoice mr-2"></i>Generate Invoice
+                    </a>
                 </div>
                 {% else %}
                 <p class="text-gray-500 mb-0">After creating the order, you'll be able to add items and manage order details.</p>

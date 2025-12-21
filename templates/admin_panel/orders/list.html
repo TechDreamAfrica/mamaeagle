@@ -159,9 +159,12 @@
                                     <a href="{% url 'admin_panel:order_update' order.pk %}" class="inline-flex items-center p-1 border border-gray-300 rounded-md text-gray-600 hover:text-gray-800 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                         <i class="fas fa-edit text-xs"></i>
                                     </a>
-                                    <button class="inline-flex items-center p-1 border border-gray-300 rounded-md text-gray-600 hover:text-green-600 hover:border-green-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onclick="printInvoice({{ order.pk }})">
+                                    <a href="{% url 'admin_panel:order_print' order.pk %}" target="_blank" class="inline-flex items-center p-1 border border-gray-300 rounded-md text-gray-600 hover:text-green-600 hover:border-green-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" title="Print Order">
                                         <i class="fas fa-print text-xs"></i>
-                                    </button>
+                                    </a>
+                                    <a href="{% url 'admin_panel:order_invoice' order.pk %}" target="_blank" class="inline-flex items-center p-1 border border-gray-300 rounded-md text-gray-600 hover:text-purple-600 hover:border-purple-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500" title="Generate Invoice">
+                                        <i class="fas fa-file-invoice text-xs"></i>
+                                    </a>
                                     <a href="{% url 'admin_panel:order_delete' order.pk %}" class="inline-flex items-center p-1 border border-gray-300 rounded-md text-gray-600 hover:text-red-600 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" 
                                        onclick="return confirm('Are you sure you want to delete this order?')">
                                         <i class="fas fa-trash text-xs"></i>
@@ -258,6 +261,7 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Select Action:</label>
                                 <select class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" name="action" required>
                                     <option value="">Choose action...</option>
+                                    <option value="generate_invoices">Generate Invoices</option>
                                     <option value="update_status">Update Status</option>
                                     <option value="export">Export Selected</option>
                                     <option value="delete">Delete Selected</option>
@@ -400,6 +404,20 @@ function executeBulkAction() {
         return;
     }
     
+    if (action === 'generate_invoices') {
+        // Handle invoice generation differently
+        if (confirm(`Generate invoices for ${orderIds.length} selected orders?`)) {
+            // Open each invoice in a new tab
+            orderIds.forEach((orderId, index) => {
+                setTimeout(() => {
+                    window.open(`/admin-panel/orders/${orderId}/invoice/`, '_blank');
+                }, index * 200); // Stagger the opening to avoid browser popup blocks
+            });
+            closeBulkModal();
+        }
+        return;
+    }
+    
     // Prepare form data
     const formData = new FormData();
     formData.append('action', action);
@@ -439,11 +457,6 @@ function executeBulkAction() {
         console.error('Error:', error);
         alert('An error occurred while processing your request.');
     });
-}
-
-// Print invoice
-function printInvoice(orderId) {
-    alert('Invoice generation feature coming soon! Order ID: ' + orderId);
 }
 </script>
 {% endblock %}

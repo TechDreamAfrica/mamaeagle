@@ -40,6 +40,9 @@ urlpatterns = [
     path('orders/<int:pk>/', views.OrderDetailView.as_view(), name='order_detail'),
     path('orders/<int:pk>/edit/', views.OrderUpdateView.as_view(), name='order_update'),
     path('orders/<int:pk>/delete/', views.OrderDeleteView.as_view(), name='order_delete'),
+    path('orders/<int:pk>/print/', views.OrderPrintView.as_view(), name='order_print'),
+    path('orders/<int:pk>/invoice/', views.OrderInvoiceView.as_view(), name='order_invoice'),
+    path('orders/<int:pk>/mark-shipped/', views.mark_order_shipped, name='order_mark_shipped'),
     
     # Inventory Products Management
     path('inventory/products/', views.InventoryProductListView.as_view(), name='inventory_product_list'),

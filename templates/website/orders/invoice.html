@@ -260,7 +260,7 @@
                     <td>{{ item.product.category.name|default:"General" }}</td>
                     <td>{{ item.quantity }}</td>
                     <td>₵ {{ item.unit_price }}</td>
-                    <td class="text-right">₵ {{ item.get_total_price }}</td>
+                    <td class="text-right">₵ {{ item.total_price }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

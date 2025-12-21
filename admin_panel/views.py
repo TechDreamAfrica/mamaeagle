@@ -8,6 +8,7 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.db.models import Q, Count, Sum
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
@@ -362,6 +363,43 @@ class OrderDeleteView(AdminRequiredMixin, DeleteView):
     model = Order
     template_name = 'admin_panel/orders/confirm_delete.html'
     success_url = reverse_lazy('admin_panel:order_list')
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class OrderPrintView(AdminRequiredMixin, DetailView):
+    model = Order
+    template_name = 'admin_panel/orders/print.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['print_date'] = timezone.now()
+        return context
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class OrderInvoiceView(AdminRequiredMixin, DetailView):
+    model = Order
+    template_name = 'website/orders/invoice.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['order'] = self.object
+        return context
+
+
+@staff_member_required
+def mark_order_shipped(request, pk):
+    """Mark order as shipped"""
+    if request.method == 'POST':
+        order = get_object_or_404(Order, pk=pk)
+        order.status = 'shipped'
+        order.shipped_at = timezone.now()
+        order.save()
+        
+        messages.success(request, f'Order #{order.order_number} has been marked as shipped.')
+        return redirect('admin_panel:order_detail', pk=pk)
+    
+    return redirect('admin_panel:order_detail', pk=pk)
 
 
 @staff_member_required
