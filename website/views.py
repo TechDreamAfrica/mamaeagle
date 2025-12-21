@@ -726,9 +726,14 @@ def download_invoice(request, order_number):
     """Download order invoice as PDF"""
     from django.http import HttpResponse
     from django.template.loader import render_to_string
+    from django.conf import settings
+    import os
     
     # Get order without user restriction for testing
     order = get_object_or_404(Order, order_number=order_number)
+    
+    # Build full logo URL for the HTML document
+    logo_url = request.build_absolute_uri(settings.STATIC_URL + 'logo.png')
     
     # Create invoice HTML
     invoice_html = render_to_string('website/orders/invoice.html', {
@@ -736,7 +741,8 @@ def download_invoice(request, order_number):
         'company_name': 'Mama Eagle Enterprise',
         'company_address': 'Ghana - Professional Plumbing Solutions',
         'company_phone': '+233 XXX XXX XXX',
-        'company_email': 'info@mamaeagle.com'
+        'company_email': 'info@mamaeagle.com',
+        'logo_url': logo_url,
     })
     
     response = HttpResponse(content_type='text/html')

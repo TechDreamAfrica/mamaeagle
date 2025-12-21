@@ -125,23 +125,22 @@
                                         <i class="fas fa-user text-blue-600 text-sm"></i>
                                     </div>
                                     <div>
-                                        <div class="text-sm font-medium text-gray-900">{{ order.user.get_full_name|default:order.user.username }}</div>
-                                        <div class="text-sm text-gray-500">{{ order.user.email }}</div>
+                                        {% if order.user %}
+                                            <div class="text-sm font-medium text-gray-900">{{ order.user.get_full_name|default:order.user.username }}</div>
+                                            <div class="text-sm text-gray-500">{{ order.user.email }}</div>
+                                        {% else %}
+                                            <div class="text-sm font-medium text-gray-900">{{ order.customer_name|default:"Unknown Customer" }}</div>
+                                            <div class="text-sm text-gray-500">{{ order.customer_email|default:"No email" }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
-                                    <span class="mr-2 text-sm text-gray-900">{{ order.orderitem_set.count }} item{{ order.orderitem_set.count|pluralize }}</span>
-                                    {% if order.orderitem_set.count > 0 %}
-                                        <button class="inline-flex items-center p-1 border border-blue-300 rounded-md text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" 
-                                                title="{% for item in order.orderitem_set.all %}{{ item.product.name }} ({{ item.quantity }}){% if not forloop.last %}, {% endif %}{% endfor %}">
-                                            <i class="fas fa-eye text-xs"></i>
-                                        </button>
-                                    {% endif %}
+                                    <span class="mr-2 text-sm text-gray-900">{{ order.items.count }} item{{ order.items.count|pluralize }}</span>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-sm font-bold text-gray-900">${{ order.total|floatformat:2 }}</td>
+                            <td class="px-6 py-4 text-sm font-bold text-gray-900">${{ order.total_amount|floatformat:2 }}</td>
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
                                 {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800{% elif order.status == 'processing' %}bg-blue-100 text-blue-800{% elif order.status == 'shipped' %}bg-purple-100 text-purple-800{% elif order.status == 'delivered' %}bg-green-100 text-green-800{% elif order.status == 'cancelled' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">

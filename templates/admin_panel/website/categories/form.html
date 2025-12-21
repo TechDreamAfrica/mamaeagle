@@ -93,37 +93,34 @@
                             </div>
                         </div>
 
-                    <div class="mb-3">
-                        <label for="{{ form.description.id_for_label }}" class="form-label">
-                            <i class="bi bi-text-paragraph text-info me-1"></i>Description
-                        </label>
-                        <textarea id="{{ form.description.id_for_label }}" name="{{ form.description.name }}" 
-                                  class="form-control {% if form.description.errors %}is-invalid{% endif %}"
-                                  placeholder="Enter category description for SEO and user guidance" 
-                                  rows="3">{{ form.description.value|default:'' }}</textarea>
-                        {% if form.description.errors %}
-                            <div class="invalid-feedback">
-                                {{ form.description.errors.0 }}
-                            </div>
-                        {% endif %}
-                        {% if form.description.help_text %}
-                            <div class="form-text">{{ form.description.help_text }}</div>
-                        {% else %}
-                            <div class="form-text">
-                                <i class="bi bi-lightbulb me-1"></i>
-                                A good description helps with SEO and provides context for your customers.
-                            </div>
-                        {% endif %}
-                    </div>
+                        <div>
+                            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-align-left text-blue-600 mr-1"></i>Description
+                            </label>
+                            <textarea id="{{ form.description.id_for_label }}" name="{{ form.description.name }}" 
+                                      class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 {% if form.description.errors %}border-red-300 focus:border-red-500 focus:ring-red-500{% endif %}"
+                                      placeholder="Enter category description for SEO and user guidance" 
+                                      rows="3">{{ form.description.value|default:'' }}</textarea>
+                            {% if form.description.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                            {% endif %}
+                            {% if form.description.help_text %}
+                                <p class="mt-1 text-sm text-gray-500">{{ form.description.help_text }}</p>
+                            {% else %}
+                                <p class="mt-1 text-sm text-gray-500">
+                                    <i class="fas fa-lightbulb mr-1"></i>
+                                    A good description helps with SEO and provides context for your customers.
+                                </p>
+                            {% endif %}
+                        </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="{{ form.parent.id_for_label }}" class="form-label">
-                                    <i class="bi bi-diagram-3 text-warning me-1"></i>Parent Category
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="{{ form.parent.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-sitemap text-yellow-600 mr-1"></i>Parent Category
                                 </label>
                                 <select id="{{ form.parent.id_for_label }}" name="{{ form.parent.name }}" 
-                                        class="form-select {% if form.parent.errors %}is-invalid{% endif %}">
+                                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 {% if form.parent.errors %}border-red-300 focus:border-red-500 focus:ring-red-500{% endif %}">
                                     <option value="">-- No Parent (Top Level) --</option>
                                     {% for choice in form.parent.field.queryset %}
                                         <option value="{{ choice.pk }}" 
@@ -133,208 +130,159 @@
                                     {% endfor %}
                                 </select>
                                 {% if form.parent.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ form.parent.errors.0 }}
-                                    </div>
+                                    <p class="mt-1 text-sm text-red-600">{{ form.parent.errors.0 }}</p>
                                 {% endif %}
                                 {% if form.parent.help_text %}
-                                    <div class="form-text">{{ form.parent.help_text }}</div>
+                                    <p class="mt-1 text-sm text-gray-500">{{ form.parent.help_text }}</p>
                                 {% else %}
-                                    <div class="form-text">
-                                        <i class="bi bi-info-circle me-1"></i>
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        <i class="fas fa-info-circle mr-1"></i>
                                         Select a parent to create a subcategory, or leave empty for a top-level category.
-                                    </div>
+                                    </p>
                                 {% endif %}
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="{{ form.sort_order.id_for_label }}" class="form-label">
-                                    <i class="bi bi-list-ol text-secondary me-1"></i>Sort Order
+                            <div>
+                                <label for="{{ form.sort_order.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-sort-numeric-up text-gray-600 mr-1"></i>Sort Order
                                 </label>
                                 <input type="number" id="{{ form.sort_order.id_for_label }}" name="{{ form.sort_order.name }}" 
                                        value="{{ form.sort_order.value|default:'0' }}" 
-                                       class="form-control {% if form.sort_order.errors %}is-invalid{% endif %}"
+                                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 {% if form.sort_order.errors %}border-red-300 focus:border-red-500 focus:ring-red-500{% endif %}"
                                        placeholder="0" min="0">
                                 {% if form.sort_order.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ form.sort_order.errors.0 }}
-                                    </div>
+                                    <p class="mt-1 text-sm text-red-600">{{ form.sort_order.errors.0 }}</p>
                                 {% endif %}
                                 {% if form.sort_order.help_text %}
-                                    <div class="form-text">{{ form.sort_order.help_text }}</div>
+                                    <p class="mt-1 text-sm text-gray-500">{{ form.sort_order.help_text }}</p>
                                 {% else %}
-                                    <div class="form-text">
-                                        <i class="bi bi-arrow-up-down me-1"></i>
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        <i class="fas fa-arrow-up-down mr-1"></i>
                                         Lower numbers appear first. Use 0 for default ordering.
-                                    </div>
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-6">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="{{ form.is_active.id_for_label }}" name="{{ form.is_active.name }}" 
+                                       class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded {% if form.is_active.errors %}border-red-300 focus:border-red-500 focus:ring-red-500{% endif %}"
+                                       {% if form.is_active.value %}checked{% endif %}>
+                                <label class="ml-3 text-sm" for="{{ form.is_active.id_for_label }}">
+                                    <span class="font-medium text-gray-900">
+                                        <i class="fas fa-toggle-on text-green-600 mr-1"></i>
+                                        Category is Active
+                                    </span>
+                                </label>
+                            </div>
+                            {% if form.is_active.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.is_active.errors.0 }}</p>
+                            {% endif %}
+                            {% if form.is_active.help_text %}
+                                <p class="mt-1 text-sm text-gray-500">{{ form.is_active.help_text }}</p>
+                            {% else %}
+                                <p class="mt-1 text-sm text-gray-500">
+                                    <i class="fas fa-eye mr-1"></i>
+                                    Active categories are visible to customers. Inactive categories are hidden but products remain accessible.
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                            <a href="{% url 'admin_panel:website_category_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <i class="fas fa-arrow-left mr-2"></i>Cancel & Return
+                            </a>
+                            <div class="flex space-x-2">
+                                {% if object %}
+                                    <button type="submit" name="save_and_continue" class="inline-flex items-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        <i class="fas fa-check mr-2"></i>Save & Continue
+                                    </button>
+                                {% endif %}
+                                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    {{ object|yesno:"Update Category,Create Category" }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1">
+            <div class="bg-white shadow rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Category Guidelines</h3>
+                </div>
+                <div class="p-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 class="text-sm font-semibold text-blue-800 mb-3">Tips for creating categories:</h4>
+                        <ul class="text-sm text-blue-700 space-y-2">
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-xs mt-1.5 mr-2"></i>
+                                <span>Use clear, descriptive category names</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-xs mt-1.5 mr-2"></i>
+                                <span>Create URL-friendly slugs</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-xs mt-1.5 mr-2"></i>
+                                <span>Add helpful descriptions for SEO</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-xs mt-1.5 mr-2"></i>
+                                <span>Use parent categories for organization</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-xs mt-1.5 mr-2"></i>
+                                <span>Set sort orders for custom arrangement</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-xs mt-1.5 mr-2"></i>
+                                <span>Keep category structures logical</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {% if object %}
+            <div class="bg-white shadow rounded-lg border border-gray-200 mt-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Category Info</h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-700">Created:</span>
+                            <span class="text-sm text-gray-900">{{ object.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-700">Updated:</span>
+                            <span class="text-sm text-gray-900">{{ object.updated_at|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-700">Products:</span>
+                            <span class="text-sm text-gray-900">{{ object.products.count }} items</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-700">Status:</span>
+                            <div>
+                                {% if object.is_active %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
-
-                    <div class="mb-4">
-                        <div class="form-check form-switch">
-                            <input type="checkbox" id="{{ form.is_active.id_for_label }}" name="{{ form.is_active.name }}" 
-                                   class="form-check-input {% if form.is_active.errors %}is-invalid{% endif %}"
-                                   {% if form.is_active.value %}checked{% endif %}>
-                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                <i class="bi bi-toggle-on text-success me-1"></i>
-                                <strong>Category is Active</strong>
-                            </label>
-                        </div>
-                        {% if form.is_active.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.is_active.errors.0 }}
-                            </div>
-                        {% endif %}
-                        {% if form.is_active.help_text %}
-                            <div class="form-text">{{ form.is_active.help_text }}</div>
-                        {% else %}
-                            <div class="form-text">
-                                <i class="bi bi-eye me-1"></i>
-                                Active categories are visible to customers. Inactive categories are hidden but products remain accessible.
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a href="{% url 'admin_panel:website_category_list' %}" class="btn btn-outline-secondary btn-lg">
-                            <i class="bi bi-arrow-left me-2"></i>Cancel & Return
-                        </a>
-                        <div class="d-flex gap-2">
-                            {% if object %}
-                                <button type="submit" name="save_and_continue" class="btn btn-outline-primary btn-lg">
-                                    <i class="bi bi-check-lg me-2"></i>Save & Continue
-                                </button>
-                            {% endif %}
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-check-circle me-2"></i>
-                                {{ object|yesno:"Update Category,Create Category" }}
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="card-title mb-0">Category Guidelines</h6>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <h6>Tips for creating categories:</h6>
-                    <ul class="mb-0">
-                        <li>Use clear, descriptive category names</li>
-                        <li>Create URL-friendly slugs</li>
-                        <li>Add helpful descriptions for SEO</li>
-                        <li>Use parent categories for organization</li>
-                        <li>Set sort orders for custom arrangement</li>
-                        <li>Keep category structures logical</li>
-                    </ul>
                 </div>
             </div>
+            {% endif %}
         </div>
-
-        {% if object %}
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="card-title mb-0">Category Info</h6>
-            </div>
-            <div class="card-body">
-                <div class="row g-2">
-                    <div class="col-6">
-                        <strong>Created:</strong>
-                    </div>
-                    <div class="col-6">
-                        {{ object.created_at|date:"M d, Y" }}
-                    </div>
-                    <div class="col-6">
-                        <strong>Updated:</strong>
-                    </div>
-                    <div class="col-6">
-                        {{ object.updated_at|date:"M d, Y" }}
-                    </div>
-                    <div class="col-6">
-                        <strong>Products:</strong>
-                    </div>
-                    <div class="col-6">
-                        {{ object.products.count }} items
-                    </div>
-                    <div class="col-6">
-                        <strong>Status:</strong>
-                    </div>
-                    <div class="col-6">
-                        {% if object.is_active %}
-                            <span class="badge bg-success">Active</span>
-                        {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
     </div>
 </div>
-
-<style>
-    .form-control, .form-select {
-        border: 1px solid #ced4da;
-        border-radius: 0.375rem;
-        padding: 0.375rem 0.75rem;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        outline: 0;
-    }
-    
-    textarea.form-control {
-        min-height: 80px;
-        resize: vertical;
-    }
-    
-    .input-group .form-control:focus {
-        z-index: 3;
-    }
-    
-    .btn-outline-secondary:hover {
-        background-color: #6c757d;
-        border-color: #6c757d;
-    }
-    
-    .btn-outline-primary:hover {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-    
-    .form-control[readonly] {
-        background-color: #f8f9fa;
-        opacity: 1;
-    }
-    
-    .slug-preview {
-        font-family: 'Courier New', monospace;
-        font-size: 0.875rem;
-        color: #6c757d;
-        padding: 0.25rem 0.5rem;
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 0.25rem;
-        margin-top: 0.25rem;
-    }
-    
-    .icon-label {
-        display: inline-flex;
-        align-items: center;
-    }
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -371,8 +319,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (slugInput.value) {
             const preview = document.createElement('div');
-            preview.className = 'slug-preview';
-            preview.innerHTML = `<i class="bi bi-link me-1"></i>URL: /categories/${slugInput.value}/`;
+            preview.className = 'text-sm text-gray-500 mt-2 p-2 bg-gray-50 border border-gray-200 rounded';
+            preview.innerHTML = `<i class="fas fa-link mr-1"></i>URL: /categories/${slugInput.value}/`;
             slugInput.parentNode.appendChild(preview);
         }
     }
@@ -390,17 +338,17 @@ document.addEventListener('DOMContentLoaded', function() {
             slugInput.removeAttribute('readonly');
             slugInput.focus();
             slugInput.select();
-            editSlugBtn.innerHTML = '<i class="bi bi-lock"></i>';
+            editSlugBtn.innerHTML = '<i class="fas fa-lock"></i>';
             editSlugBtn.title = 'Lock slug (enable auto-generation)';
-            editSlugBtn.classList.remove('btn-outline-secondary');
-            editSlugBtn.classList.add('btn-outline-warning');
+            editSlugBtn.classList.remove('text-gray-500', 'hover:bg-gray-100');
+            editSlugBtn.classList.add('text-yellow-600', 'hover:bg-yellow-50');
             isSlugManuallyEdited = true;
         } else {
             slugInput.setAttribute('readonly', true);
-            editSlugBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+            editSlugBtn.innerHTML = '<i class="fas fa-edit"></i>';
             editSlugBtn.title = 'Edit slug manually';
-            editSlugBtn.classList.remove('btn-outline-warning');
-            editSlugBtn.classList.add('btn-outline-secondary');
+            editSlugBtn.classList.remove('text-yellow-600', 'hover:bg-yellow-50');
+            editSlugBtn.classList.add('text-gray-500', 'hover:bg-gray-100');
             isSlugManuallyEdited = false;
             updateSlug();
         }
@@ -414,14 +362,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Show feedback
             const originalIcon = regenerateSlugBtn.innerHTML;
-            regenerateSlugBtn.innerHTML = '<i class="bi bi-check"></i>';
-            regenerateSlugBtn.classList.remove('btn-outline-primary');
-            regenerateSlugBtn.classList.add('btn-success');
+            regenerateSlugBtn.innerHTML = '<i class="fas fa-check"></i>';
+            regenerateSlugBtn.classList.remove('text-blue-600', 'hover:bg-blue-50');
+            regenerateSlugBtn.classList.add('text-green-600', 'hover:bg-green-50');
             
             setTimeout(() => {
                 regenerateSlugBtn.innerHTML = originalIcon;
-                regenerateSlugBtn.classList.remove('btn-success');
-                regenerateSlugBtn.classList.add('btn-outline-primary');
+                regenerateSlugBtn.classList.remove('text-green-600', 'hover:bg-green-50');
+                regenerateSlugBtn.classList.add('text-blue-600', 'hover:bg-blue-50');
             }, 1000);
         }
     });

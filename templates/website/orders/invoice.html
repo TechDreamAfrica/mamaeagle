@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,6 +36,26 @@
             margin-bottom: 40px;
             border-bottom: 2px solid #e9ecef;
             padding-bottom: 20px;
+        }
+        
+        .company-section {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        
+        .company-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: #f8f9fa;
+            flex-shrink: 0;
+        }
+        
+        .company-logo:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
         
         .company-info h1 {
@@ -163,6 +184,14 @@
         @media print {
             body { padding: 0; background: white; }
             .invoice-container { box-shadow: none; padding: 20px; }
+            .company-logo { 
+                box-shadow: none; 
+                width: 60px; 
+                height: 60px; 
+            }
+            .company-section {
+                gap: 15px;
+            }
         }
     </style>
 </head>
@@ -170,11 +199,18 @@
     <div class="invoice-container">
         <!-- Header -->
         <div class="invoice-header">
-            <div class="company-info">
-                <h1>{{ company_name }}</h1>
-                <p>{{ company_address }}</p>
-                <p>Phone: {{ company_phone }}</p>
-                <p>Email: {{ company_email }}</p>
+            <div class="company-section">
+                {% if logo_url %}
+                    <img src="{{ logo_url }}" alt="Mama Eagle Logo" class="company-logo">
+                {% else %}
+                    <img src="{% static 'logo.png' %}" alt="Mama Eagle Logo" class="company-logo">
+                {% endif %}
+                <div class="company-info">
+                    <h1>{{ company_name }}</h1>
+                    <p>{{ company_address }}</p>
+                    <p>Phone: {{ company_phone }}</p>
+                    <p>Email: {{ company_email }}</p>
+                </div>
             </div>
             <div class="invoice-details">
                 <div class="invoice-number">Invoice #{{ order.order_number }}</div>

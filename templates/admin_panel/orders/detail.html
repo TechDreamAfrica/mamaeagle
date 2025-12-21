@@ -92,7 +92,7 @@
                         <div>
                             <label class="text-sm font-medium text-gray-700">Total Amount</label>
                             <p class="mt-1 text-lg font-bold text-blue-600">
-                                ${{ object.total|default:"0.00"|floatformat:2 }}
+                                ${{ object.total_amount|default:"0.00"|floatformat:2 }}
                             </p>
                         </div>
                     </div>
@@ -105,7 +105,7 @@
                     <h3 class="text-lg font-medium text-gray-900">Order Items</h3>
                 </div>
                 <div class="p-6">
-                    {% if object.orderitem_set.exists %}
+                    {% if object.items.exists %}
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
@@ -117,7 +117,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    {% for item in object.orderitem_set.all %}
+                                    {% for item in object.items.all %}
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
@@ -133,10 +133,9 @@
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.quantity|default:"1" }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ item.price|default:"0.00"|floatformat:2 }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ item.unit_price|default:"0.00"|floatformat:2 }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {% widthratio item.quantity 1 item.price as item_total %}
-                                            ${{ item_total|floatformat:2 }}
+                                            ${{ item.total_price|floatformat:2 }}
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -179,7 +178,7 @@
                     <div class="border-t border-gray-200 mt-4 pt-4">
                         <div class="flex justify-between">
                             <span class="text-base font-medium text-gray-900">Total Amount:</span>
-                            <span class="text-lg font-bold text-blue-600">${{ object.total|default:"0.00"|floatformat:2 }}</span>
+                            <span class="text-lg font-bold text-blue-600">${{ object.total_amount|default:"0.00"|floatformat:2 }}</span>
                         </div>
                     </div>
                 </div>
