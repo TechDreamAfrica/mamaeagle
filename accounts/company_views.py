@@ -3,13 +3,18 @@ Multi-Company Management Views for Mama Eagle Enterprise
 Handles company switching, creation, and branch management - subscription limits removed
 """
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
 
 from .models import Company, UserCompany
 from .forms import CompanyCreationForm, UserCompanyAssignmentForm, CreateUserForCompanyForm, UserRoleUpdateForm
+
+
+def is_admin_user(user):
+    """Check if user is admin or super admin"""
+    return user.is_authenticated and (user.is_super_admin or user.role == 'super_admin' or user.is_superuser)
 
 
 @login_required
@@ -296,8 +301,9 @@ def company_users(request, company_id):
 
 
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 def assign_user_to_company(request, company_id):
-    """Assign a user to a company with a role."""
+    """Assign a user to a company with a role - Admin Only."""
     company = get_object_or_404(Company, id=company_id)
     
     # Check permissions
@@ -327,8 +333,9 @@ def assign_user_to_company(request, company_id):
 
 
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 def create_user_for_company(request, company_id):
-    """Create a new user and assign them to a company."""
+    """Create a new user and assign them to a company - Admin Only."""
     company = get_object_or_404(Company, id=company_id)
     
     # Check permissions
@@ -355,8 +362,9 @@ def create_user_for_company(request, company_id):
 
 
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 def update_user_role_in_company(request, company_id, user_company_id):
-    """Update a user's role in a company."""
+    """Update a user's role in a company - Admin Only."""
     company = get_object_or_404(Company, id=company_id)
     user_company = get_object_or_404(UserCompany, id=user_company_id, company=company)
     
@@ -395,8 +403,9 @@ def update_user_role_in_company(request, company_id, user_company_id):
 
 
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 def remove_user_from_company(request, company_id, user_company_id):
-    """Remove a user from a company."""
+    """Remove a user from a company - Admin Only."""
     company = get_object_or_404(Company, id=company_id)
     user_company = get_object_or_404(UserCompany, id=user_company_id, company=company)
     

@@ -3,7 +3,7 @@ Team Management Views
 Views for managing team members, invitations, roles, and permissions
 """
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -18,8 +18,7 @@ from django.urls import reverse
 from .team_models import UserInvitation, TeamMember, RoleTemplate
 from .team_forms import (
     InviteUserForm, BulkInviteForm, ChangeRoleForm, 
-    PermissionsForm, RoleTemplateForm, TeamMemberFilterForm,
-    UserBranchAssignmentForm
+    PermissionsForm, RoleTemplateForm, TeamMemberFilterForm
 )
 from .models import Company, UserCompany
 
@@ -27,10 +26,16 @@ User = get_user_model()
 DEBUG = settings.DEBUG
 
 
+def is_admin_user(user):
+    """Check if user is admin or super admin"""
+    return user.is_authenticated and (user.is_super_admin or user.role == 'super_admin' or user.is_superuser)
+
+
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 def team_dashboard(request):
     """
-    Main team management dashboard
+    Main team management dashboard - Admin Only
     """
     company = request.user.company
     if not company:
@@ -94,10 +99,11 @@ def team_dashboard(request):
 
 
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 @require_http_methods(["GET", "POST"])
 def invite_user(request):
     """
-    Invite a new user to the company
+    Invite a new user to the company - Admin Only
     """
     company = request.user.company
     if not company:
@@ -134,10 +140,11 @@ def invite_user(request):
 
 
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 @require_http_methods(["POST"])
 def bulk_invite(request):
     """
-    Invite multiple users at once
+    Invite multiple users at once - Admin Only
     """
     company = request.user.company
     if not company:
@@ -242,10 +249,11 @@ def cancel_invitation(request, invitation_id):
 
 
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 @require_http_methods(["GET", "POST"])
 def change_user_role(request, user_id):
     """
-    Change a user's role and department
+    Change a user's role and department - Admin Only
     """
     company = request.user.company
     user_company = get_object_or_404(UserCompany, user_id=user_id, company=company)
@@ -280,6 +288,7 @@ def change_user_role(request, user_id):
 
 
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 @require_http_methods(["POST"])
 def deactivate_user(request, user_id):
     """
@@ -308,10 +317,11 @@ def deactivate_user(request, user_id):
 
 
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 @require_http_methods(["POST"])
 def activate_user(request, user_id):
     """
-    Reactivate a team member
+    Reactivate a team member - Admin Only
     """
     company = request.user.company
     user_company = get_object_or_404(UserCompany, user_id=user_id, company=company)
@@ -332,9 +342,10 @@ def activate_user(request, user_id):
 
 
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 def manage_permissions(request, user_id):
     """
-    Manage user permissions
+    Manage user permissions - Admin Only
     """
     company = request.user.company
     user_company = get_object_or_404(UserCompany, user_id=user_id, company=company)
@@ -446,9 +457,10 @@ def manage_permissions(request, user_id):
 
 
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 def role_templates(request):
     """
-    Manage custom role templates
+    Manage custom role templates - Admin Only
     """
     company = request.user.company
     templates = RoleTemplate.objects.filter(company=company)
@@ -461,9 +473,10 @@ def role_templates(request):
 
 
 @login_required
+@user_passes_test(is_admin_user, login_url='/dashboard/')
 def create_role_template(request):
     """
-    Create a new role template
+    Create a new role template - Admin Only
     """
     company = request.user.company
     
@@ -515,141 +528,16 @@ def send_invitation_email(invitation, request):
 @login_required
 def assign_user_branches(request, user_id=None):
     """
-    Assign or manage user branch assignments
+    Branch management functionality disabled - redirecting to team dashboard
     """
-    # Get company from request (set by middleware) or user's default company
-    company = getattr(request, 'company', None) or getattr(request.user, 'company', None)
-    
-    if not company:
-        # Try to get first company the user has access to
-        from .models import UserCompany
-        user_company = UserCompany.objects.filter(user=request.user, is_active=True).first()
-        if user_company:
-            company = user_company.company
-        else:
-            messages.error(request, "You must be associated with a company to manage branch assignments.")
-            return redirect('dashboard:home')
-
-    # Import models
-    from .models import Branch
-    
-    # Create default branches if none exist
-    if not Branch.objects.filter(is_active=True).exists():
-        Branch.objects.create(
-            name="Head Office",
-            code="HO001",
-            description="Main company headquarters",
-            is_head_office=True,
-            is_active=True,
-            created_by=request.user
-        )
-        Branch.objects.create(
-            name="Branch Office",
-            code="BR001", 
-            description="Secondary branch location",
-            is_head_office=False,
-            is_active=True,
-            created_by=request.user
-        )
-        messages.success(request, "Default branches have been created for your company.")
-
-    # Get user to assign branches to
-    if user_id:
-        try:
-            user_company = UserCompany.objects.get(
-                company=company,
-                user_id=user_id,
-                is_active=True
-            )
-            user = user_company.user
-        except UserCompany.DoesNotExist:
-            messages.error(request, "User not found in your company.")
-            return redirect('accounts:team_dashboard')
-    else:
-        user = None
-
-    if request.method == 'POST':
-        form = UserBranchAssignmentForm(request.POST, company=company, user=user)
-        if form.is_valid():
-            selected_user = form.cleaned_data['user']
-            selected_branches = form.cleaned_data['branches']
-            role = form.cleaned_data['role']
-            
-            # Import models
-            from .models import UserBranch, Branch
-            
-            # Deactivate existing branch assignments for this user
-            UserBranch.objects.filter(user=selected_user).update(is_active=False)
-            
-            # Create new branch assignments
-            for branch in selected_branches:
-                UserBranch.objects.update_or_create(
-                    user=selected_user,
-                    branch=branch,
-                    defaults={
-                        'role': role,
-                        'is_active': True,
-                        'assigned_by': request.user
-                    }
-                )
-            
-            messages.success(request, f"Branch assignments updated for {selected_user.get_full_name()}.")
-            return redirect('accounts:team_dashboard')
-    else:
-        form = UserBranchAssignmentForm(company=company, user=user)
-
-    # Get current assignments if user is specified
-    current_assignments = []
-    if user:
-        from .models import UserBranch
-        current_assignments = UserBranch.objects.filter(
-            user=user,
-            is_active=True
-        ).select_related('branch', 'assigned_by')
-
-    context = {
-        'form': form,
-        'user': user,
-        'company': company,
-        'current_assignments': current_assignments,
-    }
-    
-    return render(request, 'accounts/team/assign_branches.html', context)
+    messages.info(request, "Branch management functionality has been disabled.")
+    return redirect('accounts:team_dashboard')
 
 
 @login_required
 def user_branch_assignments(request, user_id):
     """
-    View user's current branch assignments
+    Branch management functionality disabled - redirecting to team dashboard
     """
-    company = request.user.company
-    if not company:
-        messages.error(request, "You must be associated with a company to view branch assignments.")
-        return redirect('dashboard:home')
-
-    try:
-        user_company = UserCompany.objects.get(
-            company=company,
-            user_id=user_id,
-            is_active=True
-        )
-        user = user_company.user
-    except UserCompany.DoesNotExist:
-        messages.error(request, "User not found in your company.")
-        return redirect('accounts:team_dashboard')
-
-    from .models import UserBranch
-    
-    # Get user's branch assignments
-    branch_assignments = UserBranch.objects.filter(
-        user=user,
-        is_active=True
-    ).select_related('branch', 'assigned_by')
-
-    context = {
-        'user': user,
-        'branch_assignments': branch_assignments,
-        'company': company,
-    }
-    
-    return render(request, 'accounts/team/user_branches.html', context)
+    messages.info(request, "Branch management functionality has been disabled.")
+    return redirect('accounts:team_dashboard')

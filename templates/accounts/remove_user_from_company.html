@@ -1,15 +1,7 @@
-{% extends 'dashboard/base.html' %}
+{% extends 'base.html' %}
 {% load i18n %}
 
 {% block title %}Remove User - {{ user_company.user.get_full_name }}{% endblock %}
-
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_list' %}">Companies</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_detail' company.id %}">{{ company.name }}</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_users' company.id %}">Users</a></li>
-<li class="breadcrumb-item active">Remove User</li>
-{% endblock %}
 
 {% block content %}
 <div class="container-fluid">

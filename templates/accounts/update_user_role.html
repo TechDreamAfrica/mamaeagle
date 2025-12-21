@@ -1,15 +1,7 @@
-{% extends 'dashboard/base.html' %}
-{% load i18n widget_tweaks %}
+{% extends 'base.html' %}
+{% load i18n %}
 
 {% block title %}Update Role - {{ user_company.user.get_full_name }}{% endblock %}
-
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_list' %}">Companies</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_detail' company.id %}">{{ company.name }}</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_users' company.id %}">Users</a></li>
-<li class="breadcrumb-item active">Update Role</li>
-{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -42,7 +34,7 @@
                                     <label for="{{ form.role.id_for_label }}" class="font-weight-bold">
                                         New Role <span class="text-danger">*</span>
                                     </label>
-                                    {{ form.role|add_class:"form-control" }}
+                                    {{ form.role }}
                                     {% if form.role.errors %}
                                     <div class="text-danger small mt-1">
                                         {{ form.role.errors }}
@@ -80,7 +72,7 @@
                         {% if form.notes %}
                         <div class="form-group">
                             <label for="{{ form.notes.id_for_label }}" class="font-weight-bold">Notes</label>
-                            {{ form.notes|add_class:"form-control" }}
+                            {{ form.notes }}
                             {% if form.notes.errors %}
                             <div class="text-danger small mt-1">
                                 {{ form.notes.errors }}

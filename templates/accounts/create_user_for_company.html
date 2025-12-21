@@ -1,15 +1,7 @@
-{% extends 'dashboard/base.html' %}
-{% load i18n widget_tweaks %}
+{% extends 'base.html' %}
+{% load i18n %}
 
 {% block title %}Create User - {{ company.name }}{% endblock %}
-
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_list' %}">Companies</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_detail' company.id %}">{{ company.name }}</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_users' company.id %}">Users</a></li>
-<li class="breadcrumb-item active">Create User</li>
-{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -42,7 +34,7 @@
                                     <label for="{{ form.username.id_for_label }}" class="font-weight-bold">
                                         Username <span class="text-danger">*</span>
                                     </label>
-                                    {{ form.username|add_class:"form-control" }}
+                                    {{ form.username }}
                                     {% if form.username.errors %}
                                     <div class="text-danger small mt-1">
                                         {{ form.username.errors }}
@@ -58,7 +50,7 @@
                                     <label for="{{ form.email.id_for_label }}" class="font-weight-bold">
                                         Email <span class="text-danger">*</span>
                                     </label>
-                                    {{ form.email|add_class:"form-control" }}
+                                    {{ form.email }}
                                     {% if form.email.errors %}
                                     <div class="text-danger small mt-1">
                                         {{ form.email.errors }}
@@ -77,7 +69,7 @@
                                     <label for="{{ form.first_name.id_for_label }}" class="font-weight-bold">
                                         First Name <span class="text-danger">*</span>
                                     </label>
-                                    {{ form.first_name|add_class:"form-control" }}
+                                    {{ form.first_name }}
                                     {% if form.first_name.errors %}
                                     <div class="text-danger small mt-1">
                                         {{ form.first_name.errors }}
@@ -90,7 +82,7 @@
                                     <label for="{{ form.last_name.id_for_label }}" class="font-weight-bold">
                                         Last Name <span class="text-danger">*</span>
                                     </label>
-                                    {{ form.last_name|add_class:"form-control" }}
+                                    {{ form.last_name }}
                                     {% if form.last_name.errors %}
                                     <div class="text-danger small mt-1">
                                         {{ form.last_name.errors }}
@@ -106,7 +98,7 @@
                                     <label for="{{ form.password1.id_for_label }}" class="font-weight-bold">
                                         Password <span class="text-danger">*</span>
                                     </label>
-                                    {{ form.password1|add_class:"form-control" }}
+                                    {{ form.password1 }}
                                     {% if form.password1.errors %}
                                     <div class="text-danger small mt-1">
                                         {{ form.password1.errors }}
@@ -122,7 +114,7 @@
                                     <label for="{{ form.password2.id_for_label }}" class="font-weight-bold">
                                         Confirm Password <span class="text-danger">*</span>
                                     </label>
-                                    {{ form.password2|add_class:"form-control" }}
+                                    {{ form.password2 }}
                                     {% if form.password2.errors %}
                                     <div class="text-danger small mt-1">
                                         {{ form.password2.errors }}
@@ -138,7 +130,7 @@
                                     <label for="{{ form.role.id_for_label }}" class="font-weight-bold">
                                         Role <span class="text-danger">*</span>
                                     </label>
-                                    {{ form.role|add_class:"form-control" }}
+                                    {{ form.role }}
                                     {% if form.role.errors %}
                                     <div class="text-danger small mt-1">
                                         {{ form.role.errors }}
@@ -152,7 +144,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="{{ form.phone.id_for_label }}" class="font-weight-bold">Phone Number</label>
-                                    {{ form.phone|add_class:"form-control" }}
+                                    {{ form.phone }}
                                     {% if form.phone.errors %}
                                     <div class="text-danger small mt-1">
                                         {{ form.phone.errors }}
@@ -165,7 +157,7 @@
                         {% if form.notes %}
                         <div class="form-group">
                             <label for="{{ form.notes.id_for_label }}" class="font-weight-bold">Notes</label>
-                            {{ form.notes|add_class:"form-control" }}
+                            {{ form.notes }}
                             {% if form.notes.errors %}
                             <div class="text-danger small mt-1">
                                 {{ form.notes.errors }}

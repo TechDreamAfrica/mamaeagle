@@ -47,9 +47,10 @@ urlpatterns = [
     path('team/member/<int:user_id>/deactivate/', team_views.deactivate_user, name='deactivate_user'),
     path('team/member/<int:user_id>/activate/', team_views.activate_user, name='activate_user'),
     path('team/member/<int:user_id>/permissions/', team_views.manage_permissions, name='manage_permissions'),
-    path('team/member/<int:user_id>/branches/', team_views.user_branch_assignments, name='user_branch_assignments'),
-    path('team/branches/assign/', team_views.assign_user_branches, name='assign_user_branches'),
-    path('team/branches/assign/<int:user_id>/', team_views.assign_user_branches, name='assign_user_branches_user'),
+    # path('team/member/<int:user_id>/branches/', team_views.user_branch_assignments, name='user_branch_assignments'),
+    # Branch management URLs - DISABLED
+    # path('team/branches/assign/', team_views.assign_user_branches, name='assign_user_branches'),
+    # path('team/branches/assign/<int:user_id>/', team_views.assign_user_branches, name='assign_user_branches_user'),
     path('team/roles/', team_views.role_templates, name='role_templates'),
     path('team/roles/create/', team_views.create_role_template, name='create_role_template'),
     

@@ -295,59 +295,11 @@ class TeamMemberFilterForm(forms.Form):
 
 class UserBranchAssignmentForm(forms.Form):
     """
-    Form for assigning users to branches
+    Form for assigning users to branches - DISABLED
+    Branch management functionality has been disabled
     """
-    user = forms.ModelChoiceField(
-        queryset=User.objects.none(),
-        widget=forms.Select(attrs={
-            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'
-        })
-    )
-    
-    branches = forms.ModelMultipleChoiceField(
-        queryset=None,
-        widget=forms.CheckboxSelectMultiple(attrs={
-            'class': 'focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded'
-        }),
-        required=False
-    )
-    
-    role = forms.CharField(
-        max_length=50,
-        initial='employee',
-        widget=forms.TextInput(attrs={
-            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
-            'placeholder': 'Role for this branch assignment'
-        })
-    )
-    
     def __init__(self, *args, **kwargs):
         company = kwargs.pop('company', None)
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        
-        if company:
-            from .models import Branch, UserCompany
-            # Get company branches
-            self.fields['branches'].queryset = Branch.objects.filter(is_active=True)
-            
-            # Get company users if no specific user
-            if not user:
-                company_users = UserCompany.objects.filter(
-                    company=company, 
-                    is_active=True
-                ).select_related('user')
-                self.fields['user'].queryset = User.objects.filter(
-                    id__in=[uc.user.id for uc in company_users]
-                )
-            else:
-                self.fields['user'].queryset = User.objects.filter(id=user.id)
-                self.fields['user'].initial = user
-                
-                # Pre-select current branches for this user
-                from .models import UserBranch
-                current_branches = UserBranch.objects.filter(
-                    user=user, 
-                    is_active=True
-                ).values_list('branch_id', flat=True)
-                self.fields['branches'].initial = list(current_branches)
+        # Branch functionality disabled - no fields initialized

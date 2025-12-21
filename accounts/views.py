@@ -7,8 +7,6 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.urls import reverse_lazy
-from django.utils import timezone
-from datetime import timedelta
 from .models import Company
 from .forms import (
     DreamBizUserCreationForm, DreamBizPasswordResetForm, DreamBizSetPasswordForm, 

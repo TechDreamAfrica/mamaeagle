@@ -464,6 +464,9 @@ class UserCompanyAssignmentForm(forms.ModelForm):
         self.request_user = kwargs.pop('request_user', None) or manager
         super().__init__(*args, **kwargs)
         
+        # Make permissions field optional
+        self.fields['permissions'].required = False
+        
         # Set company field if company was provided
         if company:
             self.fields['company'].queryset = Company.objects.filter(id=company.id)

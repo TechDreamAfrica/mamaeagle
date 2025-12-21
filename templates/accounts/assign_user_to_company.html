@@ -1,156 +1,495 @@
-{% extends 'dashboard/base.html' %}
-{% load i18n widget_tweaks %}
+{% extends 'base.html' %}
+{% load i18n %}
 
 {% block title %}Assign User - {{ company.name }}{% endblock %}
 
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_list' %}">Companies</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_detail' company.id %}">{{ company.name }}</a></li>
-<li class="breadcrumb-item"><a href="{% url 'accounts:company_users' company.id %}">Users</a></li>
-<li class="breadcrumb-item active">Assign User</li>
-{% endblock %}
-
 {% block content %}
-<div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Assign User to {{ company.name }}</h1>
-        <a href="{% url 'accounts:company_users' company.id %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Users
-        </a>
+<div class="min-h-screen bg-gray-50">
+  <!-- Breadcrumb Navigation -->
+  <div class="bg-white shadow-sm border-b">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex py-3" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+          <li class="inline-flex items-center">
+            <a href="{% url 'dashboard:home' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a>
+          </li>
+          <li>
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+              <a href="{% url 'accounts:company_list' %}" class="ml-1 text-gray-500 hover:text-gray-700">Companies</a>
+            </div>
+          </li>
+          <li>
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+              <a href="{% url 'accounts:company_detail' company.id %}" class="ml-1 text-gray-500 hover:text-gray-700">{{ company.name }}</a>
+            </div>
+          </li>
+          <li>
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+              <a href="{% url 'accounts:company_users' company.id %}" class="ml-1 text-gray-500 hover:text-gray-700">Users</a>
+            </div>
+          </li>
+          <li aria-current="page">
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+              <span class="ml-1 text-gray-500">Assign User</span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <div class="px-4 py-6 sm:px-0">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-900">Assign User to {{ company.name }}</h1>
+      <a href="{% url 'accounts:company_users' company.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Users
+      </a>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Assign User</h6>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Main Form -->
+      <div class="lg:col-span-2">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Assign User</h3>
+            
+            <form method="post" id="assignUserForm" class="space-y-6">
+              {% csrf_token %}
+              
+              <!-- Hidden company field -->
+              {% for field in form.hidden_fields %}
+                {{ field }}
+              {% endfor %}
+              {% if form.company %}
+                <div style="display: none;">{{ form.company }}</div>
+              {% endif %}
+              
+              {% if form.non_field_errors %}
+              <div class="rounded-md bg-red-50 p-4">
+                <div class="text-sm text-red-800">
+                  {{ form.non_field_errors }}
                 </div>
-                <div class="card-body">
-                    <form method="post" id="assignUserForm">
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
-                        </div>
-                        {% endif %}
+              </div>
+              {% endif %}
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="{{ form.user.id_for_label }}" class="font-weight-bold">
-                                        Select User <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.user|add_class:"form-control" }}
-                                    {% if form.user.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ form.user.errors }}
-                                    </div>
-                                    {% endif %}
-                                    <small class="form-text text-muted">
-                                        Choose a user to assign to this company.
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="{{ form.role.id_for_label }}" class="font-weight-bold">
-                                        Role <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.role|add_class:"form-control" }}
-                                    {% if form.role.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ form.role.errors }}
-                                    </div>
-                                    {% endif %}
-                                    <small class="form-text text-muted">
-                                        Select the role for this user in the company.
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-
-                        {% if form.notes %}
-                        <div class="form-group">
-                            <label for="{{ form.notes.id_for_label }}" class="font-weight-bold">Notes</label>
-                            {{ form.notes|add_class:"form-control" }}
-                            {% if form.notes.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.notes.errors }}
-                            </div>
-                            {% endif %}
-                            <small class="form-text text-muted">
-                                Add any notes about this assignment (optional).
-                            </small>
-                        </div>
-                        {% endif %}
-
-                        <div class="form-group mb-0">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-user-plus"></i> Assign User
-                            </button>
-                            <a href="{% url 'accounts:company_users' company.id %}" class="btn btn-outline-secondary ml-2">
-                                Cancel
-                            </a>
-                        </div>
-                    </form>
+              <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                <div>
+                  <label for="{{ form.user.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Select User <span class="text-red-500">*</span>
+                  </label>
+                  <div class="mt-1">
+                    {{ form.user }}
+                  </div>
+                  {% if form.user.errors %}
+                  <p class="mt-2 text-sm text-red-600">{{ form.user.errors.0 }}</p>
+                  {% endif %}
+                  <p class="mt-2 text-sm text-gray-500">Choose a user to assign to this company.</p>
                 </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Company Information</h6>
+
+                <div>
+                  <label for="{{ form.role.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Role <span class="text-red-500">*</span>
+                  </label>
+                  <div class="mt-1">
+                    {{ form.role }}
+                  </div>
+                  {% if form.role.errors %}
+                  <p class="mt-2 text-sm text-red-600">{{ form.role.errors.0 }}</p>
+                  {% endif %}
+                  <p class="mt-2 text-sm text-gray-500">Select the role for this user in the company.</p>
                 </div>
-                <div class="card-body">
-                    <div class="text-center mb-3">
-                        {% if company.logo %}
-                        <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="rounded" style="max-width: 100px; max-height: 100px;">
-                        {% else %}
-                        <div class="bg-primary text-white rounded d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem;">
-                            {{ company.name|first|upper }}
-                        </div>
-                        {% endif %}
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                  Additional Permissions
+                </label>
+                
+                <!-- Permission Categories -->
+                <div class="space-y-4">
+                  <!-- Financial Permissions -->
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <h4 class="text-sm font-medium text-gray-900">Financial Management</h4>
+                      <div class="flex space-x-2">
+                        <button type="button" class="select-all-btn text-xs text-indigo-600 hover:text-indigo-800" data-category="financial">Select All</button>
+                        <span class="text-gray-300">|</span>
+                        <button type="button" class="clear-all-btn text-xs text-gray-600 hover:text-gray-800" data-category="financial">Clear</button>
+                      </div>
                     </div>
-                    <h5 class="text-center mb-3">{{ company.name }}</h5>
-                    
-                    {% if company.description %}
-                    <p class="text-muted small">{{ company.description }}</p>
-                    {% endif %}
-                    
-                    <div class="border-top pt-3">
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Users</div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ company.usercompany_set.count }}</div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Created</div>
-                                <div class="h6 mb-0 text-gray-800">{{ company.created_date|date:"M Y" }}</div>
-                            </div>
-                        </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" data-category="financial">
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_view_financials" value="view_financials" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">View Financial Reports</span>
+                      </label>
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_create_invoices" value="create_invoices" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">Create Invoices</span>
+                      </label>
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_approve_expenses" value="approve_expenses" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">Approve Expenses</span>
+                      </label>
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_bank_reconciliation" value="bank_reconciliation" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">Bank Reconciliation</span>
+                      </label>
                     </div>
+                  </div>
+
+                  <!-- Inventory Permissions -->
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <h4 class="text-sm font-medium text-gray-900">Inventory Management</h4>
+                      <div class="flex space-x-2">
+                        <button type="button" class="select-all-btn text-xs text-indigo-600 hover:text-indigo-800" data-category="inventory">Select All</button>
+                        <span class="text-gray-300">|</span>
+                        <button type="button" class="clear-all-btn text-xs text-gray-600 hover:text-gray-800" data-category="inventory">Clear</button>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" data-category="inventory">
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_manage_inventory" value="manage_inventory" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">Manage Inventory</span>
+                      </label>
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_stock_adjustments" value="stock_adjustments" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">Stock Adjustments</span>
+                      </label>
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_purchase_orders" value="purchase_orders" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">Create Purchase Orders</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- HR Permissions -->
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <h4 class="text-sm font-medium text-gray-900">Human Resources</h4>
+                      <div class="flex space-x-2">
+                        <button type="button" class="select-all-btn text-xs text-indigo-600 hover:text-indigo-800" data-category="hr">Select All</button>
+                        <span class="text-gray-300">|</span>
+                        <button type="button" class="clear-all-btn text-xs text-gray-600 hover:text-gray-800" data-category="hr">Clear</button>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" data-category="hr">
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_manage_employees" value="manage_employees" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">Manage Employees</span>
+                      </label>
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_payroll" value="payroll" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">Process Payroll</span>
+                      </label>
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_time_tracking" value="time_tracking" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">Time Tracking</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- System Permissions -->
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <h4 class="text-sm font-medium text-gray-900">System Administration</h4>
+                      <div class="flex space-x-2">
+                        <button type="button" class="select-all-btn text-xs text-indigo-600 hover:text-indigo-800" data-category="system">Select All</button>
+                        <span class="text-gray-300">|</span>
+                        <button type="button" class="clear-all-btn text-xs text-gray-600 hover:text-gray-800" data-category="system">Clear</button>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" data-category="system">
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_system_settings" value="system_settings" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">System Settings</span>
+                      </label>
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_backup_restore" value="backup_restore" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">Backup & Restore</span>
+                      </label>
+                      <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                        <input type="checkbox" name="permission_audit_logs" value="audit_logs" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm text-gray-700">View Audit Logs</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
-            </div>
+
+                <!-- Hidden field to store selected permissions -->
+                <input type="hidden" name="permissions" id="id_permissions" value="">
+                
+                {% if form.permissions.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.permissions.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-2 text-sm text-gray-500">Select specific permissions for this user in the company.</p>
+              </div>
+
+              <div class="flex justify-end space-x-3">
+                <a href="{% url 'accounts:company_users' company.id %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                  Cancel
+                </a>
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                  <i class="fas fa-user-plus mr-2"></i>
+                  Assign User
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
+      </div>
+
+      <!-- Company Info Sidebar -->
+      <div class="lg:col-span-1">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Company Information</h3>
+            
+            <div class="text-center mb-4">
+              {% if company.logo %}
+              <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="mx-auto h-20 w-20 rounded-lg object-cover">
+              {% else %}
+              <div class="mx-auto h-20 w-20 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <span class="text-2xl font-semibold text-indigo-600">{{ company.name|first|upper }}</span>
+              </div>
+              {% endif %}
+            </div>
+            
+            <h4 class="text-center text-xl font-semibold text-gray-900 mb-2">{{ company.name }}</h4>
+            
+            {% if company.description %}
+            <p class="text-center text-gray-600 text-sm mb-4">{{ company.description }}</p>
+            {% endif %}
+            
+            <div class="border-t pt-4">
+              <div class="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <div class="text-xs font-medium text-indigo-600 uppercase tracking-wide">Users</div>
+                  <div class="text-2xl font-semibold text-gray-900">{{ company.usercompany_set.count }}</div>
+                </div>
+                <div>
+                  <div class="text-xs font-medium text-green-600 uppercase tracking-wide">Created</div>
+                  <div class="text-sm font-medium text-gray-900">{{ company.created_date|date:"M Y" }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
-{% endblock %}
+</div>
 
-{% block extra_js %}
+<!-- JavaScript for permissions handling -->
 <script>
-$(document).ready(function() {
-    // Add select2 styling to dropdowns
-    $('#{{ form.user.id_for_label }}').select2({
-        placeholder: 'Select a user...',
-        allowClear: true
+document.addEventListener('DOMContentLoaded', function() {
+    const permissionCheckboxes = document.querySelectorAll('input[type="checkbox"][name^="permission_"]');
+    const hiddenPermissionsField = document.getElementById('id_permissions');
+    const assignUserForm = document.getElementById('assignUserForm');
+
+    // Function to update the hidden permissions field
+    function updatePermissions() {
+        const selectedPermissions = [];
+        permissionCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                selectedPermissions.push(checkbox.value);
+            }
+        });
+        hiddenPermissionsField.value = JSON.stringify(selectedPermissions);
+    }
+
+    // Add event listeners to all permission checkboxes
+    permissionCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updatePermissions);
     });
-    
-    $('#{{ form.role.id_for_label }}').select2({
-        placeholder: 'Select a role...',
-        minimumResultsForSearch: Infinity
+
+    // Role-based permission suggestions
+    const roleField = document.querySelector('select[name="role"]');
+    if (roleField) {
+        roleField.addEventListener('change', function() {
+            const selectedRole = this.value;
+            
+            // Clear all checkboxes first
+            permissionCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+            // Set default permissions based on role
+            const rolePermissions = {
+                'admin': [
+                    'view_financials', 'create_invoices', 'approve_expenses', 'bank_reconciliation',
+                    'manage_inventory', 'stock_adjustments', 'purchase_orders',
+                    'manage_employees', 'payroll', 'time_tracking',
+                    'system_settings', 'backup_restore', 'audit_logs'
+                ],
+                'manager': [
+                    'view_financials', 'create_invoices', 'approve_expenses',
+                    'manage_inventory', 'stock_adjustments', 'purchase_orders',
+                    'manage_employees', 'time_tracking'
+                ],
+                'accountant': [
+                    'view_financials', 'create_invoices', 'approve_expenses', 'bank_reconciliation',
+                    'manage_inventory', 'purchase_orders'
+                ],
+                'employee': [
+                    'create_invoices', 'time_tracking'
+                ],
+                'viewer': []
+            };
+
+            // Apply role-based permissions
+            if (rolePermissions[selectedRole]) {
+                rolePermissions[selectedRole].forEach(permission => {
+                    const checkbox = document.querySelector(`input[value="${permission}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
+
+            // Update the hidden field
+            updatePermissions();
+        });
+    }
+
+    // Visual feedback for selected permissions
+    permissionCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const label = this.closest('label');
+            if (this.checked) {
+                label.classList.add('bg-indigo-50', 'border-indigo-200');
+                label.classList.remove('hover:bg-gray-50');
+            } else {
+                label.classList.remove('bg-indigo-50', 'border-indigo-200');
+                label.classList.add('hover:bg-gray-50');
+            }
+        });
+    });
+
+    // Add subtle animations
+    permissionCheckboxes.forEach(checkbox => {
+        const label = checkbox.closest('label');
+        label.style.transition = 'all 0.2s ease-in-out';
+        label.classList.add('border', 'border-transparent');
+    });
+
+    // Permission counter
+    function updatePermissionCount() {
+        const checkedCount = document.querySelectorAll('input[type="checkbox"][name^="permission_"]:checked').length;
+        let countDisplay = document.getElementById('permission-count');
+        
+        if (!countDisplay) {
+            countDisplay = document.createElement('div');
+            countDisplay.id = 'permission-count';
+            countDisplay.className = 'mt-2 text-sm font-medium text-indigo-600';
+            document.querySelector('input[name="permissions"]').parentNode.appendChild(countDisplay);
+        }
+        
+        if (checkedCount > 0) {
+            countDisplay.textContent = `${checkedCount} permission${checkedCount !== 1 ? 's' : ''} selected`;
+        } else {
+            countDisplay.textContent = 'No permissions selected';
+        }
+    }
+
+    // Update count on checkbox changes
+    permissionCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updatePermissionCount);
+    });
+
+    // Handle Select All buttons
+    document.querySelectorAll('.select-all-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const category = this.getAttribute('data-category');
+            const categoryContainer = document.querySelector(`[data-category="${category}"]`);
+            const categoryCheckboxes = categoryContainer.querySelectorAll('input[type="checkbox"]');
+            
+            categoryCheckboxes.forEach(checkbox => {
+                checkbox.checked = true;
+                const label = checkbox.closest('label');
+                label.classList.add('bg-indigo-50', 'border-indigo-200');
+                label.classList.remove('hover:bg-gray-50');
+            });
+
+            updatePermissions();
+            updatePermissionCount();
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-blue-100 text-blue-800 px-4 py-2 rounded-lg shadow-lg z-50';
+            notification.textContent = `Selected all ${category} permissions`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 2000);
+        });
+    });
+
+    // Handle Clear All buttons
+    document.querySelectorAll('.clear-all-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const category = this.getAttribute('data-category');
+            const categoryContainer = document.querySelector(`[data-category="${category}"]`);
+            const categoryCheckboxes = categoryContainer.querySelectorAll('input[type="checkbox"]');
+            
+            categoryCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                const label = checkbox.closest('label');
+                label.classList.remove('bg-indigo-50', 'border-indigo-200');
+                label.classList.add('hover:bg-gray-50');
+            });
+
+            updatePermissions();
+            updatePermissionCount();
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg shadow-lg z-50';
+            notification.textContent = `Cleared all ${category} permissions`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 2000);
+        });
+    });
+
+    // Initial count update
+    updatePermissionCount();
+
+    // Form validation
+    assignUserForm.addEventListener('submit', function(e) {
+        const selectedUser = document.querySelector('select[name="user"]').value;
+        const selectedRole = document.querySelector('select[name="role"]').value;
+        
+        if (!selectedUser) {
+            e.preventDefault();
+            alert('Please select a user to assign.');
+            return;
+        }
+        
+        if (!selectedRole) {
+            e.preventDefault();
+            alert('Please select a role for the user.');
+            return;
+        }
+
+        // Update permissions one final time before submit
+        updatePermissions();
+        
+        // Show loading state
+        const submitButton = this.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Assigning User...';
     });
 });
 </script>
+
 {% endblock %}

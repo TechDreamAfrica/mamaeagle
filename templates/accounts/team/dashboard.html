@@ -14,12 +14,13 @@
           Manage your team members, send invitations, and control permissions
         </p>
       </div>
+      {% if user.is_super_admin or user.role == 'super_admin' or user.is_superuser %}
       <div class="flex space-x-3">
-        <a href="{% url 'accounts:assign_user_branches' %}" 
-           class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-sm transition-colors">
+        <!-- Branch assignment disabled -->
+        <span class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-500 font-medium rounded-lg shadow-sm cursor-not-allowed">
           <i class="fas fa-map-marker-alt mr-2"></i>
-          Assign Branches
-        </a>
+          Assign Branches (Disabled)
+        </span>
         <a href="{% url 'accounts:invite_user' %}" 
            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors">
           <i class="fas fa-user-plus mr-2"></i>
@@ -31,6 +32,11 @@
           Manage Roles
         </a>
       </div>
+      {% else %}
+      <div class="text-sm text-gray-500">
+        <p>Contact your administrator to manage team members.</p>
+      </div>
+      {% endif %}
     </div>
   </div>
 
@@ -204,10 +210,10 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <div class="flex items-center justify-end space-x-2">
-                <a href="{% url 'accounts:user_branch_assignments' user_company.user.id %}" 
-                   class="text-green-600 hover:text-green-900" title="Branch Assignments">
+                {% if user.is_super_admin or user.role == 'super_admin' or user.is_superuser %}
+                <span class="text-gray-400 cursor-not-allowed" title="Branch Assignments (Disabled)">
                   <i class="fas fa-map-marker-alt"></i>
-                </a>
+                </span>
                 <a href="{% url 'accounts:change_user_role' user_company.user.id %}" 
                    class="text-blue-600 hover:text-blue-900" title="Change Role">
                   <i class="fas fa-user-edit"></i>
@@ -233,6 +239,9 @@
                       </button>
                     </form>
                   {% endif %}
+                {% endif %}
+                {% else %}
+                <span class="text-gray-400 text-xs">Admin Only</span>
                 {% endif %}
               </div>
             </td>
