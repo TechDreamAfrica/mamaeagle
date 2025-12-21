@@ -294,6 +294,128 @@ class WebsiteProductDeleteView(AdminRequiredMixin, DeleteView):
     success_url = reverse_lazy('admin_panel:website_product_list')
 
 
+@staff_member_required
+def website_product_bulk_upload(request):
+    """Handle bulk upload of website products"""
+    if request.method == 'POST':
+        uploaded_file = request.FILES.get('file')
+        if not uploaded_file:
+            messages.error(request, 'Please select a file to upload.')
+            return redirect('admin_panel:website_product_list')
+        
+        # Import pandas for file processing
+        try:
+            import pandas as pd
+        except ImportError:
+            messages.error(request, 'Pandas library is required for bulk upload. Please install it.')
+            return redirect('admin_panel:website_product_list')
+        
+        try:
+            # Read the file
+            if uploaded_file.name.endswith('.csv'):
+                df = pd.read_csv(uploaded_file)
+            elif uploaded_file.name.endswith(('.xlsx', '.xls')):
+                df = pd.read_excel(uploaded_file)
+            else:
+                messages.error(request, 'Invalid file format. Please upload CSV or Excel files only.')
+                return redirect('admin_panel:website_product_list')
+            
+            # Process the data
+            success_count = 0
+            error_count = 0
+            errors = []
+            
+            for index, row in df.iterrows():
+                try:
+                    # Get or create category
+                    category = None
+                    if 'category' in row and pd.notna(row['category']):
+                        category_name = str(row['category']).strip()
+                        if category_name:
+                            category, created = ProductCategory.objects.get_or_create(name=category_name)
+                    
+                    # Create the product
+                    product = Product.objects.create(
+                        name=str(row['name']).strip(),
+                        description=str(row.get('description', '')).strip() if pd.notna(row.get('description')) else '',
+                        price=float(row['price']),
+                        category=category,
+                        sku=str(row.get('sku', '')).strip() if pd.notna(row.get('sku')) else '',
+                        stock_quantity=int(row.get('stock_quantity', 0)) if pd.notna(row.get('stock_quantity')) else 0,
+                        track_inventory=str(row.get('track_inventory', 'False')).lower() == 'true' if pd.notna(row.get('track_inventory')) else False,
+                        is_active=True
+                    )
+                    success_count += 1
+                    
+                except Exception as e:
+                    error_count += 1
+                    errors.append(f"Row {index + 2}: {str(e)}")
+            
+            # Show results
+            if success_count > 0:
+                messages.success(request, f'Successfully imported {success_count} products.')
+            
+            if error_count > 0:
+                error_msg = f'Failed to import {error_count} products.'
+                if len(errors) <= 5:
+                    error_msg += ' Errors: ' + '; '.join(errors)
+                else:
+                    error_msg += f' First 5 errors: {"; ".join(errors[:5])}...'
+                messages.error(request, error_msg)
+                
+        except Exception as e:
+            messages.error(request, f'Error processing file: {str(e)}')
+    
+    return redirect('admin_panel:website_product_list')
+
+
+@staff_member_required 
+def website_product_template_download(request):
+    """Download CSV template for bulk upload"""
+    import os
+    from django.http import FileResponse, Http404
+    from django.conf import settings
+    
+    template_path = os.path.join(settings.STATIC_ROOT or settings.STATICFILES_DIRS[0], 'templates', 'website_products_template.csv')
+    
+    if not os.path.exists(template_path):
+        # Fallback to serving from static directory during development
+        template_path = os.path.join(settings.BASE_DIR, 'static', 'templates', 'website_products_template.csv')
+    
+    if os.path.exists(template_path):
+        response = FileResponse(open(template_path, 'rb'), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="website_products_template.csv"'
+        return response
+    else:
+        # Generate template if file doesn't exist
+        try:
+            import pandas as pd
+        except ImportError:
+            messages.error(request, 'Template file not found and pandas library is required to generate it.')
+            return redirect('admin_panel:website_product_list')
+        
+        # Create template data
+        template_data = {
+            'name': ['Ball Valve 2" Brass', 'Electric Water Heater 50L'],
+            'description': ['High-quality brass ball valve for plumbing applications', 'Energy efficient electric water heater with digital display'],
+            'price': [45.99, 299.99],
+            'category': ['Plumbing', 'Appliances'],
+            'sku': ['BV-2-BRASS', 'EWH-50L'],
+            'stock_quantity': [100, 15],
+            'track_inventory': ['true', 'true'],
+        }
+        
+        df = pd.DataFrame(template_data)
+        
+        # Create response
+        from django.http import HttpResponse
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="website_products_template.csv"'
+        
+        df.to_csv(response, index=False)
+        return response
+
+
 # =============================================================================
 # WEBSITE CATEGORY MANAGEMENT VIEWS
 # =============================================================================

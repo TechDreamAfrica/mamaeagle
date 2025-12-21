@@ -24,6 +24,8 @@ urlpatterns = [
     # Website Products Management
     path('website/products/', views.WebsiteProductListView.as_view(), name='website_product_list'),
     path('website/products/create/', views.WebsiteProductCreateView.as_view(), name='website_product_create'),
+    path('website/products/bulk-upload/', views.website_product_bulk_upload, name='website_product_bulk_upload'),
+    path('website/products/template-download/', views.website_product_template_download, name='website_product_template_download'),
     path('website/products/<int:pk>/', views.WebsiteProductDetailView.as_view(), name='website_product_detail'),
     path('website/products/<int:pk>/edit/', views.WebsiteProductUpdateView.as_view(), name='website_product_update'),
     path('website/products/<int:pk>/delete/', views.WebsiteProductDeleteView.as_view(), name='website_product_delete'),
