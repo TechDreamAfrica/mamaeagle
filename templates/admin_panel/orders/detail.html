@@ -3,234 +3,255 @@
 {% block title %}Order #{{ object.id }} - AccuFlow Admin{% endblock %}
 
 {% block breadcrumb_items %}
-<li class="breadcrumb-item"><a href="{% url 'admin_panel:order_list' %}">Orders</a></li>
-<li class="breadcrumb-item active">Order #{{ object.id }}</li>
+<li class="inline-flex items-center">
+    <i class="fas fa-chevron-right text-gray-300 mx-2"></i>
+    <a href="{% url 'admin_panel:order_list' %}" class="text-sm font-medium text-blue-600 hover:text-blue-800">Orders</a>
+</li>
+<li class="inline-flex items-center">
+    <i class="fas fa-chevron-right text-gray-300 mx-2"></i>
+    <span class="text-sm font-medium text-gray-500">Order #{{ object.id }}</span>
+</li>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="h3 mb-0">Order #{{ object.id }}</h1>
-        <p class="text-muted">Order details and management</p>
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Order #{{ object.id }}</h1>
+            <p class="text-gray-600">Order details and management</p>
+        </div>
+        <div class="relative inline-block text-left">
+            <div class="flex space-x-2">
+                <a href="{% url 'admin_panel:order_update' object.pk %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-edit mr-2"></i>Edit Order
+                </a>
+                <div class="relative">
+                    <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" onclick="toggleDropdown(this)">
+                        More Actions
+                        <i class="fas fa-chevron-down ml-2"></i>
+                    </button>
+                    <div class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden" style="z-index: 10;">
+                        <div class="py-1">
+                            <a href="#" onclick="alert('Invoice generation coming soon'); return false;" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-file-pdf mr-2"></i>Generate Invoice
+                            </a>
+                            <a href="#" onclick="alert('Email customer coming soon'); return false;" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-envelope mr-2"></i>Email Customer
+                            </a>
+                            <div class="border-t border-gray-100"></div>
+                            <a href="{% url 'admin_panel:order_delete' object.pk %}" class="block px-4 py-2 text-sm text-red-700 hover:bg-red-50">
+                                <i class="fas fa-trash mr-2"></i>Delete Order
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="btn-group">
-        <a href="{% url 'admin_panel:order_update' object.pk %}" class="btn btn-primary">
-            <i class="bi bi-pencil me-2"></i>Edit Order
-        </a>
-        <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
-            <span class="visually-hidden">Toggle Dropdown</span>
-        </button>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#" onclick="alert('Invoice generation coming soon'); return false;">
-                <i class="bi bi-file-earmark-pdf me-2"></i>Generate Invoice
-            </a></li>
-            <li><a class="dropdown-item" href="#" onclick="alert('Email customer coming soon'); return false;">
-                <i class="bi bi-envelope me-2"></i>Email Customer
-            </a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="{% url 'admin_panel:order_delete' object.pk %}">
-                <i class="bi bi-trash me-2"></i>Delete Order
-            </a></li>
-        </ul>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Order Information -->
+            <div class="bg-white shadow rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Order Information</h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Order Date</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ object.created_at|date:"F d, Y g:i A" }}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Order Status</label>
+                            <p class="mt-1">
+                                {% if object.status %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        {{ object.get_status_display|default:object.status|title }}
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        Pending
+                                    </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Customer</label>
+                            <p class="mt-1 text-sm">
+                                {% if object.customer %}
+                                    <a href="{% url 'admin_panel:customer_detail' object.customer.pk %}" class="text-blue-600 hover:text-blue-800">
+                                        {{ object.customer.name|default:"Unknown Customer" }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-gray-500">No customer assigned</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700">Total Amount</label>
+                            <p class="mt-1 text-lg font-bold text-blue-600">
+                                ${{ object.total|default:"0.00"|floatformat:2 }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="bg-white shadow rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Order Items</h3>
+                </div>
+                <div class="p-6">
+                    {% if object.orderitem_set.exists %}
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for item in object.orderitem_set.all %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                                    <i class="fas fa-box text-blue-600 text-sm"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900">{{ item.product.name|default:"Unknown Product" }}</div>
+                                                    {% if item.product.sku %}
+                                                        <div class="text-sm text-gray-500">SKU: {{ item.product.sku }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.quantity|default:"1" }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ item.price|default:"0.00"|floatformat:2 }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {% widthratio item.quantity 1 item.price as item_total %}
+                                            ${{ item_total|floatformat:2 }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12">
+                            <i class="fas fa-box text-4xl text-gray-400 mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No items in this order</h3>
+                            <p class="text-gray-500">This order doesn't contain any items yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Order Summary -->
+            <div class="bg-white shadow rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Order Summary</h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-700">Order ID:</span>
+                            <span class="text-sm text-gray-900">#{{ object.id }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-700">Created:</span>
+                            <span class="text-sm text-gray-900">{{ object.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm font-medium text-gray-700">Updated:</span>
+                            <span class="text-sm text-gray-900">{{ object.updated_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 mt-4 pt-4">
+                        <div class="flex justify-between">
+                            <span class="text-base font-medium text-gray-900">Total Amount:</span>
+                            <span class="text-lg font-bold text-blue-600">${{ object.total|default:"0.00"|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Information -->
+            {% if object.customer %}
+            <div class="bg-white shadow rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Customer Information</h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-3">
+                        <div>
+                            <h4 class="text-base font-medium text-gray-900">{{ object.customer.name|default:"Unknown Customer" }}</h4>
+                        </div>
+                        {% if object.customer.email %}
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-envelope mr-2"></i>
+                            <span>{{ object.customer.email }}</span>
+                        </div>
+                        {% endif %}
+                        {% if object.customer.phone %}
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-phone mr-2"></i>
+                            <span>{{ object.customer.phone }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'admin_panel:customer_detail' object.customer.pk %}" class="w-full inline-flex justify-center items-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            View Customer Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quick Actions -->
+            <div class="bg-white shadow rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-3">
+                        <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" onclick="alert('Print order coming soon'); return false;">
+                            <i class="fas fa-print mr-2"></i>Print Order
+                        </button>
+                        <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-green-300 text-sm font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" onclick="alert('Mark as shipped coming soon'); return false;">
+                            <i class="fas fa-truck mr-2"></i>Mark as Shipped
+                        </button>
+                        <button class="w-full inline-flex items-center justify-center px-4 py-2 border border-yellow-300 text-sm font-medium rounded-md text-yellow-700 bg-white hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" onclick="alert('Request refund coming soon'); return false;">
+                            <i class="fas fa-undo mr-2"></i>Request Refund
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-lg-8">
-        <!-- Order Information -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Order Information</h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Order Date</label>
-                        <p class="mb-0">{{ object.created_at|date:"F d, Y g:i A" }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Order Status</label>
-                        <p class="mb-0">
-                            {% if object.status %}
-                                <span class="badge bg-primary">{{ object.get_status_display|default:object.status|title }}</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Pending</span>
-                            {% endif %}
-                        </p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Customer</label>
-                        <p class="mb-0">
-                            {% if object.customer %}
-                                <a href="{% url 'admin_panel:customer_detail' object.customer.pk %}" class="text-decoration-none">
-                                    {{ object.customer.name|default:"Unknown Customer" }}
-                                </a>
-                            {% else %}
-                                <span class="text-muted">No customer assigned</span>
-                            {% endif %}
-                        </p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Total Amount</label>
-                        <p class="mb-0 fw-bold text-primary">
-                            ${{ object.total|default:"0.00"|floatformat:2 }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Order Items -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Order Items</h5>
-            </div>
-            <div class="card-body">
-                {% if object.orderitem_set.exists %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Quantity</th>
-                                    <th>Unit Price</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in object.orderitem_set.all %}
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" 
-                                                 style="width: 32px; height: 32px;">
-                                                <i class="bi bi-box text-primary text-sm"></i>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-0">{{ item.product.name|default:"Unknown Product" }}</h6>
-                                                {% if item.product.sku %}
-                                                    <small class="text-muted">SKU: {{ item.product.sku }}</small>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>{{ item.quantity|default:"1" }}</td>
-                                    <td>${{ item.price|default:"0.00"|floatformat:2 }}</td>
-                                    <td class="fw-bold">
-                                        {% widthratio item.quantity 1 item.price as item_total %}
-                                        ${{ item_total|floatformat:2 }}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="text-center py-4 text-muted">
-                        <i class="bi bi-box fs-1 d-block mb-3"></i>
-                        <h6>No items in this order</h6>
-                        <p>This order doesn't contain any items yet.</p>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <!-- Order Summary -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="card-title mb-0">Order Summary</h6>
-            </div>
-            <div class="card-body">
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <strong>Order ID:</strong>
-                    </div>
-                    <div class="col-6">
-                        #{{ object.id }}
-                    </div>
-                    <div class="col-6">
-                        <strong>Created:</strong>
-                    </div>
-                    <div class="col-6">
-                        {{ object.created_at|date:"M d, Y" }}
-                    </div>
-                    <div class="col-6">
-                        <strong>Updated:</strong>
-                    </div>
-                    <div class="col-6">
-                        {{ object.updated_at|date:"M d, Y" }}
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row g-2">
-                    <div class="col-8">
-                        <strong>Total Amount:</strong>
-                    </div>
-                    <div class="col-4 text-end">
-                        <strong class="text-primary">${{ object.total|default:"0.00"|floatformat:2 }}</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Customer Information -->
-        {% if object.customer %}
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="card-title mb-0">Customer Information</h6>
-            </div>
-            <div class="card-body">
-                <div class="row g-2">
-                    <div class="col-12">
-                        <strong>{{ object.customer.name|default:"Unknown Customer" }}</strong>
-                    </div>
-                    {% if object.customer.email %}
-                    <div class="col-12">
-                        <small class="text-muted">
-                            <i class="bi bi-envelope me-1"></i>{{ object.customer.email }}
-                        </small>
-                    </div>
-                    {% endif %}
-                    {% if object.customer.phone %}
-                    <div class="col-12">
-                        <small class="text-muted">
-                            <i class="bi bi-telephone me-1"></i>{{ object.customer.phone }}
-                        </small>
-                    </div>
-                    {% endif %}
-                </div>
-                <div class="mt-3">
-                    <a href="{% url 'admin_panel:customer_detail' object.customer.pk %}" class="btn btn-sm btn-outline-primary w-100">
-                        View Customer Details
-                    </a>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Quick Actions -->
-        <div class="card">
-            <div class="card-header">
-                <h6 class="card-title mb-0">Quick Actions</h6>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <button class="btn btn-outline-primary btn-sm" onclick="alert('Print order coming soon'); return false;">
-                        <i class="bi bi-printer me-2"></i>Print Order
-                    </button>
-                    <button class="btn btn-outline-success btn-sm" onclick="alert('Mark as shipped coming soon'); return false;">
-                        <i class="bi bi-truck me-2"></i>Mark as Shipped
-                    </button>
-                    <button class="btn btn-outline-warning btn-sm" onclick="alert('Request refund coming soon'); return false;">
-                        <i class="bi bi-arrow-counterclockwise me-2"></i>Request Refund
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<script>
+function toggleDropdown(button) {
+    const dropdown = button.nextElementSibling;
+    dropdown.classList.toggle('hidden');
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!button.parentElement.contains(event.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+}
+</script>
 {% endblock %}
