@@ -191,6 +191,25 @@ class Company(models.Model):
         verbose_name_plural = "Companies"
 
 
+class Role(models.Model):
+    """
+    Role model for fine-grained authorization
+    Defines roles that can be assigned to users within companies
+    """
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    permissions = models.JSONField(default=list, help_text="List of permissions this role grants")
+    is_system_role = models.BooleanField(default=False, help_text="System-defined role that cannot be deleted")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        ordering = ['name']
+
+
 class UserCompany(models.Model):
     """
     Many-to-many relationship between Users and Companies with role-based access
@@ -255,6 +274,60 @@ class UserBranch(models.Model):
         unique_together = ['user', 'branch']
         verbose_name = "User Branch Assignment"
         verbose_name_plural = "User Branch Assignments"
+
+
+class AuditLog(models.Model):
+    """
+    Audit log model to track all user actions across the system
+    Especially important for Super Admin actions and security events
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='audit_logs')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True, related_name='audit_logs')
+    
+    # Action details
+    action = models.CharField(max_length=50)  # CREATE, READ, UPDATE, DELETE, LOGIN, etc.
+    resource_type = models.CharField(max_length=100)  # company, user, invoice, etc.
+    resource_id = models.CharField(max_length=100, null=True, blank=True)  # ID of the affected resource
+    
+    # Additional context
+    details = models.JSONField(default=dict, help_text="Additional details about the action")
+    
+    # Request context
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    
+    # Flags
+    is_security_event = models.BooleanField(default=False)  # Flag for security-related events
+    is_super_admin_action = models.BooleanField(default=False)  # Flag for super admin actions
+    
+    # Timestamps
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['user', '-timestamp']),
+            models.Index(fields=['company', '-timestamp']),
+            models.Index(fields=['action', '-timestamp']),
+            models.Index(fields=['is_security_event', '-timestamp']),
+            models.Index(fields=['is_super_admin_action', '-timestamp']),
+        ]
+        verbose_name = "Audit Log"
+        verbose_name_plural = "Audit Logs"
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.action} - {self.resource_type} ({self.timestamp})"
+    
+    def save(self, *args, **kwargs):
+        # Auto-flag super admin actions
+        if hasattr(self.user, 'is_super_admin') and self.user.is_super_admin:
+            self.is_super_admin_action = True
+        elif hasattr(self.user, 'role') and self.user.role == 'super_admin':
+            self.is_super_admin_action = True
+        elif hasattr(self.user, 'is_superuser') and self.user.is_superuser:
+            self.is_super_admin_action = True
+            
+        super().save(*args, **kwargs)
 
 
 

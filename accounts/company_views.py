@@ -17,6 +17,32 @@ def is_admin_user(user):
     return user.is_authenticated and (user.is_super_admin or user.role == 'super_admin' or user.is_superuser)
 
 
+def is_super_admin(user):
+    """Check if user is super admin only - for company creation and cross-company management"""
+    return user.is_authenticated and (user.is_super_admin or user.role == 'super_admin' or user.is_superuser)
+
+
+def is_company_admin(user, company):
+    """Check if user is admin for the specific company only"""
+    if not user.is_authenticated:
+        return False
+    
+    # Super admins can manage any company
+    if user.is_super_admin or user.role == 'super_admin' or user.is_superuser:
+        return True
+    
+    # Check if user is admin/manager for this specific company
+    try:
+        user_company = UserCompany.objects.get(
+            user=user,
+            company=company,
+            is_active=True
+        )
+        return user_company.role in ['admin', 'manager']
+    except UserCompany.DoesNotExist:
+        return False
+
+
 @login_required
 def company_switcher(request):
     """
@@ -39,14 +65,11 @@ def company_switcher(request):
 
 
 @login_required
+@user_passes_test(is_super_admin, login_url='/dashboard/')
 def switch_company(request, company_id):
     """
     Switch active company context (Super Admin only)
     """
-    # Only super admins can switch between companies
-    if not (request.user.is_super_admin or request.user.role == 'super_admin' or request.user.is_superuser):
-        messages.error(request, 'Only super administrators can switch between companies.')
-        return redirect('dashboard:home')
     
     # Verify user has access to this company
     try:
@@ -86,15 +109,12 @@ def switch_company(request, company_id):
 
 
 @login_required
+@user_passes_test(is_super_admin, login_url='/dashboard/')
 def create_company(request):
     """
     Create a new company with proper role-based management
     Only super admins can create companies
     """
-    # Check if user can create companies - only super admins
-    if not (request.user.is_super_admin or request.user.role == 'super_admin' or request.user.is_superuser):
-        messages.error(request, 'Only super administrators can create companies. Contact your system administrator.')
-        return redirect('dashboard:home')
     
     # Calculate company limits for context
     owned_companies = UserCompany.objects.filter(
@@ -154,18 +174,28 @@ def create_company(request):
 @login_required
 def company_list(request):
     """
-    List all companies user has access to - no subscription limits in Mama Eagle Enterprise
+    List companies user has access to based on their role:
+    - Super admins: All companies
+    - Company admins/managers: Only their assigned companies
     """
-    user_companies = UserCompany.objects.filter(
-        user=request.user,
-        is_active=True
-    ).select_related('company').order_by('-created_at')
+    if request.user.is_super_admin or request.user.role == 'super_admin' or request.user.is_superuser:
+        # Super admins can see all companies
+        user_companies = UserCompany.objects.filter(
+            is_active=True
+        ).select_related('company', 'user').order_by('-created_at')
+    else:
+        # Regular users can only see companies they're assigned to
+        user_companies = UserCompany.objects.filter(
+            user=request.user,
+            is_active=True
+        ).select_related('company').order_by('-created_at')
 
     companies_with_info = []
     for uc in user_companies:
         companies_with_info.append({
             'user_company': uc,
-            'is_current': uc.company == request.company,
+            'is_current': uc.company == getattr(request, 'company', None),
+            'can_manage': is_company_admin(request.user, uc.company),
         })
 
     context = {
@@ -178,23 +208,47 @@ def company_list(request):
 @login_required
 def company_detail(request, company_id):
     """
-    View and edit company details
+    View and edit company details - Company Admin or Super Admin Only
     """
-    # Verify user has access to this company
-    try:
-        user_company = UserCompany.objects.get(
-            user=request.user,
-            company_id=company_id,
-            is_active=True
-        )
-    except UserCompany.DoesNotExist:
-        messages.error(request, 'You do not have access to that company.')
-        return redirect('accounts:company_list')
+    company = get_object_or_404(Company, id=company_id)
+    
+    # Check if user has access to this company
+    if request.user.is_super_admin or request.user.role == 'super_admin' or request.user.is_superuser:
+        # Super admins can access any company
+        try:
+            user_company = UserCompany.objects.filter(
+                company=company,
+                is_active=True
+            ).first()
+            # If no user_company exists, create a temporary one for super admin
+            if not user_company:
+                user_company = UserCompany(
+                    user=request.user,
+                    company=company,
+                    role='admin',
+                    is_active=True
+                )
+        except:
+            user_company = UserCompany(
+                user=request.user,
+                company=company,
+                role='admin',
+                is_active=True
+            )
+    else:
+        # Regular users must be assigned to the company
+        try:
+            user_company = UserCompany.objects.get(
+                user=request.user,
+                company=company,
+                is_active=True
+            )
+        except UserCompany.DoesNotExist:
+            messages.error(request, 'You do not have access to that company.')
+            return redirect('dashboard:home')
 
-    company = user_company.company
-
-    # Handle form submission
-    if request.method == 'POST' and user_company.role in ['owner', 'admin']:
+    # Handle form submission - only company admins can edit
+    if request.method == 'POST' and is_company_admin(request.user, company):
         # Update company fields
         company.name = request.POST.get('name', company.name)
         company.registration_number = request.POST.get('registration_number', '')
@@ -237,7 +291,7 @@ def company_detail(request, company_id):
         'company': company,
         'user_company': user_company,
         'team_members': team_members,
-        'can_manage_company': request.user.is_super_admin or request.user.can_manage_company(company),
+        'can_manage_company': is_company_admin(request.user, company),
     }
 
     return render(request, 'accounts/company_detail.html', context)
@@ -301,15 +355,14 @@ def company_users(request, company_id):
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 def assign_user_to_company(request, company_id):
-    """Assign a user to a company with a role - Admin Only."""
+    """Assign a user to a company with a role - Super Admin or Company Admin Only."""
     company = get_object_or_404(Company, id=company_id)
     
-    # Check permissions
-    if not request.user.is_super_admin and not request.user.can_manage_company(company):
+    # Check permissions - either super admin or company admin for this specific company
+    if not is_company_admin(request.user, company):
         messages.error(request, 'You do not have permission to assign users to this company.')
-        return redirect('accounts:company_list')
+        return redirect('dashboard:home')
     
     if request.method == 'POST':
         form = UserCompanyAssignmentForm(request.POST, company=company, manager=request.user)
@@ -333,15 +386,14 @@ def assign_user_to_company(request, company_id):
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 def create_user_for_company(request, company_id):
-    """Create a new user and assign them to a company - Admin Only."""
+    """Create a new user and assign them to a company - Super Admin or Company Admin Only."""
     company = get_object_or_404(Company, id=company_id)
     
-    # Check permissions
-    if not request.user.is_super_admin and not request.user.can_manage_company(company):
+    # Check permissions - either super admin or company admin for this specific company
+    if not is_company_admin(request.user, company):
         messages.error(request, 'You do not have permission to create users for this company.')
-        return redirect('accounts:company_list')
+        return redirect('dashboard:home')
     
     if request.method == 'POST':
         form = CreateUserForCompanyForm(request.POST, company=company, manager=request.user)
@@ -362,16 +414,15 @@ def create_user_for_company(request, company_id):
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 def update_user_role_in_company(request, company_id, user_company_id):
-    """Update a user's role in a company - Admin Only."""
+    """Update a user's role in a company - Super Admin or Company Admin Only."""
     company = get_object_or_404(Company, id=company_id)
     user_company = get_object_or_404(UserCompany, id=user_company_id, company=company)
     
-    # Check permissions
-    if not request.user.is_super_admin and not request.user.can_manage_company(company):
+    # Check permissions - either super admin or company admin for this specific company
+    if not is_company_admin(request.user, company):
         messages.error(request, 'You do not have permission to update user roles in this company.')
-        return redirect('accounts:company_list')
+        return redirect('dashboard:home')
     
     # Prevent managers from updating their own role or other managers' roles
     if not request.user.is_super_admin:
@@ -403,16 +454,15 @@ def update_user_role_in_company(request, company_id, user_company_id):
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 def remove_user_from_company(request, company_id, user_company_id):
-    """Remove a user from a company - Admin Only."""
+    """Remove a user from a company - Super Admin or Company Admin Only."""
     company = get_object_or_404(Company, id=company_id)
     user_company = get_object_or_404(UserCompany, id=user_company_id, company=company)
     
-    # Check permissions
-    if not request.user.is_super_admin and not request.user.can_manage_company(company):
+    # Check permissions - either super admin or company admin for this specific company
+    if not is_company_admin(request.user, company):
         messages.error(request, 'You do not have permission to remove users from this company.')
-        return redirect('accounts:company_list')
+        return redirect('dashboard:home')
     
     # Prevent managers from removing themselves or other managers
     if not request.user.is_super_admin:

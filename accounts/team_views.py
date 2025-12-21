@@ -21,25 +21,36 @@ from .team_forms import (
     PermissionsForm, RoleTemplateForm, TeamMemberFilterForm
 )
 from .models import Company, UserCompany
+from .company_views import is_company_admin, is_super_admin
 
 User = get_user_model()
 DEBUG = settings.DEBUG
 
 
 def is_admin_user(user):
-    """Check if user is admin or super admin"""
+    """Check if user is admin or super admin (backward compatibility)"""
     return user.is_authenticated and (user.is_super_admin or user.role == 'super_admin' or user.is_superuser)
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 def team_dashboard(request):
     """
-    Main team management dashboard - Admin Only
+    Main team management dashboard - Company Admin or Super Admin Only
     """
-    company = request.user.company
+    # Get current company from session or user's primary company
+    company_id = request.session.get('active_company_id')
+    if company_id:
+        company = get_object_or_404(Company, id=company_id)
+    else:
+        company = request.user.company
+    
     if not company:
         messages.error(request, "You must be associated with a company to manage team members.")
+        return redirect('dashboard:home')
+    
+    # Check if user can manage this company
+    if not is_company_admin(request.user, company):
+        messages.error(request, 'You do not have permission to manage team members for this company.')
         return redirect('dashboard:home')
     
     # Get all team members
@@ -99,15 +110,25 @@ def team_dashboard(request):
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 @require_http_methods(["GET", "POST"])
 def invite_user(request):
     """
-    Invite a new user to the company - Admin Only
+    Invite a new user to the company - Company Admin or Super Admin Only
     """
-    company = request.user.company
+    # Get current company from session or user's primary company
+    company_id = request.session.get('active_company_id')
+    if company_id:
+        company = get_object_or_404(Company, id=company_id)
+    else:
+        company = request.user.company
+    
     if not company:
         messages.error(request, "You must be associated with a company to invite users.")
+        return redirect('dashboard:home')
+    
+    # Check if user can manage this company
+    if not is_company_admin(request.user, company):
+        messages.error(request, 'You do not have permission to invite users to this company.')
         return redirect('dashboard:home')
     
     if request.method == 'POST':
@@ -140,15 +161,24 @@ def invite_user(request):
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 @require_http_methods(["POST"])
 def bulk_invite(request):
     """
-    Invite multiple users at once - Admin Only
+    Invite multiple users at once - Company Admin or Super Admin Only
     """
-    company = request.user.company
+    # Get current company from session or user's primary company
+    company_id = request.session.get('active_company_id')
+    if company_id:
+        company = get_object_or_404(Company, id=company_id)
+    else:
+        company = request.user.company
+    
     if not company:
         return JsonResponse({'success': False, 'message': 'No company associated'}, status=400)
+    
+    # Check if user can manage this company
+    if not is_company_admin(request.user, company):
+        return JsonResponse({'success': False, 'message': 'Permission denied'}, status=403)
     
     form = BulkInviteForm(request.POST)
     if form.is_valid():
@@ -249,13 +279,27 @@ def cancel_invitation(request, invitation_id):
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 @require_http_methods(["GET", "POST"])
 def change_user_role(request, user_id):
     """
-    Change a user's role and department - Admin Only
+    Change a user's role and department - Company Admin or Super Admin Only
     """
-    company = request.user.company
+    # Get current company from session or user's primary company
+    company_id = request.session.get('active_company_id')
+    if company_id:
+        company = get_object_or_404(Company, id=company_id)
+    else:
+        company = request.user.company
+    
+    if not company:
+        messages.error(request, "You must be associated with a company.")
+        return redirect('dashboard:home')
+    
+    # Check if user can manage this company
+    if not is_company_admin(request.user, company):
+        messages.error(request, 'You do not have permission to manage users in this company.')
+        return redirect('dashboard:home')
+    
     user_company = get_object_or_404(UserCompany, user_id=user_id, company=company)
     
     if request.method == 'POST':
@@ -288,13 +332,25 @@ def change_user_role(request, user_id):
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 @require_http_methods(["POST"])
 def deactivate_user(request, user_id):
     """
-    Deactivate a team member
+    Deactivate a team member - Company Admin or Super Admin Only
     """
-    company = request.user.company
+    # Get current company from session or user's primary company
+    company_id = request.session.get('active_company_id')
+    if company_id:
+        company = get_object_or_404(Company, id=company_id)
+    else:
+        company = request.user.company
+    
+    if not company:
+        return JsonResponse({'success': False, 'message': 'No company associated'}, status=400)
+    
+    # Check if user can manage this company
+    if not is_company_admin(request.user, company):
+        return JsonResponse({'success': False, 'message': 'Permission denied'}, status=403)
+    
     user_company = get_object_or_404(UserCompany, user_id=user_id, company=company)
     
     # Prevent self-deactivation
@@ -317,13 +373,25 @@ def deactivate_user(request, user_id):
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 @require_http_methods(["POST"])
 def activate_user(request, user_id):
     """
-    Reactivate a team member - Admin Only
+    Reactivate a team member - Company Admin or Super Admin Only
     """
-    company = request.user.company
+    # Get current company from session or user's primary company
+    company_id = request.session.get('active_company_id')
+    if company_id:
+        company = get_object_or_404(Company, id=company_id)
+    else:
+        company = request.user.company
+    
+    if not company:
+        return JsonResponse({'success': False, 'message': 'No company associated'}, status=400)
+    
+    # Check if user can manage this company
+    if not is_company_admin(request.user, company):
+        return JsonResponse({'success': False, 'message': 'Permission denied'}, status=403)
+    
     user_company = get_object_or_404(UserCompany, user_id=user_id, company=company)
     
     user = user_company.user
@@ -342,12 +410,26 @@ def activate_user(request, user_id):
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 def manage_permissions(request, user_id):
     """
-    Manage user permissions - Admin Only
+    Manage user permissions - Company Admin or Super Admin Only
     """
-    company = request.user.company
+    # Get current company from session or user's primary company
+    company_id = request.session.get('active_company_id')
+    if company_id:
+        company = get_object_or_404(Company, id=company_id)
+    else:
+        company = request.user.company
+    
+    if not company:
+        messages.error(request, "You must be associated with a company.")
+        return redirect('dashboard:home')
+    
+    # Check if user can manage this company
+    if not is_company_admin(request.user, company):
+        messages.error(request, 'You do not have permission to manage permissions in this company.')
+        return redirect('dashboard:home')
+    
     user_company = get_object_or_404(UserCompany, user_id=user_id, company=company)
     
     # Get or create TeamMember
@@ -457,12 +539,26 @@ def manage_permissions(request, user_id):
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 def role_templates(request):
     """
-    Manage custom role templates - Admin Only
+    Manage custom role templates - Company Admin or Super Admin Only
     """
-    company = request.user.company
+    # Get current company from session or user's primary company
+    company_id = request.session.get('active_company_id')
+    if company_id:
+        company = get_object_or_404(Company, id=company_id)
+    else:
+        company = request.user.company
+    
+    if not company:
+        messages.error(request, "You must be associated with a company.")
+        return redirect('dashboard:home')
+    
+    # Check if user can manage this company
+    if not is_company_admin(request.user, company):
+        messages.error(request, 'You do not have permission to manage role templates in this company.')
+        return redirect('dashboard:home')
+    
     templates = RoleTemplate.objects.filter(company=company)
     
     context = {
@@ -473,12 +569,25 @@ def role_templates(request):
 
 
 @login_required
-@user_passes_test(is_admin_user, login_url='/dashboard/')
 def create_role_template(request):
     """
-    Create a new role template - Admin Only
+    Create a new role template - Company Admin or Super Admin Only
     """
-    company = request.user.company
+    # Get current company from session or user's primary company
+    company_id = request.session.get('active_company_id')
+    if company_id:
+        company = get_object_or_404(Company, id=company_id)
+    else:
+        company = request.user.company
+    
+    if not company:
+        messages.error(request, "You must be associated with a company.")
+        return redirect('dashboard:home')
+    
+    # Check if user can manage this company
+    if not is_company_admin(request.user, company):
+        messages.error(request, 'You do not have permission to create role templates for this company.')
+        return redirect('dashboard:home')
     
     if request.method == 'POST':
         form = RoleTemplateForm(request.POST)
