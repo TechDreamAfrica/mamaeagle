@@ -1,12 +1,12 @@
 """
-Django settings for DreamBiz Accounting - Modern AI-Powered Accounting Platform.
+Django settings for Somako Shop - Multi-Purpose E-commerce Platform.
 
-DreamBiz Accounting addresses QuickBooks limitations with:
-- Modern responsive UI with Tailwind CSS
-- Real-time collaboration
-- AI-powered insights and automation
-- Unlimited users and companies
-- Advanced reporting and analytics
+Somako Shop provides a comprehensive e-commerce solution with:
+- Modern responsive design with Tailwind CSS
+- Multi-category product management
+- Inventory management and tracking
+- Customer management and orders
+- Integrated accounting and reporting
 """
 
 import os

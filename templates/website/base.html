@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>{% block title %}Mama Eagle Enterprise - Your Trusted Plumbing Partner{% endblock %}</title>
+    <title>{% block title %}Somako Shop - Your One-Stop E-commerce Destination{% endblock %}</title>
     
     <!-- Tailwind CSS CDN for development -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -32,14 +32,14 @@
     <div class="bg-primary text-white py-2" id="top-bar">
         <div class="max-w-7xl mx-auto px-4 flex justify-between items-center text-sm">
             <div>
-                <span>📞 Call us: +233 549 690 311</span>
-                <span class="ml-4">📧 info@mamaeagle.com</span>
+                <span>📞 Call us: 0540 442 096</span>
+                <span class="ml-4">📧 info@somakoshop.com</span>
             </div>
             <div>
                 {% if user.is_authenticated %}
                     <span>Welcome, {{ user.get_full_name }}</span>
                 {% else %}
-                    <span>Quality Plumbing Solutions Since 2020</span>
+                    <span>Quality Products & Great Service Since 2020</span>
                 {% endif %}
             </div>
         </div>
@@ -53,11 +53,11 @@
                     <a href="{% url 'website:home' %}" class="flex items-center">
                         {% load static %}
                         <div class="w-35 h-14 overflow-hidden mr-3">
-                            <img src="{% static 'logo.png' %}" alt="Mama Eagle Logo" class="w-full h-full object-cover">
+                            <img src="{% static 'logo.png' %}" alt="Somako Shop Logo" class="w-full h-full object-cover">
                         </div>
                         <div>
-                            <div class="text-xl font-bold text-primary">Mama Eagle</div>
-                            <div class="text-xs text-gray-600">Plumbing and Trading Enterprise</div>
+                            <div class="text-xl font-bold text-primary">Somako Shop</div>
+                            <div class="text-xs text-gray-600">Your One-Stop E-commerce Destination</div>
                         </div>
                     </a>
                 </div>
@@ -74,12 +74,14 @@
                         </button>
                         <div class="absolute left-0 mt-2 w-64 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                             <div class="py-2">
-                                <a href="{% url 'website:product_list' %}?category=pipes-fittings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">🔧 Pipes & Fittings</a>
-                                <a href="{% url 'website:product_list' %}?category=bathroom-fixtures" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">🚿 Bathroom Fixtures</a>
-                                <a href="{% url 'website:product_list' %}?category=kitchen-plumbing" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">🍽️ Kitchen Plumbing</a>
-                                <a href="{% url 'website:product_list' %}?category=water-heaters" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">🔥 Water Heaters</a>
-                                <a href="{% url 'website:product_list' %}?category=pumps-motors" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">⚙️ Pumps & Motors</a>
-                                <a href="{% url 'website:product_list' %}?category=tools-equipment" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">🔨 Tools & Equipment</a>
+                                <a href="{% url 'website:product_list' %}?category=electronics" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">📱 Electronics</a>
+                                <a href="{% url 'website:product_list' %}?category=fashion" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">👕 Fashion</a>
+                                <a href="{% url 'website:product_list' %}?category=home-garden" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">🏠 Home & Garden</a>
+                                <a href="{% url 'website:product_list' %}?category=sports-outdoors" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">⚽ Sports & Outdoors</a>
+                                <a href="{% url 'website:product_list' %}?category=beauty-health" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">💄 Beauty & Health</a>
+                                <a href="{% url 'website:product_list' %}?category=books-media" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">📚 Books & Media</a>
+                                <a href="{% url 'website:product_list' %}?category=automotive" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">🚗 Automotive</a>
+                                <a href="{% url 'website:product_list' %}?category=toys-games" class="block px-4 py-2 text-sm text-gray-700 hover:bg-light-blue">🎲 Toys & Games</a>
                             </div>
                         </div>
                     </div>
@@ -91,7 +93,7 @@
                     <!-- Search -->
                     <div class="hidden md:block">
                         <form method="GET" action="{% url 'website:product_list' %}" class="flex">
-                            <input type="search" name="search" placeholder="Search plumbing products..." 
+                            <input type="search" name="search" placeholder="Search products..." 
                                    class="px-3 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-primary focus:border-transparent w-64">
                             <button type="submit" class="bg-primary text-white px-4 py-2 rounded-r-md hover:bg-primary-dark">
                                 🔍
@@ -203,6 +205,20 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- WhatsApp Floating Button -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <a href="https://wa.me/233540442096?text=Hello%21%20I%20need%20help%20with%20shopping%20on%20Somako%20Shop" 
+           target="_blank" 
+           class="bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition duration-300 flex items-center justify-center group hover:shadow-xl">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.525 3.687"/>
+            </svg>
+            <span class="ml-2 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap absolute right-full mr-3 bg-gray-900 text-white px-3 py-1 rounded-lg">
+                Chat with us
+            </span>
+        </a>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-accent text-white mt-16">
         <div class="max-w-7xl mx-auto px-4 py-12">
@@ -211,11 +227,11 @@
                     <div class="flex items-center mb-4">
                         {% load static %}
                         <div class="w-40 h-12 overflow-hidden mr-3">
-                            <img src="{% static 'logo.png' %}" alt="Mama Eagle Logo" class="w-full h-full object-cover">
+                            <img src="{% static 'logo.png' %}" alt="Somako Shop Logo" class="w-full h-full object-cover">
                         </div>
                         <div>
-                            <div class="text-xl font-bold">Mama Eagle</div>
-                            <div class="text-xs text-gray-300">Plumbing and Trading Enterprise</div>
+                            <div class="text-xl font-bold">Somako Shop</div>
+                            <div class="text-xs text-gray-300">Your E-commerce Destination</div>
                         </div>
                     </div>
                     <p class="text-gray-300">
@@ -256,15 +272,15 @@
                         <li class="flex items-start">
                             <span class="mr-2">📧</span>
                             <div>
-                                <div>info@mamaeagle.com</div>
-                                <div>support@mamaeagle.com</div>
+                                <div>info@somakoshop.com</div>
+                                <div>support@somakoshop.com</div>
                             </div>
                         </li>
                         <li class="flex items-start">
                             <span class="mr-2">📞</span>
                             <div>
-                                <div>+233 549 690 311</div>
-                                <div class="text-sm">24/7 Emergency Line</div>
+                                <div>0540 442 096</div>
+                                <div class="text-sm">24/7 Customer Line</div>
                             </div>
                         </li>
                         <li class="flex items-start">
